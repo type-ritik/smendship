@@ -1,6 +1,29 @@
 import ChatEditor from "./ChatEditor";
 
-export default function ChatComponent() {
+export default function ChatComponent({chatUserId}) {
+  console.log("Userid",chatUserId)
+
+  const baseUrl = "http://localhost:4000/graphql";
+
+  const chatRoomExist = () => {
+    const chkChatRoomExitence = async () => {
+      const res = await fetch(baseUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          query: `
+          mutation ($userId: String!) {
+
+          }
+          `
+          ,variables: {userId: chatUserId}
+        })
+      })
+    }
+  }
+
   return (
     <div className="w-full h-[80vh] bg-blue-950 border-2 p-2! border-blue-950 rounded-sm text-white relative">
       <h1 className="py-2! w-full h-14  flex justify-center text-2xl text-blue-500 font-semibold border-b-2 border-blue-950 bg-blue-50 left-0 top-0 absolute z-10">

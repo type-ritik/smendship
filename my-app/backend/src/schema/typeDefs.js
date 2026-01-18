@@ -76,7 +76,10 @@ const typeDefs = gql`
   }
 
   type Message {
-    message: String
+    id: String!
+    content: String!
+    sender: User!
+    chatRoom: ChatRoom!
   }
 
   type FriendRequestPayload {
@@ -98,11 +101,20 @@ const typeDefs = gql`
     liked: Boolean!
   }
 
+  type Friendship {
+    id: String!
+    user1: User!
+    user2: User!
+  }
+
   type Query {
     hello: String!
     getpost(id: String!): PostPayload
     getcomments(postId: String!): CommentsPayload
     getNotification: [Notification!]!
+    friendChatList(userId: String!): [Friendship!]!
+    chatRoomChatList(chatRoomId: String): [Message!]!
+    userChatRoomId(userId: String!): [Participant!]!
   }
 
   type Mutation {

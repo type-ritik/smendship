@@ -65,6 +65,58 @@ const resolvers = {
         mycomment,
       };
     },
+    chatRoomChatList: async (_, { chatRoomId }, context) => {
+      const token = getToken(context);
+      if (!token) throw new AuthenticationError("Unauthorized");
+
+      const chatMsgList = await prisma.message.findMany({
+        where: { chatRoomId },
+        include: {
+          chatRoom: true,
+          sender: true,
+        },
+      });
+
+      console.log("List of chat-msg ", Array.isArray(chatMsgList));
+
+      console.log("List ", chatMsgList);
+
+      return chatMsgList;
+    },
+    userChatRoomId: async (_, { userId }, context) => {
+      const participantList = await prisma.participant.findMany({
+        where: { userId: userId },
+        include: {
+          user: true,
+          chatRoom: true,
+        },
+      });
+
+      console.log("Participant list", participantList);
+
+      return participantList;
+    },
+    friendChatList: async (_, { userId }, context) => {
+      // const token = getToken(context);
+      // if (!token) throw new AuthenticationError("Unauthorized");
+
+      const friendList = await prisma.friendship.findMany({
+        where: { OR: [{ user1Id: userId }, { user2Id: userId }] },
+        include: {
+          user1: true,
+          user2: true,
+        },
+      });
+
+      console.log(
+        "Get the List of ChatroomId is Array ",
+        Array.isArray(friendList)
+      );
+
+      console.log("List: ", friendList);
+
+      return friendList;
+    },
   },
   Mutation: {
     // Mutation is like a router for GraphQL

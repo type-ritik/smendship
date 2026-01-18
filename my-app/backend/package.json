@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "A Facebook Clone web application, relevent features of Facebook like chat, notification, friend Request and profile , post like feature",
   "main": "./src/index.js",
   "type": "module",
   "scripts": {
@@ -9,8 +9,13 @@
     "start": "node ./src/index.js",
     "dev": "nodemon ./src/index.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "Facebook",
+    "Facebook clone",
+    "Friendship smash",
+    "Facebook Clone web application"
+  ],
+  "author": "Ritik Sharma",
   "license": "ISC",
   "overrides": {
     "brace-expansion": "^2.0.2",
