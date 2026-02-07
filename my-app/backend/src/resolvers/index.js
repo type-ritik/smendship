@@ -1,17 +1,12 @@
 // File: backend/src/resolvers/index.js
-import bcrypt, { compareSync } from "bcrypt";
-import jwt from "jsonwebtoken";
-import {
-  AuthenticationError,
-  UserInputError,
-  ValidationError,
-} from "apollo-server-express";
-import prisma from "../config/prismaConfig.js";
-import {
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { prisma } = require("../config/prismaConfig");
+const {
   FRIEND_REQUEST_ACCEPTED,
   FRIEND_REQUEST_SENT,
-} from "../config/pubsub.js";
-import pubsub from "../subscription/pubsub.js";
+} = require("../config/pubsub");
+const pubsub = require("../subscription/pubsub");
 // import { subscribeToNotify } from "../utils/subscriber.js";
 
 const resolvers = {
@@ -110,7 +105,7 @@ const resolvers = {
 
       console.log(
         "Get the List of ChatroomId is Array ",
-        Array.isArray(friendList)
+        Array.isArray(friendList),
       );
 
       console.log("List: ", friendList);
@@ -131,7 +126,7 @@ const resolvers = {
         password === ""
       ) {
         throw new UserInputError(
-          "Invalid User Credentials! Please fill required Fields"
+          "Invalid User Credentials! Please fill required Fields",
         );
       }
 
@@ -143,7 +138,7 @@ const resolvers = {
 
       const token = jwt.sign(
         { userId: newUser.id, role: newUser.role },
-        process.env.JWT_SECRET
+        process.env.JWT_SECRET,
       );
 
       return {
@@ -159,7 +154,7 @@ const resolvers = {
     login: async (_, { email, password }) => {
       if (!email || !password || email === "" || password === "") {
         throw new UserInputError(
-          "Invalid User Credentials! Please fill required Fields"
+          "Invalid User Credentials! Please fill required Fields",
         );
       }
 
@@ -179,7 +174,7 @@ const resolvers = {
         process.env.JWT_SECRET,
         {
           expiresIn: "7d",
-        }
+        },
       );
       if (!token) {
         throw new AuthenticationError("UnAuthentic Account");
@@ -545,7 +540,7 @@ const resolvers = {
 
         console.log(
           stabilizedFriendship,
-          "\n Friendship is accepted successfully"
+          "\n Friendship is accepted successfully",
         );
 
         await pubsub.publish(FRIEND_REQUEST_ACCEPTED, {
@@ -767,4 +762,4 @@ async function updateNotification({
   });
 }
 
-export default resolvers;
+module.exports = resolvers;
