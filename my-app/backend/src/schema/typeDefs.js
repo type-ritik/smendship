@@ -1,5 +1,5 @@
 // File: backend/src/schema/typeDefs.js
-import { gql } from "apollo-server-express";
+const { gql } = require("graphql-tag");
 
 const typeDefs = gql`
   type Post {
@@ -160,4 +160,4 @@ const typeDefs = gql`
   }
 `;
 
-export default typeDefs;
+module.exports = typeDefs;

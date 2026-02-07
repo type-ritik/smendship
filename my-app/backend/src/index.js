@@ -1,50 +1,34 @@
 // File: backend/src/index.js
-import express from "express";
-import { ApolloServer } from "apollo-server-express";
-import dotenv from "dotenv";
-import cors from "cors";
-import { useServer } from "graphql-ws/use/ws";
-import { makeExecutableSchema } from "@graphql-tools/schema";
-import { WebSocketServer } from "ws";
-import http from "http";
+const express = require("express");
+const { ApolloServer } = require("@apollo/server");
+require("dotenv").config();
+const cors = require("cors");
+const typeDefs = require("./schema/typeDefs");
+const resolvers = require("./resolvers/index");
+const bodyParser = require("body-parser");
+const { expressMiddleware } = require("@as-integrations/express4");
+const { getContext } = require("./utils/context");
 
-import typeDefs from "./schema/typeDefs.js";
-import resolvers from "./resolvers/index.js";
-import connectDB from "./config/db.js";
+async function startServer() {
+  const app = express();
 
-dotenv.config();
-const app = express();
-app.use(cors());
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+  });
 
-connectDB();
-
-const schema = makeExecutableSchema({ typeDefs, resolvers });
-
-const server = new ApolloServer({
-  schema,
-  context: ({ req }) => {
-    const authHeader = req.headers.authorization || "";
-    const token = authHeader.startsWith("Bearer ")
-      ? authHeader.split(" ")[1]
-      : "";
-    return { token };
-  },
-});
-
-await server.start();
-server.applyMiddleware({ app });
-
-const httpServer = http.createServer(app);
-
-const wsServer = new WebSocketServer({
-  server: httpServer,
-  path: "/graphql",
-});
-
-useServer({ schema }, wsServer);
-
-httpServer.listen({ port: process.env.PORT || 4000 }, () => {
-  console.log(
-    `🚀 Server ready at http://localhost:${process.env.PORT}${server.graphqlPath}`
+  await server.start();
+  app.use(
+    "/graphql",
+    cors(),
+    express.json(),
+    bodyParser.json(),
+    expressMiddleware(server, { context: getContext }),
   );
-});
+
+  return app;
+}
+
+module.exports = {
+  startServer,
+};
