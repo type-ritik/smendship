@@ -7,6 +7,12 @@ const {
   FRIEND_REQUEST_SENT,
 } = require("../config/pubsub");
 const pubsub = require("../subscription/pubsub");
+const {
+  isValidEmail,
+  isValidPassword,
+  isValidName,
+} = require("../utils/UserUtils");
+const { userLogin, createAccount } = require("../services/UserAuthServices");
 // import { subscribeToNotify } from "../utils/subscriber.js";
 
 const resolvers = {
@@ -117,77 +123,50 @@ const resolvers = {
     // Mutation is like a router for GraphQL
     // And mutation work like POST
     signup: async (_, { name, email, password }) => {
-      if (
-        !name ||
-        !email ||
-        !password ||
-        name === "" ||
-        email === "" ||
-        password === ""
-      ) {
-        throw new UserInputError(
-          "Invalid User Credentials! Please fill required Fields",
+      if (!isValidEmail(email)) {
+        throw new Error("Invalid Email! Please provide a valid email address.");
+      }
+
+      if (!isValidName(name)) {
+        throw new Error(
+          "Invalid Name! Name must be at least 3 characters long.",
         );
       }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
+      if (!isValidPassword(password)) {
+        throw new Error(
+          "Invalid Password! Password must be at least 8 characters long.",
+        );
+      }
 
-      const newUser = await prisma.user.create({
-        data: { name, email, password: hashedPassword },
-      });
+      try {
+        const response = await createAccount(name, email, password);
 
-      const token = jwt.sign(
-        { userId: newUser.id, role: newUser.role },
-        process.env.JWT_SECRET,
-      );
-
-      return {
-        token,
-        user: {
-          id: newUser.id,
-          name: newUser.name,
-          email: newUser.email,
-          createdAt: newUser.createdAt,
-        },
-      };
+        return response;
+      } catch (error) {
+        console.log(`[SignUp Error]: ${error.message}`);
+        throw new Error(error.message);
+      }
     },
     login: async (_, { email, password }) => {
-      if (!email || !password || email === "" || password === "") {
-        throw new UserInputError(
-          "Invalid User Credentials! Please fill required Fields",
+      if (!isValidEmail(email)) {
+        throw new Error("Invalid Email! Please provide a valid email address.");
+      }
+
+      if (!isValidPassword(password)) {
+        throw new Error(
+          "Invalid Password! Password must be at least 8 characters long.",
         );
       }
 
-      const reqUser = await prisma.user.findUnique({
-        where: {
-          email,
-        },
-      });
+      try {
+        const response = await userLogin(email, password);
 
-      if (!reqUser) throw new ValidationError("Invalid User");
-
-      const valid = await bcrypt.compare(password, reqUser.password);
-      if (!valid) throw new ValidationError("Invalid Password");
-
-      const token = jwt.sign(
-        { userId: reqUser.id, role: reqUser.role },
-        process.env.JWT_SECRET,
-        {
-          expiresIn: "7d",
-        },
-      );
-      if (!token) {
-        throw new AuthenticationError("UnAuthentic Account");
+        return response;
+      } catch (error) {
+        console.log(`[Login Error]: ${error.message}`);
+        throw new Error(error.message);
       }
-      return {
-        token,
-        user: {
-          id: reqUser.id,
-          name: reqUser.name,
-          email: reqUser.email,
-          createdAt: reqUser.createdAt,
-        },
-      };
     },
     createpost: async (_, { title, content, category }, context) => {
       const userId = getUserIdFromToken(context);

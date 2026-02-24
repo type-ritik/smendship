@@ -9,43 +9,38 @@ datasource db {
 
 model Notification {
   id         String   @id @default(uuid()) @db.Uuid
+  notifiedAt DateTime @default(now()) @db.Timestamp(6)
   fromUserId String   @db.Uuid
+  isRead     Boolean  @default(false)
+  postId     String?  @db.Uuid
   toUserId   String   @db.Uuid
   type       String
-  postId     String?  @db.Uuid
-  isRead     Boolean  @default(false)
-  notifiedAt DateTime @default(now()) @db.Timestamp(6)
-
-  user1 User  @relation("sendBy", fields: [fromUserId], references: [id])
-  user2 User  @relation("receiveBy", fields: [toUserId], references: [id])
-  post  Post? @relation(fields: [postId], references: [id])
+  user1      User     @relation("sendBy", fields: [fromUserId], references: [id])
+  post       Post?    @relation(fields: [postId], references: [id])
+  user2      User     @relation("receiveBy", fields: [toUserId], references: [id])
 }
 
 model FriendRequest {
   id          String    @id @default(uuid()) @db.Uuid
   senderId    String    @db.Uuid
   receiverId  String    @db.Uuid
-  isAccepted  Boolean? // null -> PENDING, true -> ACCEPTED, false -> REJECTED
+  isAccepted  Boolean?
   requestedAt DateTime  @default(now()) @db.Timestamp(6)
   acceptedAt  DateTime? @updatedAt
-
-  type     Request // e.g., 'FRIEND_REQUEST_SENT, 'FRIEND_REQUEST_ACCEPTED'
-  sender   User    @relation("SenderRequests", fields: [senderId], references: [id])
-  receiver User    @relation("ReceiverRequests", fields: [receiverId], references: [id])
+  type        Request
+  receiver    User      @relation("ReceiverRequests", fields: [receiverId], references: [id])
+  sender      User      @relation("SenderRequests", fields: [senderId], references: [id])
 
   @@unique([senderId, receiverId])
 }
 
 model Friendship {
-  id      String @id @default(uuid()) @db.Uuid
-  user1Id String @db.Uuid
-  user2Id String @db.Uuid
-
+  id        String   @id @default(uuid()) @db.Uuid
+  user1Id   String   @db.Uuid
+  user2Id   String   @db.Uuid
   createdAt DateTime @default(now()) @db.Timestamp(6)
-
-  // notification Notification @relation(fields: [notifyId], references: [id])
-  user1 User @relation("User1Friends", fields: [user1Id], references: [id])
-  user2 User @relation("User2Friends", fields: [user2Id], references: [id])
+  user1     User     @relation("User1Friends", fields: [user1Id], references: [id])
+  user2     User     @relation("User2Friends", fields: [user2Id], references: [id])
 
   @@unique([user1Id, user2Id])
 }
@@ -56,10 +51,9 @@ model CommentLike {
   postId    String   @db.Uuid
   commentId String   @db.Uuid
   createdAt DateTime @default(now()) @db.Timestamp(6)
-
-  user    User    @relation(fields: [userId], references: [id])
-  post    Post    @relation(fields: [postId], references: [id])
-  comment Comment @relation(fields: [commentId], references: [id])
+  comment   Comment  @relation(fields: [commentId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, postId, commentId])
 }
@@ -69,83 +63,77 @@ model PostLike {
   userId    String   @db.Uuid
   postId    String   @db.Uuid
   createdAt DateTime @default(now()) @db.Timestamp(6)
+  post      Post     @relation(fields: [postId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
-  user User @relation(fields: [userId], references: [id])
-  post Post @relation(fields: [postId], references: [id])
-
-  @@unique([userId, postId]) // Ensures 1 like per user per post
+  @@unique([userId, postId])
 }
 
 model Comment {
-  id        String   @id @default(uuid()) @db.Uuid
-  comment   String
-  authorId  String?  @db.Uuid
-  postId    String?  @db.Uuid
-  createdAt DateTime @default(now()) @db.Timestamp(6)
-  likeCount Int      @default(0)
-
+  id          String        @id @default(uuid()) @db.Uuid
+  comment     String
+  authorId    String?       @db.Uuid
+  postId      String?       @db.Uuid
+  createdAt   DateTime      @default(now()) @db.Timestamp(6)
+  likeCount   Int           @default(0)
   author      User?         @relation(fields: [authorId], references: [id])
   Post        Post?         @relation(fields: [postId], references: [id])
   CommentLike CommentLike[]
 }
 
 model Post {
-  id        String   @id @default(uuid()) @db.Uuid
-  title     String
-  content   String
-  authorId  String   @db.Uuid
-  createdAt DateTime @default(now()) @db.Timestamp(6)
-  likeCount Int      @default(0)
-
+  id           String         @id @default(uuid()) @db.Uuid
+  title        String
+  content      String
+  authorId     String         @db.Uuid
+  createdAt    DateTime       @default(now()) @db.Timestamp(6)
+  likeCount    Int            @default(0)
   category     Category       @default(UNDEFINED)
-  author       User           @relation(fields: [authorId], references: [id])
+  is_revoked   Boolean?       @default(false)
   Comment      Comment[]
-  postLikes    PostLike[]
   CommentLike  CommentLike[]
   Notification Notification[]
+  author       User           @relation(fields: [authorId], references: [id])
+  postLikes    PostLike[]
 }
 
 model User {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String   @db.VarChar(100)
-  email     String   @unique @db.VarChar(100)
-  password  String   @db.VarChar(255)
-  createdAt DateTime @default(now()) @db.Timestamp(6)
-
-  posts                 Post[]
-  Comment               Comment[]
-  postLikes             PostLike[]
-  CommentLike           CommentLike[]
+  id                    String          @id @default(uuid()) @db.Uuid
+  name                  String          @db.VarChar(100)
+  email                 String          @unique @db.VarChar(100)
+  password              String          @db.VarChar(255)
+  createdAt             DateTime        @default(now()) @db.Timestamp(6)
   role                  Role            @default(USER)
-  FriendRequestSent     FriendRequest[] @relation("SenderRequests")
+  status                user_status?    @default(ACTIVE)
+  Comment               Comment[]
+  CommentLike           CommentLike[]
   FriendRequestReceived FriendRequest[] @relation("ReceiverRequests")
+  FriendRequestSent     FriendRequest[] @relation("SenderRequests")
   Friendships1          Friendship[]    @relation("User1Friends")
   Friendships2          Friendship[]    @relation("User2Friends")
   Message               Message[]       @relation("UserMessages")
-  Participant           Participant[]
   Notification1         Notification[]  @relation("sendBy")
   Notification2         Notification[]  @relation("receiveBy")
-
-  // Notification Notification[]
+  Participant           Participant[]
+  posts                 Post[]
+  postLikes             PostLike[]
 }
 
 model ChatRoom {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String? // chat-room name
-  isGroup   Boolean  @default(false) // is there any chat-room acive
-  createdAt DateTime @default(now()) @db.Timestamp(6)
-
+  id           String        @id @default(uuid()) @db.Uuid
+  name         String?
+  isGroup      Boolean       @default(false)
+  createdAt    DateTime      @default(now()) @db.Timestamp(6)
   messages     Message[]
   participants Participant[]
 }
 
 model Participant {
-  id         String @id @default(uuid()) @db.Uuid
-  userId     String @db.Uuid
-  chatRoomId String @db.Uuid
-
-  user     User     @relation(fields: [userId], references: [id])
-  chatRoom ChatRoom @relation(fields: [chatRoomId], references: [id])
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  chatRoomId String   @db.Uuid
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, chatRoomId])
 }
@@ -156,9 +144,8 @@ model Message {
   seenAt     DateTime @default(now()) @db.Timestamp(6)
   senderId   String   @db.Uuid
   chatRoomId String   @db.Uuid
-
-  sender   User     @relation("UserMessages", fields: [senderId], references: [id])
-  chatRoom ChatRoom @relation(fields: [chatRoomId], references: [id])
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
+  sender     User     @relation("UserMessages", fields: [senderId], references: [id])
 }
 
 enum Role {
@@ -185,4 +172,9 @@ enum Msg {
   LIKE_POST
   CREATE_POST
   COMMENT_POST
+}
+
+enum user_status {
+  ACTIVE
+  SUSPENDED
 }
