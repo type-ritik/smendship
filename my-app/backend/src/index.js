@@ -7,7 +7,7 @@ const typeDefs = require("./schema/typeDefs");
 const resolvers = require("./resolvers/index");
 const bodyParser = require("body-parser");
 const { expressMiddleware } = require("@as-integrations/express4");
-const { getContext } = require("./utils/context");
+const { getContext } = require("./config/context");
 
 async function startServer() {
   const app = express();

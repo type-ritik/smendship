@@ -12,14 +12,14 @@ function verifyToken(token) {
   }
 }
 
-function genToken(userId, admin) {
+function generateToken(userId, isAdmin) {
   return jwt.sign(
     {
-      userId,
-      role: admin,
+      id: userId,
+      role: isAdmin,
     },
-    process.env.JWT_SECRET
+    process.env.JWT_SECRET,
   );
 }
 
-module.exports = { verifyToken, genToken };
+module.exports = { verifyToken, generateToken };

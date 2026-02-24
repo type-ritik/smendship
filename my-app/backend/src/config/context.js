@@ -1,6 +1,6 @@
-const { pubsub } = require("../subscription/pubsub");
+// const { pubsub } = require("../subscription/pubsub");
 // const { prisma } = require("./data/prisma");
-const { verifyToken } = require("./auth");
+const { verifyToken } = require("../services/JwtServices");
 
 // Context function to provide context to resolvers
 
