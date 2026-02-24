@@ -7,6 +7,7 @@ const {
   FRIEND_REQUEST_SENT,
 } = require("../config/pubsub");
 const pubsub = require("../subscription/pubsub");
+const { retriveAllPostByUserId } = require("../services/PostServices");
 const {
   isValidEmail,
   isValidPassword,
@@ -51,6 +52,21 @@ const resolvers = {
       return {
         post,
       };
+    },
+    getAllPost: async (_, obj, context) => {
+      const userId = getUserIdFromToken(context);
+      if (!userId) {
+        throw new AuthenticationError("Unauthorized Access");
+      }
+
+      try {
+        const payload = await retriveAllPostByUserId(userId);
+
+        return payload;
+      } catch (error) {
+        console.log("[Server Error]: ", error.message);
+        throw new Error(error.message);
+      }
     },
     getcomments: async (_, { postId }, context) => {
       const token = getToken(context);
