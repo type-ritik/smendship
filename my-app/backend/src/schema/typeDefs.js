@@ -110,6 +110,7 @@ const typeDefs = gql`
   type Query {
     hello: String!
     getpost(id: String!): PostPayload
+    getAllPost: [PostPayload]
     getcomments(postId: String!): CommentsPayload
     getNotification: [Notification!]!
     friendChatList(userId: String!): [Friendship!]!
