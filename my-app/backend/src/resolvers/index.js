@@ -1,5 +1,4 @@
 // File: backend/src/resolvers/index.js
-const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { prisma } = require("../config/prismaConfig");
 const {
@@ -12,8 +11,13 @@ const {
   isValidEmail,
   isValidPassword,
   isValidName,
+  isValidUUID,
 } = require("../utils/UserUtils");
 const { userLogin, createAccount } = require("../services/UserAuthServices");
+const {
+  deleteUserById,
+  updateUserProfile,
+} = require("../services/UserServices");
 // import { subscribeToNotify } from "../utils/subscriber.js";
 
 const resolvers = {
@@ -54,9 +58,9 @@ const resolvers = {
       };
     },
     getAllPost: async (_, obj, context) => {
-      const userId = getUserIdFromToken(context);
+      const userId = context.user.id;
       if (!userId) {
-        throw new AuthenticationError("Unauthorized Access");
+        throw new Error("Unauthorized Access");
       }
 
       try {
@@ -158,6 +162,10 @@ const resolvers = {
       try {
         const response = await createAccount(name, email, password);
 
+        if (!response) {
+          throw new Error("Signup failed! Please try again.");
+        }
+
         return response;
       } catch (error) {
         console.log(`[SignUp Error]: ${error.message}`);
@@ -177,6 +185,10 @@ const resolvers = {
 
       try {
         const response = await userLogin(email, password);
+
+        if (!response) {
+          throw new Error("Login failed! Please check your credentials.");
+        }
 
         return response;
       } catch (error) {
@@ -309,54 +321,66 @@ const resolvers = {
         throw new Error("Internal Server Error");
       }
     },
-    updateprofile: async (_, { name, email }, context) => {
-      const userId = getUserIdFromToken(context);
-      if (!userId) throw new AuthenticationError("Unauthorized");
+    updateprofile: async (_, { input }, context) => {
+      const userId = context.user.id;
 
-      const data = {};
-
-      if (name) {
-        data["name"] = name;
+      if (!userId) {
+        throw new Error("Unauthorized Access");
       }
 
-      if (email) {
-        data["email"] = email;
+      if (!isValidUUID(userId)) {
+        throw new Error("Unauthorized Access");
       }
 
-      const user = await prisma.user.update({
-        where: { id: userId },
-        data,
-      });
+      try {
+        const response = await updateUserProfile(input, userId);
 
-      const token = getToken(context);
-      if (!token) throw new AuthenticationError("Priviledged violation");
+        if (!response) {
+          throw new Error("Error updating user profile");
+        }
 
-      return {
-        token,
-        user,
-      };
+        return response;
+      } catch (error) {
+        console.log(`[Update Profile Error]: ${error.message}`);
+        throw new Error(error.message);
+      }
     },
     deleteuser: async (_, { id }, context) => {
-      const userId = getUserIdFromToken(context);
-      if (!userId) throw new AuthenticationError("Unauthorized");
+      const userId = context.user.id;
+      const role = context.user.role;
 
-      const isAdmin = checkIsAdmin(context);
-      if (
-        isAdmin === undefined ||
-        isAdmin === null ||
-        isAdmin === "" ||
-        !isAdmin ||
-        isAdmin.toLowerCase() === "user"
-      )
-        throw new AuthenticationError("Unauthorized");
+      if (!userId) {
+        throw new Error("Unauthorized Access");
+      }
 
-      await prisma.user.delete({
-        where: { id },
-      });
+      if (!role) {
+        throw new Error("Unauthorized Access");
+      }
 
-      return {
-        message: "User removed Successfully",
-      };
+      if (!isValidUUID(userId)) {
+        throw new Error("Unauthorized Access");
+      }
+
+      if (!id) {
+        throw new Error("User ID is required");
+      }
+
+      if (!isValidUUID(id)) {
+        throw new Error("Invalid User ID");
+      }
+
+      try {
+        const response = await deleteUserById(id, userId, role);
+
+        if (!response) {
+          throw new Error("Error Deactivating user");
+        }
+
+        return response;
+      } catch (error) {
+        console.log(`[Delete User Error]: ${error.message}`);
+        throw new Error(error.message);
+      }
     },
     createcomment: async (_, { comment, postId }, context) => {
       const authorId = getUserIdFromToken(context);

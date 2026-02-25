@@ -17,6 +17,22 @@ async function createUser(name, email, password) {
   }
 }
 
+async function deactivateUserById(id) {
+  try {
+    const deactivatedUser = await prisma.user.update({
+      where: { id },
+      data: {
+        is_activated: false,
+      },
+    });
+
+    return !!deactivateUserById;
+  } catch (error) {
+    console.log(`[User Repository Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+}
+
 async function getUserById(id) {
   try {
     const user = await prisma.user.findFirst({
@@ -68,9 +84,39 @@ async function existsUserByEmail(email) {
   }
 }
 
+async function existsUserById(id) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id },
+    });
+
+    return !!user;
+  } catch (error) {
+    console.log(`[User Repository Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+}
+
+async function updateUserFieldsById(data, id) {
+  try {
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data,
+    });
+
+    return updatedUser;
+  } catch (error) {
+    console.log(`[User Repository Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+}
+
 module.exports = {
   getUserById,
   getUserByEmail,
   existsUserByEmail,
   createUser,
+  existsUserById,
+  deactivateUserById,
+  updateUserFieldsById,
 };
