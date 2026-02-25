@@ -63,7 +63,7 @@ const typeDefs = gql`
     id: ID!
     name: String!
     email: String!
-    createdAt: String!
+    createdAt: String
   }
 
   type AuthPayload {
@@ -107,6 +107,24 @@ const typeDefs = gql`
     user2: User!
   }
 
+  type DeactivateUserPayload {
+    status: String!
+    message: String!
+  }
+
+  type UpdateProfilePayload {
+    status: String!
+    message: String!
+    user: User
+    lastUpdated: String
+  }
+
+  input UpdateUserInput {
+    name: String
+    email: String
+    password: String
+  }
+
   type Query {
     hello: String!
     getpost(id: String!): PostPayload
@@ -122,8 +140,8 @@ const typeDefs = gql`
     signup(name: String!, email: String!, password: String!): AuthPayload
     login(email: String!, password: String!): AuthPayload
 
-    updateprofile(name: String, email: String): AuthPayload
-    deleteuser(id: String!): Message
+    updateprofile(input: UpdateUserInput!): UpdateProfilePayload
+    deleteuser(id: String!): DeactivateUserPayload
 
     createpost(title: String!, content: String!, category: String!): PostPayload
     likepost(postId: ID!): LikeResponse!

@@ -105,6 +105,7 @@ model User {
   createdAt             DateTime        @default(now()) @db.Timestamp(6)
   role                  Role            @default(USER)
   status                user_status?    @default(ACTIVE)
+  is_activated          Boolean?        @default(true)
   Comment               Comment[]
   CommentLike           CommentLike[]
   FriendRequestReceived FriendRequest[] @relation("ReceiverRequests")
