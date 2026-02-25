@@ -6,7 +6,11 @@ const {
   FRIEND_REQUEST_SENT,
 } = require("../config/pubsub");
 const pubsub = require("../subscription/pubsub");
-const { retriveAllPostByUserId } = require("../services/PostServices");
+const {
+  retriveAllPostByUserId,
+  retrivePostByPostId,
+  createNewPost,
+} = require("../services/PostServices");
 const {
   isValidEmail,
   isValidPassword,
@@ -44,18 +48,32 @@ const resolvers = {
       });
     },
     getpost: async (_, { id }, context) => {
-      const userId = getUserIdFromToken(context);
-      if (!userId) throw new AuthenticationError("Unauthorized");
+      const userId = context.user.id;
 
-      const post = await prisma.post.findUnique({
-        where: {
-          id,
-        },
-      });
+      if (!userId) {
+        throw new Error("Unauthorized Access");
+      }
 
-      return {
-        post,
-      };
+      if (!isValidUUID(userId)) {
+        throw new Error("Unauthorized Access");
+      }
+
+      if (!isValidUUID(id)) {
+        throw new Error("Invalid Post ID");
+      }
+
+      try {
+        const payload = await retrivePostByPostId(id, userId);
+
+        if (!payload) {
+          throw new Error("Error retriving post");
+        }
+
+        return payload;
+      } catch (error) {
+        console.log("[Server Error]: ", error.message);
+        throw new Error(error.message);
+      }
     },
     getAllPost: async (_, obj, context) => {
       const userId = context.user.id;
@@ -65,6 +83,14 @@ const resolvers = {
 
       try {
         const payload = await retriveAllPostByUserId(userId);
+
+        if (!payload) {
+          throw new Error("Error retriving posts");
+        }
+
+        if (payload.length < 1) {
+          throw new Error("No posts found for the user");
+        }
 
         return payload;
       } catch (error) {
@@ -197,28 +223,48 @@ const resolvers = {
       }
     },
     createpost: async (_, { title, content, category }, context) => {
-      const userId = getUserIdFromToken(context);
-      if (!userId) throw new AuthenticationError("Unauthorized");
+      const userId = context.user.id;
 
-      const post = await prisma.post.create({
-        data: {
-          title,
-          content,
-          category,
-          authorId: userId,
-        },
-        include: {
-          author: true,
-        },
-      });
-      return {
-        post: {
-          id: userId,
-          title,
-          content,
-          category,
-        },
-      };
+      if (!userId) {
+        throw new Error("Unauthorized Access");
+      }
+
+      if (!isValidUUID(userId)) {
+        throw new Error("Unauthorized Access");
+      }
+
+      if (!category) {
+        throw new Error("Category is required");
+      }
+
+      if (!title) {
+        throw new Error("Title is required");
+      }
+
+      if (!content) {
+        throw new Error("Content is required");
+      }
+
+      if (title.length < 5) {
+        throw new Error("Title must be at least 5 characters long");
+      }
+
+      if (content.length < 5) {
+        throw new Error("Content must be at least 5 characters long");
+      }
+
+      try {
+        const payload = await createNewPost(title, content, category, userId);
+
+        if (!payload) {
+          throw new Error("Error creating post");
+        }
+
+        return payload;
+      } catch (error) {
+        console.log("[Server Error]: ", error.message);
+        throw new Error(error.message);
+      }
     },
     updatepost: async (_, { id, title, content, category }, context) => {
       const userId = getUserIdFromToken(context);
