@@ -125,6 +125,12 @@ const typeDefs = gql`
     password: String
   }
 
+  input UpdatePostInput {
+    title: String
+    content: String
+    category: String
+  }
+
   type Query {
     hello: String!
     getpost(id: String!): PostPayload
@@ -145,12 +151,7 @@ const typeDefs = gql`
 
     createpost(title: String!, content: String!, category: String!): PostPayload
     likepost(postId: ID!): LikeResponse!
-    updatepost(
-      id: String!
-      title: String
-      content: String
-      category: String
-    ): PostPayload
+    updatepost(id: String!, input: UpdatePostInput): PostPayload
     deletepost(id: String!): Message
 
     createcomment(comment: String!, postId: String!): CommentPayload
