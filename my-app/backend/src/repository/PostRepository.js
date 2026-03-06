@@ -5,6 +5,7 @@ async function getAllPostByUserId(userId) {
     const posts = await prisma.post.findMany({
       where: {
         authorId: userId,
+        is_revoked: false,
       },
       orderBy: {
         createdAt: "desc",
@@ -39,7 +40,7 @@ async function getAllPostByUserId(userId) {
 async function getPostByPostId(id) {
   try {
     const post = await prisma.post.findUnique({
-      where: { id },
+      where: { id, is_revoked: false },
     });
 
     return post;
@@ -80,9 +81,71 @@ async function createPost(title, content, category, userId) {
   }
 }
 
+async function existedPostByIdAndUserId(id, userId) {
+  try {
+    const post = await prisma.post.findUnique({
+      where: { id, is_revoked: false, authorId: userId },
+    });
+
+    return !!post;
+  } catch (error) {
+    console.log(`[Post Repository Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+}
+
+async function getPostByIdAndUserId(id, userId) {
+  try {
+    const post = await prisma.post.findUnique({
+      where: {
+        id,
+        authorId: userId,
+        is_revoked: false,
+      },
+    });
+
+    return post;
+  } catch (error) {
+    console.log(`[Post Repository Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+}
+
+async function updatePostById(id, userId, data) {
+  try {
+    const updatedPost = await prisma.post.update({
+      where: { id, authorId: userId, is_revoked: false },
+      data,
+    });
+
+    return updatedPost;
+  } catch (error) {
+    console.log(`[Post Repository Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+}
+
+async function revokedPostByPostIdAndUserId(id, userId) {
+  try {
+    const revokedPost = await prisma.post.update({
+      where: { id, authorId: userId, is_revoked: false },
+      data: { is_revoked: true },
+    });
+
+    return revokedPost.is_revoked;
+  } catch (error) {
+    console.log(`[Post Repository Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+}
+
 module.exports = {
   getAllPostByUserId,
   getPostByPostId,
   existedPostByTitleAndUserIdAndIsNotRevoked,
   createPost,
+  existedPostByIdAndUserId,
+  updatePostById,
+  getPostByIdAndUserId,
+  revokedPostByPostIdAndUserId,
 };

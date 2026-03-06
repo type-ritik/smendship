@@ -266,41 +266,64 @@ const resolvers = {
         throw new Error(error.message);
       }
     },
-    updatepost: async (_, { id, title, content, category }, context) => {
-      const userId = getUserIdFromToken(context);
-      if (!userId) throw new AuthenticationError("Unauthorized");
+    updatepost: async (_, { id, input }, context) => {
+      const userId = context.user.id;
 
-      const data = {};
-      if (title) {
-        data["title"] = title;
-      }
-      if (content) {
-        data["content"] = content;
+      if (!userId) {
+        throw new Error("Unauthorized Access");
       }
 
-      if (category) {
-        data["category"] = category;
+      if (!isValidUUID(userId)) {
+        throw new Error("Unauthorized Access");
       }
 
-      const post = await prisma.post.update({
-        where: { id },
-        data,
-      });
-      return {
-        post,
-      };
+      if (!isValidUUID(id)) {
+        throw new Error("Invalid Post ID");
+      }
+
+      if (input.length < 1) {
+        throw new Error("Input is required");
+      }
+
+      try {
+        const payload = await editPost(id, input, userId);
+
+        if (!payload) {
+          throw new Error("Error updating post");
+        }
+        return payload;
+      } catch (error) {
+        console.log("[Server Error]: ", error.message);
+        throw new Error(error.message);
+      }
     },
     deletepost: async (_, { id }, context) => {
-      const userId = getUserIdFromToken(context);
-      if (!userId) throw new AuthenticationError("Unauthorized");
+      const userId = context.user.id;
 
-      const post = await prisma.post.delete({
-        where: { id },
-      });
+      if (!userId) {
+        throw new Error("Unauthorized Access");
+      }
 
-      return {
-        message: "Post deleted Successfully",
-      };
+      if (!isValidUUID(userId)) {
+        throw new Error("Unauthorized Access");
+      }
+
+      if (!isValidUUID(id)) {
+        throw new Error("Invalid Post ID");
+      }
+
+      try {
+        const payload = await deletePost(id, userId);
+
+        if (!payload) {
+          throw new Error("Error deleting post");
+        }
+
+        return payload;
+      } catch (error) {
+        console.log("[Server Error]: ", error.message);
+        throw new Error(error.message);
+      }
     },
     likepost: async (_, { postId }, context) => {
       const userId = getUserIdFromToken(context);

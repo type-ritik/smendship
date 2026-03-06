@@ -11,6 +11,9 @@ const {
   getPostByPostId,
   existedPostByTitleAndUserIdAndIsNotRevoked,
   createPost,
+  updatePostById,
+  existedPostByIdAndUserId,
+  revokedPostByPostIdAndUserId,
 } = require("../repository/PostRepository");
 
 async function retriveAllPostByUserId(userId) {
@@ -129,4 +132,84 @@ async function createNewPost(title, content, category, userId) {
   }
 }
 
-module.exports = { retriveAllPostByUserId, retrivePostByPostId, createNewPost };
+async function editPost(id, input, userId) {
+  try {
+    const isUserExisted = await existsUserById(userId);
+
+    if (!isUserExisted) {
+      throw new Error("User not found");
+    }
+
+    const isPostExisted = await existedPostByIdAndUserId(id, userId);
+
+    if (!isPostExisted) {
+      throw new Error("Post not found");
+    }
+
+    const data = {};
+
+    if (input.title) {
+      data.title = input.title;
+    }
+
+    if (input.content) {
+      data.content = input.content;
+    }
+
+    if (input.category) {
+      data.category = input.category;
+    }
+
+    const updatedPost = await updatePostById(id, userId, data);
+
+    if (!updatedPost) {
+      throw new Error("Failed to update post");
+    }
+
+    delete updatedPost.is_revoked;
+
+    return {
+      post: updatedPost,
+    };
+  } catch (error) {
+    console.log(`[Post Service Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+}
+
+async function removePost(id, userId) {
+  try {
+    const isUserExisted = await existsUserById(userId);
+
+    if (!isUserExisted) {
+      throw new Error("User not found");
+    }
+
+    const isPostExisted = await existedPostByIdAndUserId(id, userId);
+
+    if (!isPostExisted) {
+      throw new Error("Post not found");
+    }
+
+    const isPostRevoked = revokedPostByPostIdAndUserId(id, userId);
+
+    if (!isPostRevoked) {
+      throw new Error("Failed to remove post");
+    }
+
+    return {
+      message: "Post removed successfully",
+    };
+  } catch (error) {
+    console.log(`[Post Service Error]: `, error.message);
+    throw new Error(error.message);
+  }
+}
+
+module.exports = {
+  retriveAllPostByUserId,
+  retrivePostByPostId,
+  createNewPost,
+  editPost,
+  removePost,
+};
