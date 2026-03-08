@@ -326,68 +326,27 @@ const resolvers = {
       }
     },
     likepost: async (_, { postId }, context) => {
-      const userId = getUserIdFromToken(context);
-      if (!userId) throw new AuthenticationError("Unauthorized");
+      const userId = context.user.id;
 
-      const token = getToken(context);
-      if (!token) throw new AuthenticationError("Priviledged violation!");
+      if (!isValidUUID(userId)) {
+        throw new Error("Unauthorized Access");
+      }
+
+      if (!isValidUUID(postId)) {
+        throw new Error("Invalid Post ID");
+      }
 
       try {
-        const existing = await prisma.postLike.findUnique({
-          where: {
-            userId_postId: { userId, postId },
-          },
-        });
+        const payload = await likePost(postId, userId);
 
-        if (existing) {
-          const dislike = await prisma.postLike.delete({
-            where: {
-              id: existing.id,
-            },
-          });
-
-          const likeCount = await prisma.postLike.count({
-            where: {
-              postId,
-            },
-          });
-
-          const setPostLikes = await prisma.post.update({
-            where: {
-              id: postId,
-            },
-            data: {
-              likeCount,
-            },
-          });
-          return { liked: false };
-        } else {
-          const like = await prisma.postLike.create({
-            data: {
-              userId,
-              postId,
-            },
-          });
-
-          const likeCount = await prisma.postLike.count({
-            where: {
-              postId,
-            },
-          });
-
-          const setPostLikes = await prisma.post.update({
-            where: {
-              id: postId,
-            },
-            data: {
-              likeCount,
-            },
-          });
-
-          return { liked: true };
+        if (!payload) {
+          throw new Error("Error liking post");
         }
-      } catch (err) {
-        throw new Error("Internal Server Error");
+
+        return !!payload;
+      } catch (error) {
+        console.log("[Server Error]: ", error.message);
+        throw new Error(error.message);
       }
     },
     updateprofile: async (_, { input }, context) => {

@@ -15,6 +15,9 @@ const {
   existedPostByIdAndUserId,
   revokedPostByPostIdAndUserId,
 } = require("../repository/PostRepository");
+const {
+  likeOrUnlikePostByUserId,
+} = require("../repository/PostLikeRepository");
 
 async function retriveAllPostByUserId(userId) {
   try {
@@ -206,10 +209,35 @@ async function removePost(id, userId) {
   }
 }
 
+async function togglePostLike(userId, postId) {
+  try {
+    const isPostExisted = await getPostByPostId(postId);
+
+    if (!isPostExisted) {
+      throw new Error("Post not found");
+    }
+    if (isPostExisted.is_revoked) {
+      throw new Error("Post is revoked");
+    }
+
+    const toggleLike = await likeOrUnlikePostByUserId(userId, isPostExisted.id);
+
+    if (!toggleLike) {
+      throw new Error("Failed to toggle like");
+    }
+
+    return toggleLike;
+  } catch (error) {
+    console.log(`[Post Service Error]: `, error.message);
+    throw new Error(error.message);
+  }
+}
+
 module.exports = {
   retriveAllPostByUserId,
   retrivePostByPostId,
   createNewPost,
   editPost,
   removePost,
+  togglePostLike,
 };
