@@ -63,6 +63,7 @@ model PostLike {
   userId    String   @db.Uuid
   postId    String   @db.Uuid
   createdAt DateTime @default(now()) @db.Timestamp(6)
+  is_liked  Boolean? @default(true)
   post      Post     @relation(fields: [postId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
 
