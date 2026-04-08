@@ -1,10 +1,5 @@
 // File: backend/src/resolvers/index.js
-const jwt = require("jsonwebtoken");
 const { prisma } = require("../config/prismaConfig");
-const {
-  FRIEND_REQUEST_ACCEPTED,
-  FRIEND_REQUEST_SENT,
-} = require("../config/pubsub");
 const pubsub = require("../subscription/pubsub");
 const {
   retriveAllPostByUserId,
@@ -22,6 +17,18 @@ const {
   deleteUserById,
   updateUserProfile,
 } = require("../services/UserServices");
+const {
+  fetchAllCommentsOnPost,
+  createNewComment,
+  editComment,
+  revokedComment,
+  toggleCommentLike,
+} = require("../services/CommentService");
+const {
+  sendFriendRequest,
+  acceptFriendRequest,
+} = require("../services/FriendRequestServices");
+const { chatRoomActivate } = require("../services/ChatServices");
 // import { subscribeToNotify } from "../utils/subscriber.js";
 
 const resolvers = {
@@ -39,7 +46,7 @@ const resolvers = {
     // Query work like GET
     hello: () => "Hello World! 🌍",
     getNotification: async (_, __, context) => {
-      const userId = getUserIdFromToken(context);
+      const userId = context.user.id;
       if (!userId) throw new AuthenticationError("Unauthorized");
 
       return await prisma.notification.findMany({
@@ -99,22 +106,32 @@ const resolvers = {
       }
     },
     getcomments: async (_, { postId }, context) => {
-      const token = getToken(context);
-      if (!token) throw new AuthenticationError("Priveledged violation!");
+      const userId = context.user.id;
 
-      const mycomment = await prisma.comment.findMany({
-        where: {
-          postId,
-        },
-      });
-      return {
-        token,
-        mycomment,
-      };
+      if (!isValidUUID(userId)) {
+        throw new Error("Unauthorized Access");
+      }
+
+      if (!isValidUUID(postId)) {
+        throw new Error("Invalid Post ID");
+      }
+
+      try {
+        const comments = await fetchAllCommentsOnPost(postId);
+
+        if (!comments) {
+          throw new Error("Error fetching comments");
+        }
+
+        return comments;
+      } catch (error) {
+        console.log("[Server Error]: ", error.message);
+        throw new Error(error.message);
+      }
     },
     chatRoomChatList: async (_, { chatRoomId }, context) => {
-      const token = getToken(context);
-      if (!token) throw new AuthenticationError("Unauthorized");
+      const userId = context.user.id;
+      if (!userId) throw new Error("Unauthorized");
 
       const chatMsgList = await prisma.message.findMany({
         where: { chatRoomId },
@@ -343,7 +360,10 @@ const resolvers = {
           throw new Error("Error liking post");
         }
 
-        return !!payload;
+        return {
+          liked: !!payload,
+          message: "User liked post successfully!",
+        };
       } catch (error) {
         console.log("[Server Error]: ", error.message);
         throw new Error(error.message);
@@ -411,280 +431,169 @@ const resolvers = {
       }
     },
     createcomment: async (_, { comment, postId }, context) => {
-      const authorId = getUserIdFromToken(context);
-      if (!authorId) throw new AuthenticationError("Unauthorized");
+      const userId = context.user.id;
 
-      const token = getToken(context);
-      if (!token) throw new AuthenticationError("Priviledged violation!");
+      if (!isValidUUID(userId)) {
+        throw new Error("Unauthorized Access");
+      }
 
-      const mycomment = await prisma.comment.create({
-        data: { comment, postId, authorId },
-      });
+      if (!isValidUUID(postId)) {
+        throw new Error("Invalid Post ID");
+      }
 
-      return {
-        token,
-        mycomment,
-      };
-    },
-    updatecomment: async (_, { comment, id }, context) => {
-      const authorId = getUserIdFromToken(context);
-      if (!authorId) throw new AuthenticationError("Unauthorized");
-
-      const token = getToken(context);
-      if (!token) throw new AuthenticationError("Priveledged violation!");
-
-      const mycomment = await prisma.comment.update({
-        where: {
-          id,
-        },
-        data: {
-          comment,
-        },
-      });
-
-      return {
-        token,
-        mycomment,
-      };
-    },
-    deletecomment: async (_, { id }, context) => {
-      const authorId = getUserIdFromToken(context);
-      if (!authorId) throw new AuthenticationError("Unauthorized");
-
-      const token = getToken(context);
-      if (!token) throw new AuthenticationError("Priveledged violation!");
-
-      await prisma.comment.delete({
-        where: { id },
-      });
-
-      return {
-        message: "Comment deleted Successfully!",
-      };
-    },
-    likecomment: async (_, { postId, commentId }, context) => {
-      const userId = getUserIdFromToken(context);
-      if (!userId) throw new AuthenticationError("Unauthorized");
+      if (!comment || comment.toString().length < 1) {
+        throw new Error("Comment must not be empty");
+      }
 
       try {
-        const existing = await prisma.commentLike.findUnique({
-          where: {
-            userId_postId_commentId: { userId, postId, commentId },
-          },
-        });
+        const comment = await createNewComment(comment, postId, userId);
 
-        if (existing) {
-          const dislike = await prisma.commentLike.delete({
-            where: { id: existing.id },
-          });
-
-          const likeCount = await prisma.commentLike.count({
-            where: {
-              commentId,
-            },
-          });
-
-          const setCommentLike = await prisma.comment.update({
-            where: {
-              id: commentId,
-            },
-            data: { likeCount },
-          });
-
-          return {
-            liked: false,
-          };
-        } else {
-          const like = await prisma.commentLike.create({
-            data: {
-              userId,
-              postId,
-              commentId,
-            },
-          });
-
-          const likeCount = await prisma.commentLike.count({
-            where: {
-              commentId,
-            },
-          });
-
-          const setCommentLike = await prisma.comment.update({
-            where: {
-              id: commentId,
-            },
-            data: { likeCount },
-          });
-
-          return {
-            liked: true,
-          };
+        if (!comment) {
+          throw new Error("Error creating comment");
         }
+
+        return comment;
+      } catch (error) {
+        console.log("[Server Error]: ", error.message);
+        throw new Error(error.message);
+      }
+    },
+    updatecomment: async (_, { comment, commentId }, context) => {
+      const userId = context.user.id;
+
+      if (!isValidUUID(userId)) {
+        throw new Error("Unauthorized Access");
+      }
+
+      if (!isValidUUID(commentId)) {
+        throw new Error("Invalid Comment ID");
+      }
+
+      if (!comment || comment.toString().length < 1) {
+        throw new Error("Comment must not be empty");
+      }
+
+      try {
+        const updatedComment = await editComment(comment, commentId, userId);
+
+        if (!updatedComment) {
+          throw new Error("Error updating comment");
+        }
+
+        return updatedComment;
+      } catch (error) {
+        console.log("[Server Error]: ", error.message);
+        throw new Error(error.message);
+      }
+    },
+    deletecomment: async (_, { commentId }, context) => {
+      const userId = context.user.id;
+
+      if (!isValidUUID(userId)) {
+        throw new Error("Unauthorized Access");
+      }
+
+      if (!isValidUUID(commentId)) {
+        throw new Error("Invalid Comment ID");
+      }
+
+      try {
+        const deletedComment = await revokedComment(commentId, userId);
+
+        if (!deletedComment) {
+          throw new Error("Error deleting comment");
+        }
+
+        return deletedComment;
+      } catch (error) {
+        console.log("[Server Error]: ", error.message);
+        throw new Error(error.message);
+      }
+    },
+    likecomment: async (_, { postId, commentId }, context) => {
+      const userId = context.user.id;
+
+      if (!isValidUUID(userId)) {
+        throw new Error("Unauthorized Access");
+      }
+
+      if (!isValidUUID(postId)) {
+        throw new Error("Invalid Post ID");
+      }
+
+      if (!isValidUUID(commentId)) {
+        throw new Error("Invalid Comment ID");
+      }
+
+      try {
+        const likeOrUnlike = await toggleCommentLike(commentId, userId, postId);
+
+        if (!likeOrUnlike) {
+          throw new Error("Error toggling like on comment");
+        }
+
+        return likeOrUnlike;
       } catch (error) {
         throw new Error("Internal Server Error!");
       }
     },
     friendSendRequest: async (_, { receiverId }, context) => {
-      const senderId = getUserIdFromToken(context);
-      if (!senderId) throw new AuthenticationError("Unauthorized");
+      const userId = context.user.id;
+      try {
+        if (!isValidUUID(userId)) {
+          throw new Error("Unauthorized Access");
+        }
 
-      const req = await prisma.friendRequest.create({
-        data: { senderId, receiverId, type: "FRIEND_REQUEST_SENT" },
-      });
+        if (!isValidUUID(receiverId)) {
+          throw new Error("Invalid Receiver ID");
+        }
 
-      console.log(req, "\n Request is saved successfully");
+        const payload = await sendFriendRequest(userId, receiverId);
 
-      const notification = await createNotification({
-        type: "CHAT_ROOM_ACTIVATED",
-        toUserId: receiverId,
-        fromUserId: senderId,
-      });
-
-      console.log("activate chat");
-
-      console.log(notification);
-      console.log("targetuserId", receiverId);
-
-      pubsub.publish(`notify:${receiverId}`, {
-        iNotified: notification,
-      });
-
-      // real-time publish (online user) --> When user1 is send request user2 notify
-      await pubsub.publish(FRIEND_REQUEST_SENT, {
-        friendSentRequest: { req },
-      });
+        return payload;
+      } catch (error) {
+        console.log("[Friend Request Error]: ", error.message);
+        throw new Error(error.message);
+      }
     },
     friendAcceptRequest: async (_, { requestId }, context) => {
-      const reqAccept = await prisma.friendRequest.update({
-        where: { id: requestId },
-        data: {
-          isAccepted: true,
-          acceptedAt: new Date(),
-          type: "FRIEND_REQUEST_ACCEPTED",
-        },
-      });
+      try {
+        if (!isValidUUID(requestId)) {
+          throw new Error("Invalid Request ID");
+        }
 
-      const getUserInfo = await prisma.friendRequest.findUnique({
-        where: { id: requestId },
-      });
+        const payload = await acceptFriendRequest(requestId);
 
-      const isFriend = await prisma.friendship.findFirst({
-        where: {
-          OR: [
-            { user1Id: getUserInfo.senderId, user2Id: getUserInfo.receiverId },
-            { user1Id: getUserInfo.receiverId, user2Id: getUserInfo.senderId },
-          ],
-        },
-      });
-
-      if (!isFriend) {
-        const stabilizedFriendship = await prisma.friendship.create({
-          data: {
-            user1Id: getUserInfo.senderId,
-            user2Id: getUserInfo.receiverId,
-          },
-        });
-
-        console.log(
-          stabilizedFriendship,
-          "\n Friendship is accepted successfully",
-        );
-
-        await pubsub.publish(FRIEND_REQUEST_ACCEPTED, {
-          friendAcceptedRequest: {
-            reqAccept,
-          },
-        });
-        console.log("All done successfully");
-      } else {
-        console.log("Friendship already exists!");
+        return payload;
+      } catch (error) {
+        console.log("[Accept Friend Request Error]: ", error.message);
+        throw new Error(error.message);
       }
     },
 
     activateChatRoom: async (_, { targetUserId }, context) => {
-      const userId = getUserIdFromToken(context);
-      if (!userId) throw new AuthenticationError("Unauthorized");
+      try {
+        const userId = context.user.id;
+        if (!userId) throw new Error("Unauthorized");
 
-      const isChatRoomExist = await prisma.chatRoom.findFirst({
-        where: {
-          isGroup: false,
-          participants: {
-            some: {
-              userId,
-            },
-          },
-          AND: {
-            participants: {
-              some: {
-                userId: targetUserId,
-              },
-            },
-          },
-        },
-        include: {
-          participants: true,
-        },
-      });
+        if (!isValidUUID(targetUserId)) {
+          throw new Error("Invalid Target User ID");
+        }
 
-      if (isChatRoomExist) {
-        const notification = await createNotification({
-          type: "CHAT_ROOM_ACTIVATED",
-          toUserId: targetUserId,
-          fromUserId: userId,
-        });
-
-        console.log("activate chat");
-
-        console.log(notification);
-        console.log("targetuserId", targetUserId);
-
-        pubsub.publish(`notify:${targetUserId}`, {
-          iNotified: notification,
-        });
+        const payload = await chatRoomActivate(user, targetUserId);
 
         return {
-          id: isChatRoomExist.id,
+          id: payload.id,
+          isGroup: payload.isGroup,
         };
+      } catch (error) {
+        console.log("[Chat Room Activation Failed]: ", error.message);
+        throw new Error(error.message);
       }
-
-      const startChatRoom = await prisma.chatRoom.create({
-        data: {
-          isGroup: false,
-          participants: {
-            create: [
-              { user: { connect: { id: userId } } },
-              { user: { connect: { id: targetUserId } } },
-            ],
-          },
-        },
-        include: {
-          participants: true,
-        },
-      });
-
-      const notification = await createNotification({
-        type: "CHAT_ROOM_ACTIVATED",
-        toUserId: targetUserId,
-        fromUserId: userId,
-      });
-
-      console.log("activate chat");
-
-      console.log(notification);
-      console.log("targetuserId", targetUserId);
-
-      pubsub.publish(`notify:${targetUserId}`, {
-        iNotified: notification,
-      });
-
-      return {
-        id: startChatRoom.id,
-        isGroup: startChatRoom.isGroup,
-      };
     },
     textMessage: async (_, { chatRoomId, content }, context) => {
-      const userId = getUserIdFromToken(context);
-      if (!userId) throw new AuthenticationError("Unauthorized");
+      const userId = context.user.id;
+      if (!userId) throw new Error("Unauthorized");
 
       const msg = await prisma.message.create({
         data: {
@@ -709,8 +618,8 @@ const resolvers = {
       };
     },
     iNotify: async (_, { id }, context) => {
-      const userId = getUserIdFromToken(context);
-      if (!userId) throw new AuthenticationError("Unauthorized");
+      const userId = context.user.id;
+      if (!userId) throw new Error("Unauthorized");
 
       const notify = await prisma.notification.findUnique({
         where: { id },
@@ -749,64 +658,48 @@ const resolvers = {
   },
 };
 
-function getToken(context) {
-  const token = context.token;
-  return token;
-}
-
-function getUserIdFromToken(context) {
-  const token = context.token;
-  console.log(token);
-  try {
-    const verifiedToken = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(verifiedToken);
-    return verifiedToken.userId;
-  } catch (err) {
-    return null;
-  }
-}
-
-function checkIsAdmin(context) {
-  const token = context.token;
-  try {
-    const verifiedToken = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(verifiedToken.role);
-    return verifiedToken.role;
-  } catch (err) {
-    return null;
-  }
-}
-
-async function createNotification({
-  type,
-  fromUserId,
-  toUserId,
-  postId = null,
-}) {
-  if (fromUserId === toUserId) return null;
-
-  const notify = await prisma.notification.create({
-    data: { type, fromUserId, toUserId, postId },
-  });
-
-  return notify;
-}
-
-async function updateNotification({
-  id,
-  type,
-  fromUserId,
-  toUserId,
-  postId = null,
-}) {
-  console.log("Update test: ", type, fromUserId, toUserId);
-
-  if (fromUserId === toUserId) return null;
-
-  const notify = await prisma.notification.update({
-    where: { id },
-    data: { type },
-  });
-}
-
 module.exports = resolvers;
+// }
+
+// function checkIsAdmin(context) {
+//   const token = context.token;
+//   try {
+//     const verifiedToken = jwt.verify(token, process.env.JWT_SECRET);
+//     console.log(verifiedToken.role);
+//     return verifiedToken.role;
+//   } catch (err) {
+//     return null;
+//   }
+// }
+
+// async function createNotification({
+//   type,
+//   fromUserId,
+//   toUserId,
+//   postId = null,
+// }) {
+//   if (fromUserId === toUserId) return null;
+
+//   const notify = await prisma.notification.create({
+//     data: { type, fromUserId, toUserId, postId },
+//   });
+
+//   return notify;
+// }
+
+// async function updateNotification({
+//   id,
+//   type,
+//   fromUserId,
+//   toUserId,
+//   postId = null,
+// }) {
+//   console.log("Update test: ", type, fromUserId, toUserId);
+
+//   if (fromUserId === toUserId) return null;
+
+//   const notify = await prisma.notification.update({
+//     where: { id },
+//     data: { type },
+//   });
+// }
