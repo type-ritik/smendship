@@ -1,42 +1,41 @@
 import { Component } from "react";
-import { FaHome, FaFacebookMessenger, FaBell } from "react-icons/fa";
-import img from "../../assets/icons8-user-default-100.png";
+import { Link } from "react-router-dom";
 import "./Header.css";
-import { MdExplore } from "react-icons/md";
 
 export default class HeaderComponenet extends Component {
+  private navLink = [
+    { name: "Home", route: "/" },
+    {name: "Network", route: "/network"},
+    { name: "Message", route: "/message" },
+    { name: "Notification", route: "/notification" },
+    { name: "Profile", route: "/profile" },
+  ];
+
+  private name = "Facebook";
+
   render() {
     return (
-      <header className="flex justify-around w-full h-16 items-center">
-        <div id="logo" className="text-3xl w-2/5 font-semibold border-r-2 border-blue-950">
-          #Swormp
-        </div>
-        <div
-          id="nav"
-          className="flex self-center justify-between h-14 w-[800px] items-center bg-blue-950 rounded-full"
-        >
-          <div id="profile" className="flex w-14 justify-center items-center ">
-            <div id="img" className="cursor-pointer hover:w-13 w-12">
-              <img src={img} alt="default" />
-            </div>
-          </div>
-          <div
-            id="Home"
-            className="icons"
-          >
-            <FaHome />
-          </div>
-          <div id="chat" className="icons">
-            <FaFacebookMessenger />
-          </div>
-          <div id="notify" className="icons">
-            <FaBell />
-          </div>
-          <div id="explore" className="icons mr-2!">
-            <MdExplore />
+      <div className="w-full h-20 z-20 flex fixed justify-between bg-blue-200 top-0 left-0">
+        <div className="w-2/6 flex justify-center items-center">
+          <h1 className="text-3xl pr-5! pl-20! not-md:text-2xl font-bold text-blue-800">
+            {this.name}
+          </h1>
+          <div className="w-full">
+            <input type="search" name="search" id="search" placeholder="Find here..."  className="rounded-full! flex-1 flex text-base pl-5! bg-white!"/>
           </div>
         </div>
-      </header>
+        <div className="flex w-2/4 not-md:w-2/3 justify-end items-center">
+          <ul className="w-full flex justify-evenly uppercase font-semibold text-balance pr-20! not-md:text-[14px]">
+            {this.navLink.map((item, index) => (
+              <li key={index} className="hover:text-blue-500 w-full flex justify-end">
+                <Link to={item.route} className="focus:text-white">
+                  {item.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     );
   }
 }

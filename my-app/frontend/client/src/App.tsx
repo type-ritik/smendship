@@ -11,15 +11,23 @@ function App() {
   const [chatUserId, setChatUserId] = useState("");
   return (
     <>
-      <div>
-        <Routes>
-          <Route path="auth/login" element={<LoginComponent />} />
-          <Route path="auth/signup" element={<SignupComponent />} />
-          <Route path="" element={<IndexPage />} />
-          <Route path="chat" element={<ChatBoxComponent chatUserId={chatUserId} />} />
-          <Route path="chat/user/list" element={<UsersChatList setChatUserId={setChatUserId} />} />
-        </Routes>
-      </div>
+      <Routes>
+        <Route path="auth/login" element={<LoginComponent />} />
+        <Route path="auth/signup" element={<SignupComponent />} />
+        <Route path="/" element={<IndexPage />}>
+          <Route
+            path="/message"
+            element={<ChatBoxComponent chatUserId={chatUserId} />}
+          />
+          <Route
+            path="/chat/user/list"
+            element={<UsersChatList setChatUserId={setChatUserId} />}
+          />
+          <Route path="/profile" element={<h1>Profile</h1>} />
+          <Route path="/network" element={<h1>Explore</h1>} />
+          <Route path="/notification" element={<h1>Notification</h1>} />
+        </Route>
+      </Routes>
     </>
   );
 }
