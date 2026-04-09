@@ -7,11 +7,11 @@ export default function EditorComponent() {
 
   return (
     <>
-      <div>
+      <div className="w-full border border-black rounded-xl">
         <div className="toolbar">
           <div className="profile_">
             <img src="" alt="" />
-            <p>Ritik Sharma</p>
+            <p>Name</p>
           </div>
           <div className="toolbar_image_ref" onClick={handleImage}></div>
           <input

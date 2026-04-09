@@ -1,23 +1,22 @@
-import { Component } from "react";
+// import { useEffect, useState } from "react";
 import HeaderComponenet from "../components/Header/HeaderComponenet";
-import EditorComponent from "../components/Editor/EditorComponent";
+import { Outlet, useLocation } from "react-router-dom";
+import HomeComponent from "../components/Home/HomeComponent";
 
-export default class IndexPage extends Component {
-  render() {
-    return (
-      <>
-        <div>
-          <HeaderComponenet />
-        </div>
-        <div
-          style={{
-            width: "100%",
-            padding: "0px 80px",
-          }}
-        >
-          <EditorComponent />
-        </div>
-      </>
-    );
-  }
+function IndexPage() {
+  const location = useLocation();
+
+  return (
+    <>
+      <div className="relative">
+        <HeaderComponenet />
+      </div>
+      <div className="w-fullr mt-30!">
+        {location.pathname === "/" && <HomeComponent />}
+        <Outlet />
+      </div>
+    </>
+  );
 }
+
+export default IndexPage;
