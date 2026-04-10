@@ -12,6 +12,7 @@ html, body {
 
 body {
     padding-inline: 60px;
+    background-color: azure;
 }
 
 @media screen and (max-width: 600px) {

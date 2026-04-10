@@ -24,10 +24,10 @@ export default class HeaderComponenet extends Component {
             <input type="search" name="search" id="search" placeholder="Find here..."  className="rounded-full! flex-1 flex text-base pl-5! bg-white!"/>
           </div>
         </div>
-        <div className="flex w-2/4 not-md:w-2/3 justify-end items-center">
-          <ul className="w-full flex justify-evenly uppercase font-semibold text-balance pr-20! not-md:text-[14px]">
+        <div className="flex w-2/4 not-md:w-2/3 items-center">
+          <ul className="w-full flex gap-15 uppercase font-semibold text-balance pr-20! not-md:text-[14px] justify-end">
             {this.navLink.map((item, index) => (
-              <li key={index} className="hover:text-blue-500 w-full flex justify-end">
+              <li key={index} className="hover:text-blue-500">
                 <Link to={item.route} className="focus:text-white">
                   {item.name}
                 </Link>
