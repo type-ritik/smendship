@@ -1,5 +1,5 @@
-import ManageMyNetworkComponent from "../components/helperComponent/ManageMyNetworkComponent";
-import InvitationComponent from "../components/helperComponent/InvitationComponent";
+import ManageMyNetworkComponent from "../components/Network/ManageMyNetworkComponent";
+import InvitationComponent from "../components/Network/InvitationComponent";
 import RecommendedFriend from "../components/helperComponent/RecommendedFriend";
 
 function NetworkPage() {

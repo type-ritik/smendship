@@ -7,6 +7,7 @@ import ChatBoxComponent from "./components/Chat/ChatBoxComponent";
 import UsersChatList from "./components/Chat/UsersChatList";
 // import { useState } from "react";
 import NetworkPage from "./pages/NetworkPage";
+import NetworkInvitationRequests from "./components/Network/NetworkInvitationRequests";
 
 function App() {
   // const [chatUserId, setChatUserId] = useState("");
@@ -17,13 +18,13 @@ function App() {
         <Route path="auth/signup" element={<SignupComponent />} />
         <Route path="/" element={<IndexPage />}>
           <Route path="/message" element={<ChatBoxComponent />} />
-          <Route
-            path="/chat/user/list"
-            element={<UsersChatList />}
-          />
+          <Route path="/chat/user/list" element={<UsersChatList />} />
           <Route path="/profile" element={<h1>Profile</h1>} />
           <Route path="/network" element={<NetworkPage />} />
-          <Route path="/network/invitaion" element={<h1>Hello world</h1>} />
+          <Route
+            path="/network/invitation/requests"
+            element={<NetworkInvitationRequests />}
+          />
           <Route path="/notification" element={<h1>Notification</h1>} />
         </Route>
       </Routes>
