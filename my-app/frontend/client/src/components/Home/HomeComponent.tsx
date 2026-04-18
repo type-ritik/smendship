@@ -1,14 +1,19 @@
+import { useNavigate } from "react-router-dom";
 import EditorComponent from "../Editor/EditorComponent";
 
 function HomeComponent() {
+  const navigate = useNavigate();
   return (
     <div className="w-full h-screen">
       <div className="w-full flex justify-evenly relative">
         <div className="w-1/5 h-200 fixed left-50 border bg-white rounded flex justify-center">
           {" "}
           <div className="w-full bg-orange-50 m-5! flex flex-col items-center gap-5">
-            <div className="w-full h-80 bg-white">
-              <div>
+            <div
+              className="w-full h-80 bg-white border cursor-pointer"
+              onClick={() => navigate("/profile")}
+            >
+              <div className="w-full h-40">
                 <div className="profile-header w-full h-40">
                   <div className="relative w-full h-30">
                     <img

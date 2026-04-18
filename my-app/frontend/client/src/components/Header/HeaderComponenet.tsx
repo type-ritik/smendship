@@ -5,7 +5,7 @@ import "./Header.css";
 export default class HeaderComponenet extends Component {
   private navLink = [
     { name: "Home", route: "/" },
-    {name: "Network", route: "/network"},
+    { name: "Network", route: "/network" },
     { name: "Message", route: "/message" },
     { name: "Notification", route: "/notification" },
     { name: "Profile", route: "/profile" },
@@ -21,14 +21,20 @@ export default class HeaderComponenet extends Component {
             {this.name}
           </h1>
           <div className="w-full">
-            <input type="search" name="search" id="search" placeholder="Find here..."  className="rounded-full! flex-1 flex text-base pl-5! bg-white!"/>
+            <input
+              type="search"
+              name="search"
+              id="search"
+              placeholder="Find here..."
+              className="rounded-full! flex-1 flex text-base pl-5! bg-white!"
+            />
           </div>
         </div>
         <div className="flex w-2/4 not-md:w-2/3 items-center">
-          <ul className="w-full flex gap-15 uppercase font-semibold text-balance pr-20! not-md:text-[14px] justify-end">
+          <ul className="w-full flex gap-15 uppercase font-semibold text-[14px] pr-20! not-md:text-[12px] justify-end">
             {this.navLink.map((item, index) => (
               <li key={index} className="hover:text-blue-500">
-                <Link to={item.route} className="focus:text-white">
+                <Link to={item.route} className="focus:text-white px-4! py-2!">
                   {item.name}
                 </Link>
               </li>

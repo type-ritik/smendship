@@ -11,7 +11,7 @@ function IndexPage() {
       <div className="relative">
         <HeaderComponenet />
       </div>
-      <div className="w-fullr mt-30!">
+      <div className="w-full mt-30!">
         {location.pathname === "/" && <HomeComponent />}
         <Outlet />
       </div>
