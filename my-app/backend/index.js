@@ -1,11 +1,9 @@
 const http = require("http");
 const { startServer } = require("./src/index");
-// const { connectToDatabase } = require("./app/data/db");
 // For subscriptions (graphql-ws)
 const { WebSocketServer } = require("ws");
 const { useServer } = require("graphql-ws/lib/use/ws");
 const { makeExecutableSchema } = require("@graphql-tools/schema");
-
 const typeDefs = require("./src/schema/typeDefs");
 const resolvers = require("./src/resolvers/index");
 

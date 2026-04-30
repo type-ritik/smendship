@@ -6,7 +6,11 @@ const {
   existsUserByEmail,
   updateUserFieldsById,
 } = require("../repository/UserRepository");
-const { isValidName, isValidEmail, isValidPassword } = require("../utils/UserUtils");
+const {
+  isValidName,
+  isValidEmail,
+  isValidPassword,
+} = require("../utils/UserUtils");
 
 const deleteUserById = async (id, userId, role) => {
   try {
@@ -141,4 +145,19 @@ const updateUserProfile = async (inputData, id) => {
   }
 };
 
-module.exports = { deleteUserById, updateUserProfile };
+const retriveUserData = async (userId) => {
+  try {
+    const payload = await getUserById(userId);
+
+    if (!payload) {
+      throw new Error("User not found");
+    }
+
+    return payload;
+  } catch (error) {
+    console.log(`[User Service Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+};
+
+module.exports = { deleteUserById, updateUserProfile, retriveUserData };
