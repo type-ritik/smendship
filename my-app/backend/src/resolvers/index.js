@@ -1,10 +1,11 @@
 // File: backend/src/resolvers/index.js
-const { prisma } = require("../config/prismaConfig");
+// const { prisma } = require("../config/prismaConfig");
 const pubsub = require("../subscription/pubsub");
 const {
   retriveAllPostByUserId,
   retrivePostByPostId,
   createNewPost,
+  retrivePostData,
 } = require("../services/PostServices");
 const {
   isValidEmail,
@@ -16,6 +17,7 @@ const { userLogin, createAccount } = require("../services/UserAuthServices");
 const {
   deleteUserById,
   updateUserProfile,
+  retriveUserData,
 } = require("../services/UserServices");
 const {
   fetchAllCommentsOnPost,
@@ -28,31 +30,101 @@ const {
   sendFriendRequest,
   acceptFriendRequest,
 } = require("../services/FriendRequestServices");
-const { chatRoomActivate } = require("../services/ChatServices");
+const {
+  chatRoomActivate,
+  retriveAllParticipantsList,
+  retriveAllChatroomChatList,
+} = require("../services/ChatServices");
+const {
+  retriveNotification,
+  updateNotification,
+} = require("../services/NotificationService");
+const { findFriendChatList } = require("../services/ExploreFriendServices");
+const {
+  friendRequestReceiveSubs,
+  activeChatSubs,
+  notifyUserSubs,
+} = require("../services/SubscriptionService");
 // import { subscribeToNotify } from "../utils/subscriber.js";
 
 const resolvers = {
   Notification: {
-    fromUserId: (parent, _) =>
-      prisma.user.findUnique({ where: { id: parent.fromUserId } }),
-    toUserId: (parent, _) =>
-      prisma.user.findUnique({ where: { id: parent.toUserId } }),
-    post: (parent, _) =>
-      parent.postId
-        ? prisma.post.findUnique({ where: { id: parent.postId } })
-        : null,
+    fromUserId: async (parent, _) => {
+      const userId = parent.fromUserId;
+
+      if (!userId) {
+        throw new Error("Invalid fromUserId in notification");
+      }
+
+      try {
+        const payload = await retriveUserData(userId);
+
+        if (!payload) {
+          throw new Error("Failed to retrieve user data for notification");
+        }
+
+        return payload;
+      } catch (error) {
+        console.log(`[Notification Resolver Error]: ${error.message}`);
+        throw new Error(error.message);
+      }
+    },
+    toUserId: async (parent, _) => {
+      const userId = parent.toUserId;
+
+      if (!userId) {
+        throw new Error("Invalid fromUserId in notification");
+      }
+
+      try {
+        const payload = await retriveUserData(userId);
+
+        if (!payload) {
+          throw new Error("Failed to retrieve user data for notification");
+        }
+
+        return payload;
+      } catch (error) {
+        console.log(`[Notification Resolver Error]: ${error.message}`);
+        throw new Error(error.message);
+      }
+    },
+    post: async (parent, _) => {
+      const postId = parent.postId;
+
+      if (!postId) {
+        return null; // No post associated with this notification
+      }
+
+      try {
+        const payload = await retrivePostData(postId);
+
+        if (!payload) {
+          throw new Error("Failed to retrieve post data for notification");
+        }
+
+        return payload;
+      } catch (error) {
+        console.log(`[Notification Resolver Error]: ${error.message}`);
+        throw new Error(error.message);
+      }
+    },
   },
   Query: {
     // Query work like GET
     hello: () => "Hello World! 🌍",
-    getNotification: async (_, __, context) => {
+    getNotification: async (_, parent, context) => {
       const userId = context.user.id;
-      if (!userId) throw new AuthenticationError("Unauthorized");
+      if (!userId) throw new Error("Unauthorized");
 
-      return await prisma.notification.findMany({
-        where: { toUserId: userId },
-        orderBy: { notifiedAt: "desc" },
-      });
+      try {
+        const payload = await retriveNotification(userId);
+
+        return payload;
+      } catch (error) {
+        console.log("[Get Notification Error]: ", error.message);
+        throw new Error(error.message);
+      }
     },
     getpost: async (_, { id }, context) => {
       const userId = context.user.id;
@@ -133,53 +205,58 @@ const resolvers = {
       const userId = context.user.id;
       if (!userId) throw new Error("Unauthorized");
 
-      const chatMsgList = await prisma.message.findMany({
-        where: { chatRoomId },
-        include: {
-          chatRoom: true,
-          sender: true,
-        },
-      });
+      try {
+        const payload = await retriveAllChatroomChatList(chatRoomId, userId);
 
-      console.log("List of chat-msg ", Array.isArray(chatMsgList));
+        if (!payload) {
+          throw new Error("Failed to retrieve chat list.");
+        }
 
-      console.log("List ", chatMsgList);
-
-      return chatMsgList;
+        return payload;
+      } catch (error) {
+        console.log("[Server Error]: ", error.message);
+        throw new Error(error.message);
+      }
     },
-    userChatRoomId: async (_, { userId }, context) => {
-      const participantList = await prisma.participant.findMany({
-        where: { userId: userId },
-        include: {
-          user: true,
-          chatRoom: true,
-        },
-      });
+    userChatRoomId: async (_, parent, context) => {
+      const userId = context.user.id;
 
-      console.log("Participant list", participantList);
+      if (!userId) {
+        throw new Error("Unauthorized Access");
+      }
 
-      return participantList;
+      try {
+        const payload = await retriveAllParticipantsList(useId);
+
+        if (!payload) {
+          throw new Error("Failed to retrieve participants list.");
+        }
+
+        return payload;
+      } catch (error) {
+        console.log("[Server Error]: ", error.message);
+        throw new Error(error.message);
+      }
     },
-    friendChatList: async (_, { userId }, context) => {
-      // const token = getToken(context);
-      // if (!token) throw new AuthenticationError("Unauthorized");
+    friendChatList: async (_, parent, context) => {
+      const userId = context.user.id;
 
-      const friendList = await prisma.friendship.findMany({
-        where: { OR: [{ user1Id: userId }, { user2Id: userId }] },
-        include: {
-          user1: true,
-          user2: true,
-        },
-      });
+      if (!userId) {
+        throw new Error("Unauthorized Access");
+      }
 
-      console.log(
-        "Get the List of ChatroomId is Array ",
-        Array.isArray(friendList),
-      );
+      try {
+        const payload = await findFriendChatList(userId);
 
-      console.log("List: ", friendList);
+        if (!payload) {
+          throw new Error("Failed to retrieve friend chat list.");
+        }
 
-      return friendList;
+        return payload;
+      } catch (error) {
+        console.log("[Server Error]: ", error.message);
+        throw new Error(error.message);
+      }
     },
   },
   Mutation: {
@@ -595,58 +672,92 @@ const resolvers = {
       const userId = context.user.id;
       if (!userId) throw new Error("Unauthorized");
 
-      const msg = await prisma.message.create({
-        data: {
-          content,
-          chatRoom: { connect: { id: chatRoomId } },
-          sender: { connect: { id: userId } },
-        },
-        include: {
-          sender: true,
-          chatRoom: true,
-        },
-      });
+      try {
+        const message = await sendTextMessage(content, chatRoomId, userId);
 
-      await pubsub.publish(`CHAT_${chatRoomId}`, {
-        activeChat: msg,
-      });
-      return {
-        id: msg.id,
-        content: msg.content,
-        chatRoom: msg.chatRoom,
-        sender: msg.sender,
-      };
+        if (!message) {
+          throw new Error("Failed to send the message.");
+        }
+        return message;
+      } catch (error) {
+        console.log(`[Text Message Error]: ${error.message}`);
+        throw new Error(error.message);
+      }
     },
     iNotify: async (_, { id }, context) => {
       const userId = context.user.id;
       if (!userId) throw new Error("Unauthorized");
 
-      const notify = await prisma.notification.findUnique({
-        where: { id },
-      });
+      try {
+        const payload = await updateNotification(id, userId);
 
-      if (notify.toUserId !== userId) throw new Error("Unauthorized");
-      return await prisma.notification.update({
-        where: { id },
-        data: { isRead: true },
-      });
+        if (!payload) {
+          throw new Error("Failed to update notification as read.");
+        }
+
+        return payload;
+      } catch (error) {
+        console.log(`[Notification Error]: ${error.message}`);
+        throw new Error(error.message);
+      }
     },
   },
   Subscription: {
-    friendSentRequest: {
-      subscribe: () => pubsub.asyncIterator(FRIEND_REQUEST_SENT),
-    },
-    friendAcceptedRequest: {
-      subscribe: () => pubsub.asyncIterator(FRIEND_REQUEST_ACCEPTED),
+    // Work on Subscription to subscribe self
+    friendRequestReceived: {
+      subscribe: (_, { userId }) => {
+        try {
+          const payload = friendRequestReceiveSubs(userId);
+
+          if (!payload) {
+            throw new Error(
+              "Failed to subscribe to friend request sent events.",
+            );
+          }
+
+          return payload;
+        } catch (error) {
+          console.log(`[Subscription Error]: ${error.message}`);
+          throw new Error(error.message);
+        }
+      },
     },
     activeChat: {
-      subscribe: (_, { chatRoomId }) => {
-        return pubsub.asyncIterator(`CHAT_${chatRoomId}`);
+      subscribe: (_, { userId }) => {
+        try {
+          const payload = activeChatSubs(userId);
+
+          if (!payload) {
+            throw new Error("Failed to subscribe to active chats.");
+          }
+
+          return payload;
+        } catch (error) {
+          console.log(`[Subscription Error]: ${error.message}`);
+          throw new Error(error.message);
+        }
       },
     },
     iNotified: {
-      subscribe: (_, { userId }) => {
-        return pubsub.asyncIterator(`notify:${userId}`);
+      subscribe: (_, { userId }, context) => {
+        if (!userId) {
+          throw new Error("Unauthorized Access");
+        }
+
+        try {
+          const payload = notifyUserSubs(userId);
+
+          if (!payload) {
+            throw new Error(
+              "Failed to subscribe to friend request accept events.",
+            );
+          }
+
+          return payload;
+        } catch (error) {
+          console.log(`[Subscription Error]: ${error.message}`);
+          throw new Error(error.message);
+        }
       },
       resolve: (payload) => {
         if (!payload || !payload.iNotified || !payload.iNotified.id) {

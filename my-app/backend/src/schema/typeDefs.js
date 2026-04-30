@@ -99,6 +99,7 @@ const typeDefs = gql`
 
   type LikeResponse {
     liked: Boolean!
+    message: String!
   }
 
   type Friendship {
@@ -137,9 +138,9 @@ const typeDefs = gql`
     getAllPost: [PostPayload]
     getcomments(postId: String!): CommentsPayload
     getNotification: [Notification!]!
-    friendChatList(userId: String!): [Friendship!]!
+    friendChatList: [Friendship!]!
     chatRoomChatList(chatRoomId: String): [Message!]!
-    userChatRoomId(userId: String!): [Participant!]!
+    userChatRoomId: [Participant!]!
   }
 
   type Mutation {
@@ -155,8 +156,8 @@ const typeDefs = gql`
     deletepost(id: String!): Message
 
     createcomment(comment: String!, postId: String!): CommentPayload
-    updatecomment(id: String!, comment: String!): CommentPayload
-    deletecomment(id: String!): Message
+    updatecomment(comment: String!, commentId: String!): CommentPayload
+    deletecomment(commentId: String!): Message
 
     likecomment(postId: ID!, commentId: ID!): LikeResponse
 
@@ -170,12 +171,8 @@ const typeDefs = gql`
   }
 
   type Subscription {
-    friendSentRequest(receiverId: String!): FriendRequestPayload
-    friendAcceptedRequest(
-      fromUserId: String!
-      toUserId: String!
-    ): FriendRequestPayload
-    activeChat(chatRoomId: String!): Message!
+    friendRequestReceived(userId: String!): FriendRequestPayload
+    activeChat(userId: String!): Message!
     iNotified(userId: String!): Notification
   }
 `;
