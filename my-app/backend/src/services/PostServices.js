@@ -1,10 +1,3 @@
-// const bcrypt = require("bcrypt");
-// const jwt = require("jsonwebtoken");
-// const {
-//   FRIEND_REQUEST_ACCEPTED,
-//   FRIEND_REQUEST_SENT,
-// } = require("../config/pubsub");
-// const pubsub = require("../subscription/pubsub");
 const { getUserById, existsUserById } = require("../repository/UserRepository");
 const {
   getAllPostByUserId,
@@ -233,6 +226,21 @@ async function togglePostLike(userId, postId) {
   }
 }
 
+const retrivePostData = async (postId) => {
+  try {
+    const payload = await getPostByPostId(postId);
+
+    if (!payload) {
+      throw new Error("Failed to retrieve post data.");
+    }
+
+    return payload;
+  } catch (error) {
+    console.log(`[Post Service Error]: `, error.message);
+    throw new Error(error.message);
+  }
+};
+
 module.exports = {
   retriveAllPostByUserId,
   retrivePostByPostId,
@@ -240,4 +248,5 @@ module.exports = {
   editPost,
   removePost,
   togglePostLike,
+  retrivePostData,
 };

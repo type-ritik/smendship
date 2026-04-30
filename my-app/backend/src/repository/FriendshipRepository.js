@@ -19,4 +19,27 @@ const createFriendship = async (senderId, receiverId) => {
   }
 };
 
-module.exports = { createFriendship };
+const findFriendsByUserId = async (userId) => {
+  try {
+    const payload = await prisma.friendship.findMany({
+      where: {
+        OR: [{ user1Id: userId }, { user2Id: userId }],
+      },
+      include: {
+        user1: true,
+        user2: true,
+      },
+    });
+
+    if (!payload) {
+      return false;
+    }
+
+    return payload;
+  } catch (error) {
+    console.log(`[Friendship Repository Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+};
+
+module.exports = { createFriendship, findFriendsByUserId };

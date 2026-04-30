@@ -19,6 +19,55 @@ const createNotification = async (MessageChannel, toUserId, fromUserId) => {
   }
 };
 
+const getNotificationByUserId = async (userId) => {
+  try {
+    const payload = await prisma.notification.findMany({
+      where: {
+        toUserId: userId,
+      },
+      orderBy: {
+        notifiedAt: "desc",
+      },
+    });
+
+    if (!payload) {
+      return false;
+    }
+    return payload;
+  } catch (error) {
+    console.log(`[Notification Repository Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+};
+
+const updateNotificationAsReadByIdAndUserId = async (
+  notificationId,
+  userId,
+) => {
+  try {
+    const payload = await prisma.notification.update({
+      where: {
+        id: notificationId,
+        toUserId: userId,
+      },
+      data: {
+        isRead: true,
+      },
+    });
+
+    if (!payload) {
+      return false;
+    }
+
+    return payload;
+  } catch (error) {
+    console.log(`[Notification Repository Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+};
+
 module.exports = {
   createNotification,
+  getNotificationByUserId,
+  updateNotificationAsReadByIdAndUserId,
 };

@@ -50,7 +50,56 @@ const createChatRoom = async (userId, targetUserId) => {
   }
 };
 
+const getAllParticipantsByUserId = async (userId) => {
+  try {
+    const payload = await prisma.participant.findMany({
+      where: { userId },
+      include: {
+        chatRoom: true,
+        user: true,
+      },
+    });
+
+    if (!payload) {
+      return false;
+    }
+
+    return payload;
+  } catch (error) {
+    console.log(`[Chat Room Repository Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+};
+
+const getAllChatroomChatListByUserIdAndChatroomId = async (
+  chatRoomId,
+  userId,
+) => {
+  try {
+    const payload = await prisma.message.findMany({
+      where: {
+        chatRoomId,
+      },
+      include: {
+        sender: true,
+        chatRoom: true,
+      },
+    });
+
+    if (!payload) {
+      return false;
+    }
+
+    return payload;
+  } catch (error) {
+    console.log(`[Chat Room Repository Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+};
+
 module.exports = {
   findChatRoomByUserIdAndTargetUserId,
   createChatRoom,
+  getAllParticipantsByUserId,
+  getAllChatroomChatListByUserIdAndChatroomId,
 };

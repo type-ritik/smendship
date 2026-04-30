@@ -1,8 +1,4 @@
 const {
-  FRIEND_REQUEST_SENT,
-  FRIEND_REQUEST_ACCEPTED,
-} = require("../config/pubsub");
-const {
   existedFriendRequest,
   createFriendRequest,
   existedFriendRequestById,
