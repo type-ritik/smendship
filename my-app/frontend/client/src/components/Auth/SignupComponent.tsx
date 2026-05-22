@@ -30,6 +30,7 @@ function SignupComponent() {
     }
     if (data) {
       dispatch(signInSuccess(data.signup));
+      window.localStorage.setItem("token", data.login.token);
     }
   }, [loading, error, data, dispatch]);
 

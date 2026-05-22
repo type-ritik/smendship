@@ -25,6 +25,7 @@ function LoginComponent() {
     }
     if (data) {
       dispatch(loginSuccess(data.login));
+      window.localStorage.setItem("token", data.login.token);
     }
   }, [loading, error, data, dispatch]);
 

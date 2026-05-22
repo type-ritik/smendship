@@ -11,6 +11,10 @@ export interface UserState {
   loading: boolean;
 }
 
-export interface UserSelector {
-  user: UserState;
+export interface UserObjState {
+  user: {
+    currentUser: {
+      user: userObj;
+    } | null;
+  };
 }
