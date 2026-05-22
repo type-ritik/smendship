@@ -2,40 +2,50 @@ import { useMutation } from "@apollo/client";
 import { useNavigate } from "react-router-dom";
 import { LOGIN_NOW } from "../../services/AuthService";
 import { useEffect, useState } from "react";
+import "./Login.css";
+import toast, { Toaster } from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { loginFailure, loginStart, loginSuccess } from "../../redux/user/userSlice";
 
 function LoginComponent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [login, { data, loading, error }] = useMutation(LOGIN_NOW);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    if (loading) console.log("Loading");
-    if (error) console.log("Error: ", error.message);
-    if (data) console.log("User Data: ", data);
-  }, [loading, error, data]);
+    if (loading) {
+      dispatch(loginStart());
+      console.log("Loading");
+    }
+    if (error) {
+      dispatch(loginFailure(error.message));
+      toast.error("Login Error");
+    }
+    if (data) {
+      dispatch(loginSuccess(data.login));
+    }
+  }, [loading, error, data, dispatch]);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // Implement login logic here, e.g., call the LOGIN_NOW mutation with email and password
-    const payload = await login({
+
+    await login({
       variables: {
         email,
         password,
       },
     });
 
-    if (payload.data) {
-      // Handle successful login, e.g., store token, navigate to dashboard, etc.
-      console.log("Login successful: ", payload.data);
-      // Example: navigate to the dashboard or home page after successful login
-      navigate("/");
-    }
+    navigate("/?login=success");
   };
 
   return (
     <>
       <div className="w-full h-screen flex justify-center items-center">
+        <Toaster />
         <div className="w-120 bg-amber-50 gap-2 border rounded shadow-xs shadow-gray-900!">
           <div className="w-full p-5! flex flex-col gap-2!">
             <h2 className="w-full flex text-base font-semibold justify-center items-center border-b">
