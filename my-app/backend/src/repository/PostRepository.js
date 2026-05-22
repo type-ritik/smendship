@@ -138,6 +138,36 @@ async function revokedPostByPostIdAndUserId(id, userId) {
     throw new Error(error.message);
   }
 }
+async function getAllPosts() {
+  try {
+    const posts = await prisma.post.findMany({
+      where: {
+        is_revoked: false,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        category: true,
+        createdAt: true,
+        author: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return posts;
+  } catch (error) {
+    console.log(`[Post Repository Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+}
 
 module.exports = {
   getAllPostByUserId,
@@ -148,4 +178,5 @@ module.exports = {
   updatePostById,
   getPostByIdAndUserId,
   revokedPostByPostIdAndUserId,
+  getAllPosts,
 };

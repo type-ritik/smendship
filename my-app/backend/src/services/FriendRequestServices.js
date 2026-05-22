@@ -41,7 +41,7 @@ const sendFriendRequest = async (senderId, receiverId) => {
       iNotified: notification,
     });
 
-    await pubsub.publish(FRIEND_REQUEST_SENT, {
+    await pubsub.publish(`FRIEND_RECEIVE_${receiverId}`, {
       friendRequestSent: friendRequest,
     });
 

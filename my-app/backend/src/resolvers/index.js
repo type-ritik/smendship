@@ -6,6 +6,7 @@ const {
   retrivePostByPostId,
   createNewPost,
   retrivePostData,
+  retriveAllPosts,
 } = require("../services/PostServices");
 const {
   isValidEmail,
@@ -113,6 +114,21 @@ const resolvers = {
   Query: {
     // Query work like GET
     hello: () => "Hello World! 🌍",
+    getPosts: async (_, parent, context) => {
+      try {
+        const userId = context.user.id;
+
+        if (!userId) throw new Error("Unauthorized");
+
+        const payload = await retriveAllPosts();
+        console.log(payload);
+
+        return payload;
+      } catch (error) {
+        console.log("[Error retrive post: ", error.message);
+        throw new Error(error.message);
+      }
+    },
     getNotification: async (_, parent, context) => {
       const userId = context.user.id;
       if (!userId) throw new Error("Unauthorized");
@@ -126,7 +142,7 @@ const resolvers = {
         throw new Error(error.message);
       }
     },
-    getpost: async (_, { id }, context) => {
+    getpostById: async (_, { id }, context) => {
       const userId = context.user.id;
 
       if (!userId) {
@@ -154,7 +170,7 @@ const resolvers = {
         throw new Error(error.message);
       }
     },
-    getAllPost: async (_, obj, context) => {
+    getAllPostByUID: async (_, obj, context) => {
       const userId = context.user.id;
       if (!userId) {
         throw new Error("Unauthorized Access");
@@ -627,7 +643,10 @@ const resolvers = {
 
         const payload = await sendFriendRequest(userId, receiverId);
 
-        return payload;
+        return {
+          message: "Request sent successfully!",
+          response: payload,
+        };
       } catch (error) {
         console.log("[Friend Request Error]: ", error.message);
         throw new Error(error.message);

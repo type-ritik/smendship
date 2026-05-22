@@ -7,7 +7,7 @@ const typeDefs = gql`
     title: String!
     content: String!
     category: String!
-    authorId: String!
+    author: User!
     createdAt: String!
   }
 
@@ -83,8 +83,8 @@ const typeDefs = gql`
   }
 
   type FriendRequestPayload {
-    token: String!
-    request: FriendRequest
+    message: String!
+    response: Boolean!
   }
 
   type CommentPayload {
@@ -134,8 +134,9 @@ const typeDefs = gql`
 
   type Query {
     hello: String!
-    getpost(id: String!): PostPayload
-    getAllPost: [PostPayload]
+    getPosts: [Post]
+    getpostById(id: String!): PostPayload
+    getAllPostByUID: [PostPayload]
     getcomments(postId: String!): CommentsPayload
     getNotification: [Notification!]!
     friendChatList: [Friendship!]!
