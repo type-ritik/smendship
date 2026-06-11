@@ -2,16 +2,29 @@ const { prisma } = require("../config/prismaConfig");
 
 const createFriendRequest = async (senderId, receiverId) => {
   try {
-    const friendRequest = await prisma.friendRequest.create({
-      data: {
+    const friendRequest = await prisma.friendRequest.upsert({
+      where: {
+        senderId_receiverId: {
+          senderId: senderId,
+          receiverId: receiverId,
+        },
+      },
+      update: {
+        acceptedAt: new Date(),
+      },
+      create: {
         senderId,
         receiverId,
         type: "FRIEND_REQUEST_SENT",
       },
     });
 
-    if (!friendRequest) {
-      throw new Error("Failed to create friend request.");
+    const isExisting =
+      friendRequest.requestedAt.getTime() !==
+      friendRequest.acceptedAt.getTime();
+
+    if (isExisting) {
+      throw new Error("Friend request already exists");
     }
 
     return friendRequest;
@@ -21,38 +34,41 @@ const createFriendRequest = async (senderId, receiverId) => {
   }
 };
 
-const existedFriendRequest = async (senderId, receiverId) => {
+// user can accept or reject the friend request and its based on the user response of isAccepted: True -> Accepted | False -> Rejected
+
+const updateFriendRequestType = async (
+  friendRequestId,
+  responseCode,
+  userId,
+) => {
   try {
-    const friendRequest = await prisma.friendRequest.findFirst({
-      where: {
-        OR: [
-          { senderId, receiverId },
-          {
-            senderId: receiverId,
-            receiverId: senderId,
-          },
-        ],
-        type: "FRIEND_REQUEST_SENT",
-      },
+    responseCode = parseInt(responseCode);
+    const updatedRequest = await prisma.$transaction(async (tx) => {
+      const { count } = await tx.friendRequest.updateMany({
+        where: {
+          id: friendRequestId,
+          OR: [{ receiverId: userId }, { senderId: userId }],
+        },
+        data: {
+          type:
+            responseCode === 1
+              ? "FRIEND_REQUEST_ACCEPTED"
+              : responseCode === 0
+                ? "FRIEND_REQUEST_REJECTED"
+                : "FRIEND_REQUEST_REVOKED",
+          isAccepted:
+            responseCode === 1 ? true : responseCode === 0 ? false : null,
+        },
+      });
+
+      if (count === 0) {
+        throw new Error("Friend request not found or unauthorized");
+      }
+
+      return tx.friendRequest.findUnique({
+        where: { id: friendRequestId },
+      });
     });
-
-    return !!friendRequest;
-  } catch (error) {
-    console.log(`[Friend Request Repository Error]: ${error.message}`);
-    throw new Error(error.message);
-  }
-};
-
-const updateFriendRequestTypeToAccepted = async (friendRequestId) => {
-  try {
-    const updatedRequest = await prisma.friendRequest.update({
-      where: { id: friendRequestId },
-      data: { type: "FRIEND_REQUEST_ACCEPTED" },
-    });
-
-    if (!updatedRequest) {
-      throw new Error("Failed to accept friend request status.");
-    }
 
     return updatedRequest;
   } catch (error) {
@@ -61,13 +77,48 @@ const updateFriendRequestTypeToAccepted = async (friendRequestId) => {
   }
 };
 
-const existedFriendRequestById = async (id) => {
+const receivedFriendRequestList = async (id) => {
   try {
-    const friendRequest = await prisma.friendRequest.findUnique({
-      where: { id },
+    const lists = await prisma.friendRequest.findMany({
+      where: {
+        receiverId: id,
+      },
+
+      include: {
+        sender: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
 
-    return !!friendRequest;
+    return lists;
+  } catch (error) {
+    console.log(`[Friend Request Repository Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+};
+
+const sentFriendRequestList = async (id) => {
+  try {
+    const lists = await prisma.friendRequest.findMany({
+      where: {
+        senderId: id,
+      },
+
+      include: {
+        receiver: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return lists;
   } catch (error) {
     console.log(`[Friend Request Repository Error]: ${error.message}`);
     throw new Error(error.message);
@@ -76,7 +127,7 @@ const existedFriendRequestById = async (id) => {
 
 module.exports = {
   createFriendRequest,
-  existedFriendRequest,
-  updateFriendRequestTypeToAccepted,
-  existedFriendRequestById,
+  updateFriendRequestType,
+  receivedFriendRequestList,
+  sentFriendRequestList,
 };

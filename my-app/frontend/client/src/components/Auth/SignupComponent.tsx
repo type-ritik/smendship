@@ -1,133 +1,93 @@
-import { Component } from "react";
+import { useMutation } from "@apollo/client";
+import React, { useEffect, useState } from "react";
+import { SIGNUP_NOW } from "../../services/AuthService";
 import "./Signup.css";
+import { useNavigate } from "react-router-dom";
+import toast, { Toaster } from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import {
+  signInFailure,
+  signInStart,
+  signInSuccess,
+} from "../../redux/user/userSlice";
 
-export default class SignupComponent extends Component {
-  constructor(props: object) {
-    super(props);
+function SignupComponent() {
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [signup, { data, loading, error }] = useMutation(SIGNUP_NOW);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-    this.state = {
-      name: "",
-      email: "",
-      password: "",
-      error: "",
-      loading: "",
-      token: "",
-    };
-
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
-
-  private signupURL = "http://localhost:4000/graphql";
-
-  handleChange = (e) => {
-    const _id = e.target.id;
-    const _value = e.target.value;
-    if (_id === "name") {
-      this.setState({
-        name: _value,
-        error: "",
-      });
-    } else if (_id === "email") {
-      this.setState({
-        email: _value,
-        error: "",
-      });
-    } else {
-      this.setState({
-        password: _value,
-        error: "",
-      });
+  useEffect(() => {
+    if (loading) {
+      dispatch(signInStart());
+      console.log("Loading...");
     }
-  };
+    if (error) {
+      dispatch(signInFailure(error.message));
+      toast.error("Signup Failed");
+    }
+    if (data) {
+      dispatch(signInSuccess(data.signup));
+      window.localStorage.setItem("token", data.login.token);
+    }
+  }, [loading, error, data, dispatch]);
 
-  handleSubmit = (e) => {
+  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const callSignupService = async () => {
-      const res = await fetch(this.signupURL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          query: `mutation Signup($name: String!, $email: String!, $password: String!) {
-            signup(name: $name, email: $email, password: $password) {
-              token
-              user {
-                id
-                name
-                email
-              }
-            }
-          }`,
-          variables: {
-            name: this.state.name,
-            email: this.state.email,
-            password: this.state.password,
-          },
-        }),
-      });
+    await signup({
+      variables: {
+        name,
+        email,
+        password,
+      },
+    });
 
-      const result = await res.json();
-
-      if (res.ok) {
-        this.setState({
-          token: result.data.signup.token,
-        });
-
-        localStorage.setItem("token", result.data.signup.token);
-
-        this.setState({
-          error: "",
-        });
-      } else {
-        this.setState({
-          error: "Error occured!",
-        });
-      }
-    };
-
-    callSignupService();
+    navigate("/home?signup=success");
   };
 
-  render() {
-    return (
-      <div className="s_box">
-        <div className="s_card">
-          <h2>Signup here!</h2>
+  return (
+    <div className="w-full h-screen flex justify-center items-center">
+      <Toaster />
+      <div className="w-120 bg-amber-50 gap-2 border rounded shadow-xs shadow-gray-900!">
+        <div className="w-full p-5! flex flex-col gap-2!">
+          <h2 className="w-full flex text-base font-semibold justify-center items-center border-b">
+            Signup here!
+          </h2>
           <br />
-          <form className="s_form" onSubmit={this.handleSubmit}>
-            <div className="s_name">
+          <form className="s_form" onSubmit={handleSignup}>
+            <div className="w-full flex flex-col">
               <label htmlFor="name">Name</label>
               <input
                 type="text"
                 id="name"
                 name="name"
-                onChange={this.handleChange}
-                value={this.state.name}
+                onChange={(e) => setName(e.target.value)}
+                value={name}
                 placeholder="Enter your name"
               />
             </div>
-            <div className="s_email">
+            <div className="w-full flex flex-col">
               <label htmlFor="email">Email</label>
               <input
                 type="email"
                 name="email"
                 id="email"
-                onChange={this.handleChange}
-                value={this.state.email}
+                onChange={(e) => setEmail(e.target.value)}
+                value={email}
                 placeholder="Enter your email"
               />
             </div>
-            <div className="s_pass">
+            <div className="w-full flex flex-col">
               <label htmlFor="password">Password</label>
               <input
                 type="password"
                 name="password"
                 id="password"
-                onChange={this.handleChange}
-                value={this.state.password}
+                onChange={(e) => setPassword(e.target.value)}
+                value={password}
                 placeholder="Enter strong password"
               />
             </div>
@@ -135,8 +95,18 @@ export default class SignupComponent extends Component {
               Signup
             </button>
           </form>
+          <div className="w-full flex justify-center cursor-pointer">
+            <span
+              className="text-blue-600"
+              onClick={() => navigate("/auth/login")}
+            >
+              Already have an account?
+            </span>
+          </div>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 }
+
+export default SignupComponent;

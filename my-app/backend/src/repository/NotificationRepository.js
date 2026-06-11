@@ -6,7 +6,7 @@ const createNotification = async (MessageChannel, toUserId, fromUserId) => {
       data: {
         toUserId,
         fromUserId,
-        message: MessageChannel,
+        type: MessageChannel,
       },
     });
     if (!payload) {

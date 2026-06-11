@@ -3,6 +3,7 @@ const {
   getUserByEmail,
   existsUserByEmail,
   createUser,
+  findUserByUserName
 } = require("../repository/UserRepository");
 const { generateToken } = require("./JwtServices");
 
@@ -82,7 +83,18 @@ async function userLogin(email, password) {
   }
 }
 
+async function searchFriendByName(friendName) {
+  try {
+    const users = await findUserByUserName(friendName);
+    return users;
+  } catch (error) {
+    console.log(`[User Search Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+}
+
 module.exports = {
   userLogin,
   createAccount,
+  searchFriendByName,
 };

@@ -1,123 +1,100 @@
-import { Component } from "react";
+import { useMutation } from "@apollo/client";
+import { useNavigate } from "react-router-dom";
+import { LOGIN_NOW } from "../../services/AuthService";
+import { useEffect, useState } from "react";
 import "./Login.css";
+import toast, { Toaster } from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { loginFailure, loginStart, loginSuccess } from "../../redux/user/userSlice";
 
-export default class LoginComponent extends Component {
-  constructor(props: object) {
-    super(props);
+function LoginComponent() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [login, { data, loading, error }] = useMutation(LOGIN_NOW);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-    this.state = {
-      email: "",
-      password: "",
-      token: "",
-      error: "",
-    };
-
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
-
-  private loginUrl = "http://localhost:4000/graphql";
-
-  handleChange(e) {
-    const _id = e.target.id;
-    const _value = e.target.value;
-    if (_id === "email") {
-      this.setState({
-        email: _value,
-      });
-    } else {
-      this.setState({
-        password: _value,
-      });
+  useEffect(() => {
+    if (loading) {
+      dispatch(loginStart());
+      console.log("Loading");
     }
-  }
+    if (error) {
+      dispatch(loginFailure(error.message));
+      toast.error("Login Error");
+    }
+    if (data) {
+      dispatch(loginSuccess(data.login));
+      window.localStorage.setItem("token", data.login.token);
+    }
+  }, [loading, error, data, dispatch]);
 
-  handleSubmit(e) {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // Implement login logic here, e.g., call the LOGIN_NOW mutation with email and password
 
-    const callLoginService = async () => {
-      const res = await fetch(this.loginUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          query: `
-          mutation Login($email: String!, $password: String!) {
-            login(email: $email, password: $password) {
-              token
-              user {
-                id
-                name
-              }
-            }
-          }
-        `,
-          variables: { email: this.state.email, password: this.state.password },
-        }),
-      });
+    await login({
+      variables: {
+        email,
+        password,
+      },
+    });
 
-      const result = await res.json();
+    navigate("/?login=success");
+  };
 
-      if (result.errors) {
-        this.setState({
-          error: result.errors[0].message,
-        });
-      } else {
-        this.setState({
-          token: result.data.login.token,
-        });
-        localStorage.setItem("token", result.data.login.token);
-        this.setState({
-          error: "",
-        });
-      }
-    };
-
-    callLoginService();
-  }
-
-  render() {
-    return (
-      <div className="login-wrapper">
-        <div className="login-box">
-          <h2
-            style={{
-              textAlign: "center",
-              borderBottom: "2px solid black",
-              padding: "0px 0px 2px 0px",
-            }}
-          >
-            Login here!
-          </h2>
-          <br />
-          <form onSubmit={this.handleSubmit}>
-            <div>
-              <label htmlFor="email">Email</label>
-              <input
-                type="email"
-                name="email"
-                id="email"
-                value={this.state.email}
-                onChange={this.handleChange}
-                placeholder="example@hotmail.com"
-              />
+  return (
+    <>
+      <div className="w-full h-screen flex justify-center items-center">
+        <Toaster />
+        <div className="w-120 bg-amber-50 gap-2 border rounded shadow-xs shadow-gray-900!">
+          <div className="w-full p-5! flex flex-col gap-2!">
+            <h2 className="w-full flex text-base font-semibold justify-center items-center border-b">
+              Login here!
+            </h2>
+            <br />
+            <form onSubmit={handleLogin}>
+              <div className="w-full flex flex-col">
+                <label htmlFor="email">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  // value={this.state.email}
+                  // onChange={this.handleChange}
+                  className="outline-none"
+                  placeholder="example@hotmail.com"
+                />
+              </div>
+              <div>
+                <label htmlFor="password">Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  id="password"
+                  className="outline-none"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="*********"
+                />
+              </div>
+              <button type="submit">login</button>
+            </form>
+            <div className="w-full flex justify-center cursor-pointer">
+              <span
+                className="text-blue-600"
+                onClick={() => navigate("/auth/signup")}
+              >
+                Don't have an account?
+              </span>
             </div>
-            <div>
-              <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                name="password"
-                id="password"
-                value={this.state.password}
-                onChange={this.handleChange}
-                placeholder="*********"
-              />
-            </div>
-            <button type="submit">login</button>
-          </form>
+          </div>
         </div>
       </div>
-    );
-  }
+    </>
+  );
 }
+
+export default LoginComponent;

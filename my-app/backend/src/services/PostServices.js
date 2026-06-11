@@ -6,6 +6,7 @@ const {
   createPost,
   updatePostById,
   existedPostByIdAndUserId,
+  getAllPosts,
   revokedPostByPostIdAndUserId,
 } = require("../repository/PostRepository");
 const {
@@ -241,6 +242,20 @@ const retrivePostData = async (postId) => {
   }
 };
 
+async function retriveAllPosts() {
+  try {
+    const payload = await getAllPosts();
+
+    if (!payload) {
+      throw new Error("Failed to retrieve posts data.");
+    }
+    return payload || [];
+  } catch (error) {
+    console.log(`[Post Service Error]: `, error.message);
+    throw new Error(error.message);
+  }
+}
+
 module.exports = {
   retriveAllPostByUserId,
   retrivePostByPostId,
@@ -249,4 +264,5 @@ module.exports = {
   removePost,
   togglePostLike,
   retrivePostData,
+  retriveAllPosts,
 };

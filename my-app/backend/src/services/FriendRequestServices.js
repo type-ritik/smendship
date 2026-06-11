@@ -1,33 +1,17 @@
 const {
-  existedFriendRequest,
   createFriendRequest,
-  existedFriendRequestById,
-  updateFriendRequestTypeToAccepted,
+  updateFriendRequestType,
+  receivedFriendRequestList,
+  sentFriendRequestList,
 } = require("../repository/FriendRequestRepository");
 const { createFriendship } = require("../repository/FriendshipRepository");
 const { createNotification } = require("../repository/NotificationRepository");
-const { existsUserById } = require("../repository/UserRepository");
 const { pubsub } = require("../subscription/pubsub");
 
 const sendFriendRequest = async (senderId, receiverId) => {
   try {
-    const isReceiverExisted = await existsUserById(receiverId);
-
-    if (!isReceiverExisted) {
-      throw new Error("Receiver user does not exist.");
-    }
-
-    const existedRequest = await existedFriendRequest(senderId, receiverId);
-
-    if (existedRequest) {
-      throw new Error("A friend request already exists between these users.");
-    }
     // Call the repository function to create a friend request
     const friendRequest = await createFriendRequest(senderId, receiverId);
-
-    if (!friendRequest) {
-      throw new Error("Failed to send friend request.");
-    }
 
     const notification = await createNotification(
       "CHAT_ROOM_ACTIVATED",
@@ -41,7 +25,7 @@ const sendFriendRequest = async (senderId, receiverId) => {
       iNotified: notification,
     });
 
-    await pubsub.publish(FRIEND_REQUEST_SENT, {
+    await pubsub.publish(`FRIEND_RECEIVE_${receiverId}`, {
       friendRequestSent: friendRequest,
     });
 
@@ -52,38 +36,67 @@ const sendFriendRequest = async (senderId, receiverId) => {
   }
 };
 
-const acceptFriendRequest = async (friendRequestId) => {
+const retriveReceivedFriendRequestList = async (userId) => {
   try {
-    const isFriendRequestExisted =
-      await existedFriendRequestById(friendRequestId);
+    const requests = await receivedFriendRequestList(userId);
 
-    if (!isFriendRequestExisted) {
-      throw new Error("Friend request does not exist.");
-    }
+    return requests.map((request) => ({
+      id: request.id,
+      user: request.sender,
+      createdAt: request.requestedAt,
+    }));
+  } catch (error) {
+    console.log(`[Friend Request Service Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+};
 
-    const acceptRequest =
-      await updateFriendRequestTypeToAccepted(friendRequestId);
+const retriveSentFriendRequestList = async (userId) => {
+  try {
+    const requests = await sentFriendRequestList(userId);
 
-    if (!acceptRequest) {
-      throw new Error("Failed to accept friend request.");
-    }
+    return requests.map((request) => ({
+      id: request.id,
+      user: request.receiver,
+      createdAt: request.requestedAt,
+    }));
+  } catch (error) {
+    console.log(`[Friend Request Sent List Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+};
 
-    const friendshipCreated = await createFriendship(
-      acceptRequest.senderId,
-      acceptRequest.receiverId,
+const setFriendRequestResponse = async (
+  friendRequestId,
+  responseCode,
+  userId,
+) => {
+  try {
+    const requestResponse = await updateFriendRequestType(
+      friendRequestId,
+      responseCode,
+      userId,
     );
 
-    if (!friendshipCreated) {
-      throw new Error(
-        "Failed to create friendship after accepting friend request.",
+    const response = requestResponse.isAccepted;
+    const receiverId =
+      requestResponse.senderId === userId
+        ? requestResponse.receiverId
+        : requestResponse.senderId;
+
+    if (response === true || response === false) {
+      const notify = await createNotification(
+        requestResponse.type,
+        receiverId,
+        userId,
       );
+
+      await pubsub.publish(`NOTIFY_${receiverId}`, {
+        notification: notify,
+      });
     }
 
-    await pubsub.publish(FRIEND_REQUEST_ACCEPTED, {
-      friendRequestAccepted: acceptRequest,
-    });
-
-    return !!friendshipCreated;
+    return response;
   } catch (error) {
     console.log(`[Friend Request Service Error]: ${error.message}`);
     throw new Error(error.message);
@@ -92,5 +105,7 @@ const acceptFriendRequest = async (friendRequestId) => {
 
 module.exports = {
   sendFriendRequest,
-  acceptFriendRequest,
+  setFriendRequestResponse,
+  retriveReceivedFriendRequestList,
+  retriveSentFriendRequestList,
 };
