@@ -12,6 +12,7 @@
     "@apollo/server": "^5.0.0",
     "@as-integrations/express4": "^1.1.2",
     "@graphql-tools/schema": "^10.0.31",
+    "@hono/node-server": "^2.0.4",
     "@prisma/client": "^6.19.0",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
@@ -21,15 +22,16 @@
     "graphql": "^16.11.0",
     "graphql-redis-subscriptions": "^2.7.0",
     "graphql-tag": "^2.12.6",
+    "graphql-type-json": "^0.3.2",
     "graphql-ws": "^5.16.2",
     "ioredis": "^5.7.0",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.23",
-    "pg": "^8.16.3",
+    "pg": "^8.21.0",
     "ws": "^8.18.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.11",
-    "prisma": "^6.16.2"
+    "prisma": "^6.19.3"
   }
 }
