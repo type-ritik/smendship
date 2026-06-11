@@ -35,14 +35,14 @@ model FriendRequest {
 }
 
 model Friendship {
-  id        String   @id @default(uuid()) @db.Uuid
-  user1Id   String   @db.Uuid
-  user2Id   String   @db.Uuid
-  createdAt DateTime @default(now()) @db.Timestamp(6)
-  user1     User     @relation("User1Friends", fields: [user1Id], references: [id])
-  user2     User     @relation("User2Friends", fields: [user2Id], references: [id])
+  id         String   @id @default(uuid()) @db.Uuid
+  follower   String   @db.Uuid
+  following  String   @db.Uuid
+  createdAt  DateTime @default(now()) @db.Timestamp(6)
+  followers  User     @relation("Friendship_followerToUser", fields: [follower], references: [id], map: "Friendship_user1Id_fkey")
+  followings User     @relation("Friendship_followingToUser", fields: [following], references: [id], map: "Friendship_user2Id_fkey")
 
-  @@unique([user1Id, user2Id])
+  @@unique([follower, following], map: "Friendship_user1Id_user2Id_key")
 }
 
 model CommentLike {
@@ -99,26 +99,26 @@ model Post {
 }
 
 model User {
-  id                    String          @id @default(uuid()) @db.Uuid
-  name                  String          @db.VarChar(100)
-  email                 String          @unique @db.VarChar(100)
-  password              String          @db.VarChar(255)
-  createdAt             DateTime        @default(now()) @db.Timestamp(6)
-  role                  Role            @default(USER)
-  status                user_status?    @default(ACTIVE)
-  is_activated          Boolean?        @default(true)
-  Comment               Comment[]
-  CommentLike           CommentLike[]
-  FriendRequestReceived FriendRequest[] @relation("ReceiverRequests")
-  FriendRequestSent     FriendRequest[] @relation("SenderRequests")
-  Friendships1          Friendship[]    @relation("User1Friends")
-  Friendships2          Friendship[]    @relation("User2Friends")
-  Message               Message[]       @relation("UserMessages")
-  Notification1         Notification[]  @relation("sendBy")
-  Notification2         Notification[]  @relation("receiveBy")
-  Participant           Participant[]
-  posts                 Post[]
-  postLikes             PostLike[]
+  id                                    String          @id @default(uuid()) @db.Uuid
+  name                                  String          @db.VarChar(100)
+  email                                 String          @unique @db.VarChar(100)
+  password                              String          @db.VarChar(255)
+  createdAt                             DateTime        @default(now()) @db.Timestamp(6)
+  role                                  Role            @default(USER)
+  status                                user_status?    @default(ACTIVE)
+  is_activated                          Boolean?        @default(true)
+  Comment                               Comment[]
+  CommentLike                           CommentLike[]
+  FriendRequestReceived                 FriendRequest[] @relation("ReceiverRequests")
+  FriendRequestSent                     FriendRequest[] @relation("SenderRequests")
+  Friendship_Friendship_followerToUser  Friendship[]    @relation("Friendship_followerToUser")
+  Friendship_Friendship_followingToUser Friendship[]    @relation("Friendship_followingToUser")
+  Message                               Message[]       @relation("UserMessages")
+  Notification1                         Notification[]  @relation("sendBy")
+  Notification2                         Notification[]  @relation("receiveBy")
+  Participant                           Participant[]
+  posts                                 Post[]
+  postLikes                             PostLike[]
 }
 
 model ChatRoom {
@@ -158,6 +158,8 @@ enum Role {
 enum Request {
   FRIEND_REQUEST_ACCEPTED
   FRIEND_REQUEST_SENT
+  FRIEND_REQUEST_REJECTED
+  FRIEND_REQUEST_REVOKED
 }
 
 enum Category {
