@@ -2,13 +2,16 @@
 const { gql } = require("graphql-tag");
 
 const typeDefs = gql`
+  scalar DateTime
+  scalar JSON
+
   type Post {
     id: ID!
     title: String!
     content: String!
     category: String!
     author: User!
-    createdAt: String!
+    createdAt: DateTime!
   }
 
   type Notification {
@@ -62,7 +65,7 @@ const typeDefs = gql`
   type User {
     id: ID!
     name: String!
-    email: String!
+    email: String
     createdAt: String
   }
 
@@ -82,9 +85,16 @@ const typeDefs = gql`
     chatRoom: ChatRoom!
   }
 
+  type InvitationRequestPayload {
+    id: String!
+    senderId: String!
+    sender: User!
+    requestedAt: DateTime!
+  }
+
   type FriendRequestPayload {
     message: String!
-    response: Boolean!
+    response: Boolean
   }
 
   type CommentPayload {
@@ -120,6 +130,12 @@ const typeDefs = gql`
     lastUpdated: String
   }
 
+  type FriendsPayload {
+    id: String!
+    user: User
+    createdAt: String!
+  }
+
   input UpdateUserInput {
     name: String
     email: String
@@ -142,6 +158,11 @@ const typeDefs = gql`
     friendChatList: [Friendship!]!
     chatRoomChatList(chatRoomId: String): [Message!]!
     userChatRoomId: [Participant!]!
+    listOfReceivedFriendRequest: [FriendsPayload]
+    listOfSentFriendRequest: [FriendsPayload]
+    searchFriends(friendName: String!): [User]
+    listOfFollowers: [FriendsPayload]
+    listOfFollowings: [FriendsPayload]
   }
 
   type Mutation {
@@ -163,7 +184,10 @@ const typeDefs = gql`
     likecomment(postId: ID!, commentId: ID!): LikeResponse
 
     friendSendRequest(receiverId: String!): FriendRequestPayload
-    friendAcceptRequest(requestId: String!): FriendRequestPayload
+    friendRequestResponse(
+      requestId: String!
+      responseCode: String!
+    ): FriendRequestPayload
 
     activateChatRoom(targetUserId: String!): ChatRoom!
     textMessage(chatRoomId: String!, content: String!): Message!

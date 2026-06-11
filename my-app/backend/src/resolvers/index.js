@@ -14,7 +14,11 @@ const {
   isValidName,
   isValidUUID,
 } = require("../utils/UserUtils");
-const { userLogin, createAccount } = require("../services/UserAuthServices");
+const {
+  userLogin,
+  createAccount,
+  searchFriendByName,
+} = require("../services/UserAuthServices");
 const {
   deleteUserById,
   updateUserProfile,
@@ -29,7 +33,9 @@ const {
 } = require("../services/CommentService");
 const {
   sendFriendRequest,
-  acceptFriendRequest,
+  retriveReceivedFriendRequestList,
+  retriveSentFriendRequestList,
+  setFriendRequestResponse,
 } = require("../services/FriendRequestServices");
 const {
   chatRoomActivate,
@@ -40,15 +46,37 @@ const {
   retriveNotification,
   updateNotification,
 } = require("../services/NotificationService");
-const { findFriendChatList } = require("../services/ExploreFriendServices");
+const {
+  findFriendChatList,
+  myFollowers,
+  myFollowings,
+} = require("../services/ExploreFriendServices");
 const {
   friendRequestReceiveSubs,
   activeChatSubs,
   notifyUserSubs,
 } = require("../services/SubscriptionService");
+const { GraphQLScalarType, Kind } = require("graphql");
+const GraphQLJSON = require("graphql-type-json");
 // import { subscribeToNotify } from "../utils/subscriber.js";
 
 const resolvers = {
+  DateTime: new GraphQLScalarType({
+    name: "DateTime",
+    description: "A custom scalar type for DateTime values",
+    parseValue(value) {
+      return new Date(value);
+    },
+    serialize(value) {
+      return value instanceof Date
+        ? value.toISOString()
+        : new Date(value).toISOString();
+    },
+    parseLiteral(ast) {
+      return ast.kind === Kind.STRING ? new Date(ast.value) : null;
+    },
+  }),
+  JSON: GraphQLJSON,
   Notification: {
     fromUserId: async (parent, _) => {
       const userId = parent.fromUserId;
@@ -126,6 +154,71 @@ const resolvers = {
         return payload;
       } catch (error) {
         console.log("[Error retrive post: ", error.message);
+        throw new Error(error.message);
+      }
+    },
+    listOfFollowers: async (_, parent, context) => {
+      const userId = context.user.id;
+      if (!userId) throw new Error("Unauthorized");
+
+      try {
+        const payload = await myFollowers(userId);
+
+        return payload;
+      } catch (error) {
+        console.log("[Error retrive my friends: ", error.message);
+        throw new Error(error.message);
+      }
+    },
+    listOfFollowings: async (_, parent, context) => {
+      const userId = context.user.id;
+      if (!userId) throw new Error("Unauthorized");
+
+      try {
+        const payload = await myFollowings(userId);
+        return payload;
+      } catch (error) {
+        console.log("[Error retriving followings: ", error.message, "]");
+        throw new Error(error.message);
+      }
+    },
+    listOfReceivedFriendRequest: async (_, parent, context) => {
+      const userId = context.user.id;
+      if (!userId) throw new Error("Unauthorized");
+
+      try {
+        const payload = await retriveReceivedFriendRequestList(userId);
+
+        return payload;
+      } catch (error) {
+        console.log("[Error retrive received friend request: ", error.message);
+        throw new Error(error.message);
+      }
+    },
+    listOfSentFriendRequest: async (_, parent, context) => {
+      const userId = context.user.id;
+      if (!userId) throw new Error("Unauthorized");
+
+      try {
+        const payload = await retriveSentFriendRequestList(userId);
+        return payload;
+      } catch (error) {
+        console.log(`[Error retrive sent friend request: ${error.message}]`);
+        throw new Error(error.message);
+      }
+    },
+    searchFriends: async (_, { friendName }, context) => {
+      const userId = context.user.id;
+      if (!userId) throw new Error("Unauthorized Access");
+      if (!friendName || friendName.trim() === "") {
+        throw new Error("Friend name must not be empty");
+      }
+      try {
+        const payload = await searchFriendByName(friendName);
+
+        return payload;
+      } catch (error) {
+        console.log("[Search Friends Error]: ", error.message);
         throw new Error(error.message);
       }
     },
@@ -652,15 +745,25 @@ const resolvers = {
         throw new Error(error.message);
       }
     },
-    friendAcceptRequest: async (_, { requestId }, context) => {
+    friendRequestResponse: async (_, { requestId, responseCode }, context) => {
+      const userId = context.user.id;
+      if (!userId) throw new Error("Unauthorized");
       try {
-        if (!isValidUUID(requestId)) {
-          throw new Error("Invalid Request ID");
-        }
+        const payload = await setFriendRequestResponse(
+          requestId,
+          responseCode,
+          userId,
+        );
 
-        const payload = await acceptFriendRequest(requestId);
-
-        return payload;
+        return {
+          message:
+            payload === true
+              ? "Friend request accepted"
+              : payload === false
+                ? "Friend request rejected"
+                : "Friend request revoked",
+          response: payload === true ? true : payload === false ? false : null,
+        };
       } catch (error) {
         console.log("[Accept Friend Request Error]: ", error.message);
         throw new Error(error.message);
