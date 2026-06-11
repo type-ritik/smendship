@@ -1,4 +1,8 @@
-const { findFriendsByUserId } = require("../repository/FriendshipRepository");
+const {
+  findFriendsByUserId,
+  retriveFollowersByUserId,
+  retriveFollowingsByUserId,
+} = require("../repository/FriendshipRepository");
 
 const findFriendChatList = async (userId) => {
   try {
@@ -15,6 +19,38 @@ const findFriendChatList = async (userId) => {
   }
 };
 
+const myFollowers = async (userId) => {
+  try {
+    const payload = await retriveFollowersByUserId(userId);
+
+    return payload.map((friend) => ({
+      id: friend.id,
+      createdAt: friend.createdAt,
+      user: friend.followers,
+    }));
+  } catch (error) {
+    console.log(`[Followers Service Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+};
+
+const myFollowings = async (userId) => {
+  try {
+    const payload = await retriveFollowingsByUserId(userId);
+
+    return payload.map((friend) => ({
+      id: friend.id,
+      createdAt: friend.createdAt,
+      user: friend.followings,
+    }));
+  } catch (error) {
+    console.log(`[Followings Service Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+};
+
 module.exports = {
   findFriendChatList,
+  myFollowers,
+  myFollowings,
 };
