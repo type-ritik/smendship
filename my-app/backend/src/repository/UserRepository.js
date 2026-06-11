@@ -111,6 +111,28 @@ async function updateUserFieldsById(data, id) {
   }
 }
 
+async function findUserByUserName(friendName) {
+  try {
+    const payload = await prisma.user.findMany({
+      where: {
+        name: {
+          contains: friendName,
+        },
+      },
+      take: 10,
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    return payload;
+  } catch (error) {
+    console.log(`[User Repository Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+}
+
 module.exports = {
   getUserById,
   getUserByEmail,
@@ -119,4 +141,5 @@ module.exports = {
   existsUserById,
   deactivateUserById,
   updateUserFieldsById,
+  findUserByUserName,
 };

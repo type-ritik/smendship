@@ -4,8 +4,8 @@ const createFriendship = async (senderId, receiverId) => {
   try {
     const friendship = await prisma.friendship.create({
       data: {
-        user1Id: senderId,
-        user2Id: receiverId,
+        follower: senderId,
+        following: receiverId,
       },
     });
 
@@ -19,7 +19,54 @@ const createFriendship = async (senderId, receiverId) => {
   }
 };
 
-const findFriendsByUserId = async (userId) => {
+const retriveFollowersByUserId = async (userId) => {
+  try {
+    const payload = await prisma.friendship.findMany({
+      where: {
+        following: userId,
+      },
+
+      include: {
+        followers: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return payload;
+  } catch (error) {
+    console.log(`[Friendship Repository Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+};
+
+const retriveFollowingsByUserId = async (userId) => {
+  try {
+    const payload = await prisma.friendship.findMany({
+      where: {
+        follower: userId,
+      },
+      include: {
+        followings: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return payload;
+  } catch (error) {
+    console.log(`[Friendship Repository Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+};
+
+const findChatFriendsByUserId = async (userId) => {
   try {
     const payload = await prisma.friendship.findMany({
       where: {
@@ -42,4 +89,9 @@ const findFriendsByUserId = async (userId) => {
   }
 };
 
-module.exports = { createFriendship, findFriendsByUserId };
+module.exports = {
+  createFriendship,
+  retriveFollowersByUserId,
+  retriveFollowingsByUserId,
+  findChatFriendsByUserId,
+};
