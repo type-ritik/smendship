@@ -1,4 +1,4 @@
-const { prisma } = require("../config/prismaConfig");
+const { prisma, Prisma } = require("../config/prismaConfig");
 
 async function getAllPostByUserId(userId) {
   try {
@@ -72,10 +72,31 @@ async function createPost(title, content, category, userId) {
         category,
         authorId: userId,
       },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        category: true,
+        createdAt: true,
+        author: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
 
     return post;
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      throw new Error(
+        "Validation Error: You already have a post with this title.",
+      );
+    }
     console.log(`[Post Repository Error]: ${error.message}`);
     throw new Error(error.message);
   }

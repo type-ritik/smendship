@@ -75,7 +75,8 @@ const typeDefs = gql`
   }
 
   type PostPayload {
-    post: Post!
+    post: Post
+    message: String
   }
 
   type Message {

@@ -96,6 +96,8 @@ model Post {
   Notification Notification[]
   author       User           @relation(fields: [authorId], references: [id])
   postLikes    PostLike[]
+
+  @@unique([title])
 }
 
 model User {

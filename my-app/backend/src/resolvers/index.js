@@ -432,10 +432,6 @@ const resolvers = {
         throw new Error("Unauthorized Access");
       }
 
-      if (!isValidUUID(userId)) {
-        throw new Error("Unauthorized Access");
-      }
-
       if (!category) {
         throw new Error("Category is required");
       }
@@ -458,10 +454,6 @@ const resolvers = {
 
       try {
         const payload = await createNewPost(title, content, category, userId);
-
-        if (!payload) {
-          throw new Error("Error creating post");
-        }
 
         return payload;
       } catch (error) {
