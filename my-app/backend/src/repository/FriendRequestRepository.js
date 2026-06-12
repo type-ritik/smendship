@@ -82,6 +82,7 @@ const receivedFriendRequestList = async (id) => {
     const lists = await prisma.friendRequest.findMany({
       where: {
         receiverId: id,
+        type: "FRIEND_REQUEST_SENT",
       },
 
       include: {
@@ -106,6 +107,7 @@ const sentFriendRequestList = async (id) => {
     const lists = await prisma.friendRequest.findMany({
       where: {
         senderId: id,
+        type: "FRIEND_REQUEST_SENT",
       },
 
       include: {
