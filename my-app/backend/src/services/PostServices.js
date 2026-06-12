@@ -85,44 +85,19 @@ async function retrivePostByPostId(postId, userId) {
 
 async function createNewPost(title, content, category, userId) {
   try {
-    const isUserExisted = await existsUserById(userId);
-
-    if (!isUserExisted) {
-      throw new Error("User not found");
-    }
-
-    const user = await getUserById(userId);
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    if (!user.is_activated) {
-      throw new Error("User is not activated");
-    }
-
-    if (user.status === "SUSPENDED") {
-      throw new Error("User is suspended");
-    }
-
-    const isPostExisted = await existedPostByTitleAndUserIdAndIsNotRevoked(
-      title,
-      userId,
-    );
-
-    if (isPostExisted) {
-      throw new Error("Post with the same title already exists");
-    }
-
     const post = await createPost(title, content, category, userId);
 
-    if (!post) {
-      throw new Error("Failed to create post");
-    }
-
-    delete post.is_revoked;
-
-    return post;
+    return {
+      post: {
+        id: post.id,
+        title: post.title,
+        content: post.content,
+        category: post.category,
+        createdAt: post.createdAt,
+        author: post.author,
+      },
+      message: "Post created Successfully!",
+    };
   } catch (error) {
     console.log(`[Post Service Error]: ${error.message}`);
     throw new Error(error.message);
