@@ -61,9 +61,9 @@ function HomeComponent() {
   };
 
   return (
-    <div className="w-full h-screen">
+    <div className="w-full h-screen mt-30!">
       <div className="w-full flex justify-evenly relative">
-        <div className="w-1/5 h-200 fixed left-50 border bg-white rounded flex justify-center">
+        <div className="w-1/3 h-200 not-xl:left-5 fixed left-20 border bg-white rounded flex justify-center">
           {" "}
           <div className="w-full bg-orange-50 m-5! flex flex-col items-center gap-5">
             <div
@@ -91,13 +91,13 @@ function HomeComponent() {
                 </div>
                 <div className="profile-body w-full h-40">
                   <div className="w-[90%] flex flex-col justify-center mx-5! my-2!">
-                    <h1 className="font-bold text-2xl">
+                    <h1 className="font-bold text-xl">
                       {currentUser?.user?.name}
                     </h1>
-                    <p className="text-gray-800 text-sm">
+                    <p className="text-gray-800 text-sm text-wraps">
                       {currentUser?.user?.id}
                     </p>
-                    <span className="text-[12px] w-full font-normal text-gray-600">
+                    <span className="text-xs w-full font-normal text-gray-600">
                       Lorem ipsum dolor sit amet consectetur adipisicing elit.
                       Incidunt fugiat beatae necessitatibus, sapiente rerum
                     </span>
@@ -109,7 +109,7 @@ function HomeComponent() {
             <div className="w-full h-60 bg-purple-200"></div>
           </div>
         </div>
-        <div className="w-1/3 flex flex-col right-150">
+        <div className="w-3/5 absolute flex flex-col not-xl:-right-10 not-xl:w-2/3 right-10">
           <EditorComponent />
           <hr className="mt-5! text-gray-400" />
           <div className="w-full">

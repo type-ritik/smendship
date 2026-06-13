@@ -45,7 +45,7 @@ function SignupComponent() {
       },
     });
 
-    navigate("/home?signup=success");
+    navigate("/?signup=success");
   };
 
   return (
