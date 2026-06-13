@@ -10,18 +10,19 @@ import NetworkPage from "./pages/NetworkPage";
 import NetworkInvitationRequests from "./components/Network/NetworkInvitationRequests";
 import { useSelector } from "react-redux";
 import { useEffect } from "react";
-import type { UserSelector } from "./utils/userInterfaces";
+import type { UserObjState } from "./utils/userInterfaces";
+import ManageMyNetwork from "./pages/ManageMyNetwork";
 
 function App() {
-  // const [chatUserId, setChatUserId] = useState("");
   const navigate = useNavigate();
-  const { currentUser } = useSelector((state: UserSelector) => state.user);
+  const { currentUser } = useSelector((state: UserObjState) => state.user);
 
   useEffect(() => {
     if (!currentUser) {
       navigate("/auth/login");
     }
   }, [navigate, currentUser]);
+
   return (
     <>
       <Routes>
@@ -36,7 +37,7 @@ function App() {
             path="network/invitation/requests"
             element={<NetworkInvitationRequests />}
           />
-          <Route path="network/manage" element={"Hello World!"} />
+          <Route path="network/manage" element={<ManageMyNetwork />} />
           <Route path="notification" element={<h1>Notification</h1>} />
         </Route>
       </Routes>

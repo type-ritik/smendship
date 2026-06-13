@@ -18,3 +18,12 @@ export interface UserObjState {
     } | null;
   };
 }
+
+export interface InvitationRequestInterface {
+  id: number;
+  user: {
+    id: number;
+    name: string;
+  };
+  createdAt: string;
+}
