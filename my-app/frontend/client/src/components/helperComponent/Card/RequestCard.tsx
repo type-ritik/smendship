@@ -1,33 +1,78 @@
+import { useMutation } from "@apollo/client";
 import type { InvitationRequestInterface } from "../../../utils/userInterfaces";
+import { FRIEND_REQUEST_RESPONSE } from "../../../services/InvitationService";
+import toast from "react-hot-toast";
+import { useEffect } from "react";
 
 type RequestCardProps = {
-  isReceivedActive: number | boolean;
+  responseCall: string;
   invitationRequest: InvitationRequestInterface[] | [];
 };
 
-function RequestCard({
-  isReceivedActive,
-  invitationRequest,
-}: RequestCardProps) {
-  const request = invitationRequest;
+function RequestCard({ responseCall, invitationRequest }: RequestCardProps) {
+  const [friendRequestResponse, { data, loading, error }] = useMutation(
+    FRIEND_REQUEST_RESPONSE,
+  );
+
+  useEffect(() => {
+    if (loading) {
+      toast.loading("Loading...");
+    }
+
+    if (data) {
+      toast.success(data.friendRequestResponse.message);
+      toast.dismiss();
+    }
+
+    if (error) {
+      toast.error("Error responding to friend request");
+    }
+  }, [data, loading, error]);
+
+  const handleRequestResponse = async (
+    requestId: number,
+    responseCode: string,
+  ) => {
+    switch (responseCode) {
+      case "ACCEPT":
+        await friendRequestResponse({
+          variables: {
+            requestId: requestId,
+            responseCode: responseCode,
+          },
+        });
+        break;
+      case "REJECT":
+        await friendRequestResponse({
+          variables: {
+            requestId: requestId,
+            responseCode: responseCode,
+          },
+        });
+        break;
+      default:
+        toast.error("Something went wrong. Please try again later.");
+        break;
+    }
+  };
 
   return (
     <>
       <div className="w-full flex flex-col gap-3 justify-center items-center">
-        {request === undefined ? (
+        {invitationRequest === undefined ? (
           <div className="text-center text-gray-500">
             No{" "}
-            {isReceivedActive === true
+            {responseCall === "RECEIVE"
               ? "received invitation"
-              : isReceivedActive === false
+              : responseCall === "SENT"
                 ? "sent invitation"
-                : isReceivedActive === 2
+                : responseCall === "FOLLOWER"
                   ? "follower friends"
                   : "following friends"}{" "}
             yet.
           </div>
         ) : (
-          request.map((item) => (
+          invitationRequest.map((item) => (
             <div
               key={item.id}
               className="flex justify-center  bg-sky-200
@@ -57,33 +102,50 @@ function RequestCard({
                 </span>
               </div>
               <div className="flex gap-5 w-1/2 justify-end-safe">
-                {isReceivedActive ? (
+                {responseCall !== "SENT" ? (
                   <div className="flex gap-5 w-full justify-end-safe">
                     <button
+                      onClick={() =>
+                        handleRequestResponse(
+                          item.id,
+                          responseCall === "RECEIVE"
+                            ? "REJECT"
+                            : responseCall === "FOLLOWING"
+                              ? "UNFOLLOW"
+                              : "REVOKE",
+                        )
+                      }
                       className="border py-3! px-6! bg-gray-200! text-red-700!  rounded justify-center flex flex-1 text-sm font-medium uppercase hover:bg-red-700! hover:text-gray-200!
               transition-colors
               shadow-sm hover:shadow-black shadow-red-700
               "
                     >
-                      {isReceivedActive === true
+                      {responseCall === "RECEIVE"
                         ? "Reject"
-                        : isReceivedActive === 2
-                          ? "Revoked"
-                          : "Unfollow"}
+                        : responseCall === "FOLLOWING"
+                          ? "Unfollow"
+                          : "Revoked"}
                     </button>
                     <button
-                      className="border py-3! px-6! rounded bg-gray-200! text-green-700! justify-center flex flex-1 text-sm font-medium upp`ercase
+                      onClick={() =>
+                        handleRequestResponse(
+                          item.id,
+                          responseCall === "RECEIVE" ? "ACCEPT" : "CHAT",
+                        )
+                      }
+                      className="border py-3! px-6! rounded bg-gray-200! text-green-700! justify-center flex flex-1 text-sm font-medium uppercase
               hover:bg-green-700! hover:text-gray-200!
               transition-colors
               shadow-sm hover:shadow-black shadow-green-700
               "
                     >
-                      {isReceivedActive === true ? "Accept" : "Chat"}
+                      {responseCall === "RECEIVE" ? "Accept" : "Chat"}
                     </button>
                   </div>
                 ) : (
                   <div className="flex w-1/2">
                     <button
+                      onClick={() => handleRequestResponse(item.id, "REVOKE")}
                       className="border py-3! px-6! bg-gray-200! text-red-700!  rounded justify-center flex flex-1 text-sm font-medium uppercase hover:bg-red-700! hover:text-gray-200!
               transition-colors
               shadow-sm hover:shadow-black shadow-red-700

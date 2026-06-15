@@ -51,3 +51,12 @@ export const LIST_OF_SENT_FRIEND_REQUEST = gql`
     }
   }
 `;
+
+export const FRIEND_REQUEST_RESPONSE = gql`
+  mutation FriendRequestResponse($requestId: String!, $responseCode: String!) {
+    friendRequestResponse(requestId: $requestId, responseCode: $responseCode) {
+      message
+      response
+    }
+  }
+`;
