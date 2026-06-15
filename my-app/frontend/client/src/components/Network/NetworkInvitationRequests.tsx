@@ -10,7 +10,7 @@ import type { InvitationRequestInterface } from "../../utils/userInterfaces";
 import toast from "react-hot-toast";
 
 const RequestCardComponent = RequestCard as unknown as ComponentType<{
-  isReceivedActive: number | boolean;
+  responseCall: string;
   invitationRequest: InvitationRequestInterface[];
 }>;
 
@@ -110,7 +110,7 @@ function NetworkInvitationRequests() {
         <div className="w-full h-170 bg-[#f0ffff] border px-5! rounded relative flex flex-col items-center overflow-y-scroll">
           <div className="absolute  w-full flex-col gap-5 flex justify-center items-center p-5!">
             <RequestCardComponent
-              isReceivedActive={isReceivedActive}
+              responseCall={isReceivedActive ? "RECEIVE" : "SENT"}
               invitationRequest={
                 isReceivedActive
                   ? listOfReceivedFriendRequest

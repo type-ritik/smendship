@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 function ManageMyNetwork() {
   const [listOfFollwings, setListOfFollowings] = useState([]);
   const [listOfFollowers, setListOfFollowers] = useState([]);
-  const [isFollowingActive, setIsFollowerActive] = useState(true);
+  const [isFollowingActive, setIsFollowingActive] = useState(false);
   const {
     data: followingData,
     loading: followingLoading,
@@ -70,24 +70,24 @@ function ManageMyNetwork() {
       <div className="p-5! w-full bg-white border rounded gap-5! flex flex-col">
         <div className="w-full flex p-5! border rounded justify-start bg-[#F0FFFF] items-center gap-5!">
           <div
-            onClick={() => setIsFollowerActive(true)}
-            className={`w-35 px-6! py-2! flex justify-center items-center self-center rounded hover:bg-green-200 hover:text-black cursor-pointer  h-full ${isFollowingActive ? "bg-green-300" : ""}`}
+            onClick={() => setIsFollowingActive(false)}
+            className={`w-35 px-6! py-2! flex justify-center items-center self-center rounded hover:bg-green-200 hover:text-black cursor-pointer  h-full ${!isFollowingActive ? "bg-green-300" : ""}`}
           >
             Followers
           </div>{" "}
           <span>|</span>{" "}
           <div
-            onClick={() => setIsFollowerActive(false)}
-            className={`w-35 rounded px-6! py-2! flex justify-center items-center self-center hover:bg-green-200 hover:text-black cursor-pointer ${!isFollowingActive ? "bg-green-300" : ""}`}
+            onClick={() => setIsFollowingActive(true)}
+            className={`w-35 rounded px-6! py-2! flex justify-center items-center self-center hover:bg-green-200 hover:text-black cursor-pointer ${isFollowingActive ? "bg-green-300" : ""}`}
           >
             Followings
           </div>
         </div>
         <div className="w-full h-[70vh] p-5! border rounded bg-[#F0FFFF] overflow-y-scroll">
           <RequestCard
-            isReceivedActive={isFollowingActive ? 2 : 3}
+            responseCall={isFollowingActive ? "FOLLOWING" : "FOLLOWER"}
             invitationRequest={
-              isFollowingActive ? listOfFollowers : listOfFollwings
+              isFollowingActive ? listOfFollwings : listOfFollowers
             }
           />
         </div>

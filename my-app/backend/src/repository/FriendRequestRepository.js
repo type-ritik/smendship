@@ -42,7 +42,6 @@ const updateFriendRequestType = async (
   userId,
 ) => {
   try {
-    responseCode = parseInt(responseCode);
     const updatedRequest = await prisma.$transaction(async (tx) => {
       const { count } = await tx.friendRequest.updateMany({
         where: {
@@ -51,13 +50,17 @@ const updateFriendRequestType = async (
         },
         data: {
           type:
-            responseCode === 1
+            responseCode === "ACCEPT"
               ? "FRIEND_REQUEST_ACCEPTED"
-              : responseCode === 0
+              : responseCode === "REJECT"
                 ? "FRIEND_REQUEST_REJECTED"
                 : "FRIEND_REQUEST_REVOKED",
           isAccepted:
-            responseCode === 1 ? true : responseCode === 0 ? false : null,
+            responseCode === "ACCEPT"
+              ? true
+              : responseCode === "REJECT"
+                ? false
+                : null,
         },
       });
 
