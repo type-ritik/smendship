@@ -12,6 +12,8 @@ import { useSelector } from "react-redux";
 import { useEffect } from "react";
 import type { UserObjState } from "./utils/userInterfaces";
 import ManageMyNetwork from "./pages/ManageMyNetwork";
+import Notification from "./pages/Notification";
+import ProfilePage from "./pages/ProfilePage";
 
 function App() {
   const navigate = useNavigate();
@@ -31,14 +33,14 @@ function App() {
         <Route path="/" element={<IndexPage />}>
           <Route path="message" element={<ChatBoxComponent />} />
           <Route path="chat/user/list" element={<UsersChatList />} />
-          <Route path="profile" element={<h1>Profile</h1>} />
+          <Route path="profile" element={<ProfilePage />} />
           <Route path="network" element={<NetworkPage />} />
           <Route
             path="network/invitation/requests"
             element={<NetworkInvitationRequests />}
           />
           <Route path="network/manage" element={<ManageMyNetwork />} />
-          <Route path="notification" element={<h1>Notification</h1>} />
+          <Route path="notification" element={<Notification />} />
         </Route>
       </Routes>
     </>
