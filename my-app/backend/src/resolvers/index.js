@@ -18,6 +18,7 @@ const {
   userLogin,
   createAccount,
   searchFriendByName,
+  verifyUserAccount,
 } = require("../services/UserAuthServices");
 const {
   deleteUserById,
@@ -568,6 +569,28 @@ const resolvers = {
         return response;
       } catch (error) {
         console.log(`[Update Profile Error]: ${error.message}`);
+        throw new Error(error.message);
+      }
+    },
+    verifyAccount: async (_, { email, OTP }, context) => {
+      if (!isValidEmail(email)) {
+        throw new Error("Invalid Email! Please provide a valid email address.");
+      }
+
+      if (!OTP || OTP.trim() === "") {
+        throw new Error("OTP must not be empty");
+      }
+
+      try {
+        const response = await verifyUserAccount(email, OTP);
+        if (!response) {
+          throw new Error(
+            "Account verification failed! Please check your OTP and try again.",
+          );
+        }
+        return response;
+      } catch (error) {
+        console.log(`[Account Verification Error]: ${error.message}`);
         throw new Error(error.message);
       }
     },

@@ -8,6 +8,7 @@ const resolvers = require("./resolvers/index");
 const bodyParser = require("body-parser");
 const { expressMiddleware } = require("@as-integrations/express4");
 const { getContext } = require("./config/context");
+const { verifyNodemailerServer } = require("./config/mailConfig");
 
 async function startServer() {
   const app = express();
@@ -16,6 +17,9 @@ async function startServer() {
     typeDefs,
     resolvers,
   });
+
+  // Verify the nodemailer connection
+  await verifyNodemailerServer();
 
   await server.start();
   app.use(

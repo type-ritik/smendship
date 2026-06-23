@@ -70,8 +70,10 @@ const typeDefs = gql`
   }
 
   type AuthPayload {
-    token: String!
-    user: User!
+    status: String
+    message: String
+    token: String
+    user: User
   }
 
   type PostPayload {
@@ -167,10 +169,11 @@ const typeDefs = gql`
   }
 
   type Mutation {
+    verifyAccount(email: String!, OTP: String!): AuthPayload
     signup(name: String!, email: String!, password: String!): AuthPayload
     login(email: String!, password: String!): AuthPayload
 
-    updateprofile(input: UpdateUserInput!): UpdateProfilePayload
+    updateprofile(input: UpdateUserInput): UpdateProfilePayload
     deleteuser(id: String!): DeactivateUserPayload
 
     createpost(title: String!, content: String!, category: String!): PostPayload

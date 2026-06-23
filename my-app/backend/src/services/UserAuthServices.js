@@ -1,10 +1,19 @@
+const {
+  sendVerificationCode,
+  sendVerificationSuccessfullMessage,
+} = require("../config/mailConfig");
 const { comparePassword, hashPassword } = require("../config/PasswordEncoder");
 const {
   getUserByEmail,
   existsUserByEmail,
   createUser,
-  findUserByUserName
+  findUserByUserName,
+  updateUserVerification,
 } = require("../repository/UserRepository");
+const {
+  generateVerificationCode,
+  generateExpiryTime,
+} = require("../utils/OTPGeneratorUtils");
 const { generateToken } = require("./JwtServices");
 
 async function createAccount(name, email, password) {
@@ -21,25 +30,97 @@ async function createAccount(name, email, password) {
       throw new Error("Failed to hash password");
     }
 
-    const newUser = await createUser(name, email, hashedPassword);
+    const verificationCode = generateVerificationCode();
+
+    if (!verificationCode) {
+      throw new Error("Failed to generate verification code");
+    }
+
+    const codeExpiry = generateExpiryTime();
+
+    if (!codeExpiry) {
+      throw new Error("Failed to generate code expiry time");
+    }
+
+    const newUser = await createUser(
+      name,
+      email,
+      hashedPassword,
+      verificationCode,
+      codeExpiry,
+    );
 
     if (!newUser) {
       throw new Error("Failed to create user");
     }
 
-    const token = generateToken(newUser.id, newUser.role);
+    const sendVerifyingCode = await sendVerificationCode(
+      email,
+      verificationCode,
+    );
+
+    if (!sendVerifyingCode) {
+      throw new Error("Server error during signup");
+    }
+
+    return {
+      status: 201,
+      message: "User registered! Check your email for the verification code.",
+    };
+  } catch (error) {
+    console.log(`[User SignUp Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+}
+
+async function verifyUserAccount(email, verificationCode) {
+  try {
+    const user = await getUserByEmail(email);
+
+    if (user.is_activated) {
+      throw new Error("Account already verified");
+    }
+
+    if (user.verificationCode !== verificationCode) {
+      throw new Error("Invalid verification code");
+    }
+
+    if (Date.now() > user.codeExpiry) {
+      throw new Error("Verification code expired");
+    }
+
+    const updateVerification = await updateUserVerification(user.email);
+
+    if (!updateVerification) {
+      throw new Error("Failed to update user verification status");
+    }
+
+    const token = generateToken(updateVerification.id, updateVerification.role);
 
     if (!token) {
       throw new Error("Failed to generate token");
     }
 
+    const res = await sendVerificationSuccessfullMessage(
+      updateVerification.email,
+    );
+
+    if (!res) {
+      throw new Error("Failed to send verification success email");
+    }
+
     return {
+      status: 200,
+      message: "Account verified successfully!",
       token,
-      user: newUser,
+      user: {
+        id: updateVerification.id,
+        name: updateVerification.name,
+        email: updateVerification.email,
+      },
     };
   } catch (error) {
-    console.log(`[User SignUp Error]: ${error.message}`);
-    throw new Error(error.message);
+    console.log("[User Verification Error]:", error.message);
   }
 }
 
@@ -97,4 +178,5 @@ module.exports = {
   userLogin,
   createAccount,
   searchFriendByName,
+  verifyUserAccount,
 };
