@@ -4,35 +4,30 @@ import { SIGNUP_NOW } from "../../services/AuthService";
 import "./Signup.css";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
-import { useDispatch } from "react-redux";
-import {
-  signInFailure,
-  signInStart,
-  signInSuccess,
-} from "../../redux/user/userSlice";
+import { FcGoogle } from "react-icons/fc";
+import { ImGithub } from "react-icons/im";
+import VerifyOTPComponenet from "../helperComponent/Card/VerifyOTPComponenet";
 
 function SignupComponent() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [isVerifyingOTP, setIsVerifyingOTP] = useState(false);
   const [signup, { data, loading, error }] = useMutation(SIGNUP_NOW);
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
   useEffect(() => {
     if (loading) {
-      dispatch(signInStart());
       console.log("Loading...");
     }
     if (error) {
-      dispatch(signInFailure(error.message));
       toast.error("Signup Failed");
     }
     if (data) {
-      dispatch(signInSuccess(data.signup));
-      window.localStorage.setItem("token", data.login.token);
+      setIsVerifyingOTP(true);
+      window.localStorage.setItem("email", email);
     }
-  }, [loading, error, data, dispatch]);
+  }, [loading, error, data, email]);
 
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -44,20 +39,23 @@ function SignupComponent() {
         password,
       },
     });
-
-    navigate("/?signup=success");
   };
 
   return (
-    <div className="w-full h-screen flex justify-center items-center">
+    <div
+      className={`w-full relative h-screen flex justify-center items-center`}
+    >
       <Toaster />
-      <div className="w-120 bg-amber-50 gap-2 border rounded shadow-xs shadow-gray-900!">
-        <div className="w-full p-5! flex flex-col gap-2!">
+      {isVerifyingOTP && (
+        <VerifyOTPComponenet setFloatComponent={setIsVerifyingOTP} />
+      )}
+      <div className="w-120 bg-amber-50 gap-2 rounded-xl shadow-sm shadow-gray-900">
+        <div className="w-full p-5! flex flex-col gap-5">
           <h2 className="w-full flex text-base font-semibold justify-center items-center border-b">
             Signup here!
           </h2>
           <br />
-          <form className="s_form" onSubmit={handleSignup}>
+          <form className="s_form gap-5!" onSubmit={handleSignup}>
             <div className="w-full flex flex-col">
               <label htmlFor="name">Name</label>
               <input
@@ -91,17 +89,36 @@ function SignupComponent() {
                 placeholder="Enter strong password"
               />
             </div>
-            <button className="s_sumbit" type="submit">
-              Signup
+            <button
+              className="s_sumbit bg-violet-600! hover:bg-violet-800!"
+              type="submit"
+            >
+              Create new account
             </button>
           </form>
-          <div className="w-full flex justify-center cursor-pointer">
+          <div className="w-full flex justify-center cursor-pointer text-sm">
             <span
-              className="text-blue-600"
+              className="text-blue-500 hover:text-blue-600"
               onClick={() => navigate("/auth/login")}
             >
               Already have an account?
             </span>
+          </div>
+          <div className="w-full flex gap-5 justify-between">
+            <div
+              id="google-signup"
+              className="w-full px-5! py-3! rounded-sm flex items-center gap-2 justify-center text-sm bg-white shadow-sm shadow-black cursor-pointer"
+            >
+              Continue with Google
+              <FcGoogle />
+            </div>
+            <div
+              id="github-signup"
+              className="w-full px-5! py-3! rounded-sm flex items-center gap-2 justify-center text-sm bg-white shadow-sm shadow-black cursor-pointer"
+            >
+              Continue with Github
+              <ImGithub />
+            </div>
           </div>
         </div>
       </div>
