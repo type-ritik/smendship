@@ -84,7 +84,7 @@ model Comment {
 
 model Post {
   id           String         @id @default(uuid()) @db.Uuid
-  title        String
+  title        String         @unique
   content      String
   authorId     String         @db.Uuid
   createdAt    DateTime       @default(now()) @db.Timestamp(6)
@@ -96,8 +96,6 @@ model Post {
   Notification Notification[]
   author       User           @relation(fields: [authorId], references: [id])
   postLikes    PostLike[]
-
-  @@unique([title])
 }
 
 model User {
@@ -109,6 +107,8 @@ model User {
   role                                  Role            @default(USER)
   status                                user_status?    @default(ACTIVE)
   is_activated                          Boolean?        @default(true)
+  codeExpiry                            DateTime?       @db.Timestamp(6)
+  verificationCode                      String?         @db.Char(6)
   Comment                               Comment[]
   CommentLike                           CommentLike[]
   FriendRequestReceived                 FriendRequest[] @relation("ReceiverRequests")

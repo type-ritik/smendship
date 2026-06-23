@@ -1,12 +1,15 @@
 const { prisma } = require("../config/prismaConfig");
 
-async function createUser(name, email, password) {
+async function createUser(name, email, password, verificationCode, codeExpiry) {
   try {
     const newUser = await prisma.user.create({
       data: {
         name,
         email,
         password,
+        verificationCode,
+        codeExpiry,
+        is_activated: false,
       },
     });
 
@@ -56,6 +59,13 @@ async function getUserByEmail(email) {
       where: {
         email,
       },
+      select: {
+        id: true,
+        email: true,
+        is_activated: true,
+        verificationCode: true,
+        codeExpiry: true,
+      },
     });
 
     if (!user) {
@@ -102,9 +112,34 @@ async function updateUserFieldsById(data, id) {
     const updatedUser = await prisma.user.update({
       where: { id },
       data,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        role: true,
+      },
     });
 
     return updatedUser;
+  } catch (error) {
+    console.log(`[User Repository Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+}
+
+async function updateUserVerification(email) {
+  try {
+    const user = await prisma.user.update({
+      where: { email },
+      data: {
+        is_activated: true,
+        verificationCode: null,
+        codeExpiry: null,
+      },
+    });
+
+    return user;
   } catch (error) {
     console.log(`[User Repository Error]: ${error.message}`);
     throw new Error(error.message);
@@ -142,4 +177,5 @@ module.exports = {
   deactivateUserById,
   updateUserFieldsById,
   findUserByUserName,
+  updateUserVerification,
 };
