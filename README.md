@@ -28,6 +28,7 @@ A full-stack Facebook-inspired social media application built to practice modern
 * Express.js
 * JWT Authentication
 * bcrypt
+* GraphQL
 
 ### Database
 
@@ -111,7 +112,7 @@ npm run dev
 
 This project helped me gain hands-on experience with:
 
-* Building REST APIs using Express.js
+* Building GraphQL APIs using Express.js
 * Secure authentication using JWT
 * Password hashing with bcrypt
 * Database modeling using Prisma ORM
