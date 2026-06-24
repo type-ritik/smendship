@@ -19,6 +19,8 @@ const {
   createAccount,
   searchFriendByName,
   verifyUserAccount,
+  googleAuth,
+  githubAuth,
 } = require("../services/UserAuthServices");
 const {
   deleteUserById,
@@ -372,6 +374,33 @@ const resolvers = {
   Mutation: {
     // Mutation is like a router for GraphQL
     // And mutation work like POST
+    githubAuthExchangeToken: async (_, { token }, context) => {
+      if (!token) {
+        throw new Error("Please provide github code");
+      }
+
+      try {
+        const payload = await githubAuth(token);
+
+        return payload;
+      } catch (error) {
+        console.log(`[Github Auth Error]: ${error.message}`);
+        throw new Error(error.message);
+      }
+    },
+    googleAuthExchangeToken: async (_, { token }, context) => {
+      if (!token) {
+        throw new Error("Please provide google code");
+      }
+      try {
+        const payload = await googleAuth(token);
+
+        return payload;
+      } catch (error) {
+        console.log(`[Google Auth Error]: ${error.message}`);
+        throw new Error(error.message);
+      }
+    },
     signup: async (_, { name, email, password }) => {
       if (!isValidEmail(email)) {
         throw new Error("Invalid Email! Please provide a valid email address.");

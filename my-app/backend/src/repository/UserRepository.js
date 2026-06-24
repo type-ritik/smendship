@@ -1,5 +1,25 @@
 const { prisma } = require("../config/prismaConfig");
 
+async function createAuthAccount(name, email, auth_method, auth_id) {
+  try {
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        auth_method,
+        auth_method_id: auth_id,
+        is_activated: true,
+        verificationCode: null,
+        codeExpiry: null,
+      },
+    });
+
+    return user;
+  } catch (error) {
+    console.log("[Google Auth Account Error:", error.message);
+  }
+}
+
 async function createUser(name, email, password, verificationCode, codeExpiry) {
   try {
     const newUser = await prisma.user.create({
@@ -178,4 +198,5 @@ module.exports = {
   updateUserFieldsById,
   findUserByUserName,
   updateUserVerification,
+  createAuthAccount,
 };
