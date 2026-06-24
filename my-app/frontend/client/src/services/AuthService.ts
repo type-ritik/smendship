@@ -37,6 +37,30 @@ export const OTP_VERIFICATION = gql`
   }
 `;
 
+export const GITHUB_AUTH_TOKEN_EXCHANGE = gql`
+  mutation GithubAuthExchangeToken($token: String!) {
+    githubAuthExchangeToken(token: $token) {
+      status
+      message
+      token
+      user {
+        id
+        name
+        email
+      }
+    }
+  }
+`;
+
+export const GOOGLE_AUTH_TOKEN_EXCHANGE = gql`
+  mutation GoogleAuthExchangeToken($token: String!) {
+    googleAuthExchangeToken(token: $token) {
+      status
+      message
+    }
+  }
+`;
+
 export const ALTER_PROFILE_DATA = gql`
   mutation Updateprofile($input: UpdateUserInput) {
     updateprofile(input: $input) {
