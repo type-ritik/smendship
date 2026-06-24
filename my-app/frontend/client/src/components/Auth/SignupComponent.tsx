@@ -4,9 +4,9 @@ import { SIGNUP_NOW } from "../../services/AuthService";
 import "./Signup.css";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
-import { FcGoogle } from "react-icons/fc";
-import { ImGithub } from "react-icons/im";
 import VerifyOTPComponenet from "../helperComponent/Card/VerifyOTPComponenet";
+import GoogleAuthComponent from "./GoogleAuthComponent";
+import GithubAuthComponent from "./GithubAuthComponent";
 
 function SignupComponent() {
   const [email, setEmail] = useState("");
@@ -105,20 +105,9 @@ function SignupComponent() {
             </span>
           </div>
           <div className="w-full flex gap-5 justify-between">
-            <div
-              id="google-signup"
-              className="w-full px-5! py-3! rounded-sm flex items-center gap-2 justify-center text-sm bg-white shadow-sm shadow-black cursor-pointer"
-            >
-              Continue with Google
-              <FcGoogle />
-            </div>
-            <div
-              id="github-signup"
-              className="w-full px-5! py-3! rounded-sm flex items-center gap-2 justify-center text-sm bg-white shadow-sm shadow-black cursor-pointer"
-            >
-              Continue with Github
-              <ImGithub />
-            </div>
+            <GoogleAuthComponent />
+            <span className="border flex justify-center items-center border-gray-500 rounded-full"></span>
+            <GithubAuthComponent />
           </div>
         </div>
       </div>
