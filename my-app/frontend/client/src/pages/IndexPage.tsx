@@ -20,6 +20,11 @@ function IndexPage() {
       toast.success("Signed up successfully!");
       window.history.replaceState({}, "", "/");
     }
+
+    if (params.get("auth") === "success") {
+      toast.success("Authentication successful!");
+      window.history.replaceState({}, "", "/");
+    }
   }, []);
 
   return (

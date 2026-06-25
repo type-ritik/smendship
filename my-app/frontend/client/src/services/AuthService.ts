@@ -3,6 +3,8 @@ import { gql } from "@apollo/client";
 export const LOGIN_NOW = gql`
   mutation Login($email: String!, $password: String!) {
     login(email: $email, password: $password) {
+      status
+      message
       user {
         id
         name
@@ -57,6 +59,12 @@ export const GOOGLE_AUTH_TOKEN_EXCHANGE = gql`
     googleAuthExchangeToken(token: $token) {
       status
       message
+      token
+      user {
+        id
+        name
+        email
+      }
     }
   }
 `;

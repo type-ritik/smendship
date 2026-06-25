@@ -3,10 +3,12 @@ import React, { useEffect, useState } from "react";
 import { SIGNUP_NOW } from "../../services/AuthService";
 import "./Signup.css";
 import { useNavigate } from "react-router-dom";
-import toast, { Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 import VerifyOTPComponenet from "../helperComponent/Card/VerifyOTPComponenet";
 import GoogleAuthComponent from "./GoogleAuthComponent";
 import GithubAuthComponent from "./GithubAuthComponent";
+import { useDispatch } from "react-redux";
+import { signInFailure, signInStart } from "../../redux/user/userSlice";
 
 function SignupComponent() {
   const [email, setEmail] = useState("");
@@ -15,19 +17,20 @@ function SignupComponent() {
   const [isVerifyingOTP, setIsVerifyingOTP] = useState(false);
   const [signup, { data, loading, error }] = useMutation(SIGNUP_NOW);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (loading) {
-      console.log("Loading...");
+      dispatch(signInStart());
     }
     if (error) {
-      toast.error("Signup Failed");
+      dispatch(signInFailure(error.message));
     }
     if (data) {
       setIsVerifyingOTP(true);
       window.localStorage.setItem("email", email);
     }
-  }, [loading, error, data, email]);
+  }, [loading, error, data, email, dispatch]);
 
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -50,7 +53,7 @@ function SignupComponent() {
         <VerifyOTPComponenet setFloatComponent={setIsVerifyingOTP} />
       )}
       <div className="w-120 bg-amber-50 gap-2 rounded-xl shadow-sm shadow-gray-900">
-        <div className="w-full p-5! flex flex-col gap-5">
+        <div className="w-full p-5! flex flex-col">
           <h2 className="w-full flex text-base font-semibold justify-center items-center border-b">
             Signup here!
           </h2>
@@ -96,7 +99,7 @@ function SignupComponent() {
               Create new account
             </button>
           </form>
-          <div className="w-full flex justify-center cursor-pointer text-sm">
+          <div className="w-full py-5! flex justify-center cursor-pointer text-sm">
             <span
               className="text-blue-500 hover:text-blue-600"
               onClick={() => navigate("/auth/login")}
@@ -104,7 +107,7 @@ function SignupComponent() {
               Already have an account?
             </span>
           </div>
-          <div className="w-full flex gap-5 justify-between">
+          <div className="w-full h-10 flex gap-5 justify-center">
             <GoogleAuthComponent />
             <span className="border flex justify-center items-center border-gray-500 rounded-full"></span>
             <GithubAuthComponent />

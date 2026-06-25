@@ -5,7 +5,13 @@ import { useEffect, useState } from "react";
 import "./Login.css";
 import toast, { Toaster } from "react-hot-toast";
 import { useDispatch } from "react-redux";
-import { loginFailure, loginStart, loginSuccess } from "../../redux/user/userSlice";
+import {
+  loginFailure,
+  loginStart,
+  loginSuccess,
+} from "../../redux/user/userSlice";
+import GoogleAuthComponent from "./GoogleAuthComponent";
+import GithubAuthComponent from "./GithubAuthComponent";
 
 function LoginComponent() {
   const [email, setEmail] = useState("");
@@ -17,14 +23,17 @@ function LoginComponent() {
   useEffect(() => {
     if (loading) {
       dispatch(loginStart());
-      console.log("Loading");
+      toast.loading("Validating credentials");
     }
     if (error) {
       dispatch(loginFailure(error.message));
-      toast.error("Login Error");
+      toast.dismiss();
+      toast.error(error.message);
     }
     if (data) {
       dispatch(loginSuccess(data.login));
+      toast.dismiss();
+      toast.success(data.login.message);
       window.localStorage.setItem("token", data.login.token);
     }
   }, [loading, error, data, dispatch]);
@@ -47,8 +56,8 @@ function LoginComponent() {
     <>
       <div className="w-full h-screen flex justify-center items-center">
         <Toaster />
-        <div className="w-120 bg-amber-50 gap-2 border rounded shadow-xs shadow-gray-900!">
-          <div className="w-full p-5! flex flex-col gap-2!">
+        <div className="w-120 bg-amber-50 rounded-xl shadow-sm shadow-gray-900">
+          <div className="w-full p-5! flex flex-col">
             <h2 className="w-full flex text-base font-semibold justify-center items-center border-b">
               Login here!
             </h2>
@@ -80,15 +89,25 @@ function LoginComponent() {
                   placeholder="*********"
                 />
               </div>
-              <button type="submit">login</button>
+              <button
+                type="submit"
+                className="bg-indigo-500! hover:bg-indigo-800!"
+              >
+                Login
+              </button>
             </form>
             <div className="w-full flex justify-center cursor-pointer">
               <span
-                className="text-blue-600"
+                className="text-blue-500 text-sm hover:text-blue-600 py-5!"
                 onClick={() => navigate("/auth/signup")}
               >
                 Don't have an account?
               </span>
+            </div>
+            <div className="w-full h-10 flex gap-5 justify-center">
+              <GoogleAuthComponent />
+              <span className="border flex justify-center items-center border-gray-500 rounded-full"></span>
+              <GithubAuthComponent />
             </div>
           </div>
         </div>
