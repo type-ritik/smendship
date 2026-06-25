@@ -1,4 +1,3 @@
-const axios = require("axios");
 const {
   sendVerificationCode,
   sendVerificationSuccessfullMessage,
@@ -24,32 +23,38 @@ const {
 } = require("../utils/OTPGeneratorUtils");
 const { generateToken } = require("./JwtServices");
 
+// Creating new user account
 async function createAccount(name, email, password) {
   try {
+    // Email already exists
     const isUserExistsWithEmail = await existsUserByEmail(email);
 
     if (isUserExistsWithEmail) {
       throw new Error("Email already exists");
     }
 
+    // Hashed password
     const hashedPassword = await hashPassword(password);
 
     if (!hashedPassword) {
       throw new Error("Failed to hash password");
     }
 
+    // OTP create
     const verificationCode = generateVerificationCode();
 
     if (!verificationCode) {
       throw new Error("Failed to generate verification code");
     }
 
+    // Create OTP expire time
     const codeExpiry = generateExpiryTime();
 
     if (!codeExpiry) {
       throw new Error("Failed to generate code expiry time");
     }
 
+    // Create user
     const newUser = await createUser(
       name,
       email,
@@ -62,6 +67,7 @@ async function createAccount(name, email, password) {
       throw new Error("Failed to create user");
     }
 
+    // OTP send -> email
     const sendVerifyingCode = await sendVerificationCode(
       email,
       verificationCode,
@@ -71,6 +77,7 @@ async function createAccount(name, email, password) {
       throw new Error("Server error during signup");
     }
 
+    // Response
     return {
       status: 201,
       message: "User registered! Check your email for the verification code.",
@@ -81,8 +88,10 @@ async function createAccount(name, email, password) {
   }
 }
 
+// OTP verification
 async function verifyUserAccount(email, verificationCode) {
   try {
+    // Retrive user data
     const user = await getUserByEmail(email);
 
     if (user.is_activated) {
@@ -97,18 +106,21 @@ async function verifyUserAccount(email, verificationCode) {
       throw new Error("Verification code expired");
     }
 
+    // Update user verification
     const updateVerification = await updateUserVerification(user.email);
 
     if (!updateVerification) {
       throw new Error("Failed to update user verification status");
     }
 
+    // Generate token
     const token = generateToken(updateVerification.id, updateVerification.role);
 
     if (!token) {
       throw new Error("Failed to generate token");
     }
 
+    // Verification successful message -> email
     const res = await sendVerificationSuccessfullMessage(
       updateVerification.email,
     );
@@ -117,6 +129,7 @@ async function verifyUserAccount(email, verificationCode) {
       throw new Error("Failed to send verification success email");
     }
 
+    // Response
     return {
       status: 200,
       message: "Account verified successfully!",
@@ -227,13 +240,6 @@ async function googleAuth(token) {
 
 async function userLogin(email, password) {
   try {
-    // Simulate user login logic
-    const isEmailExists = await existsUserByEmail(email);
-
-    if (!isEmailExists) {
-      throw new Error("Invalid Email");
-    }
-
     const user = await getUserByEmail(email);
 
     const isPasswordMatched = await comparePassword(password, user.password);
@@ -242,22 +248,21 @@ async function userLogin(email, password) {
       throw new Error("Invalid Password");
     }
 
-    if (user.status === "SUSPENDED") {
-      throw new Error("User account is suspended");
-    }
-
     const token = generateToken(user.id, user.role);
 
     if (!token) {
       throw new Error("Failed to generate token");
     }
 
-    delete user.password;
-    delete user.status;
-
     return {
+      status: 200,
+      message: "Login successful",
       token,
-      user,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
     };
   } catch (error) {
     console.log(`[User Login Error]: ${error.message}`);

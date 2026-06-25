@@ -2,8 +2,12 @@ const { prisma } = require("../config/prismaConfig");
 
 async function createAuthAccount(name, email, auth_method, auth_id) {
   try {
-    const user = await prisma.user.create({
-      data: {
+    const user = await prisma.user.upsert({
+      where: {
+        email,
+      },
+      update: {},
+      create: {
         name,
         email,
         auth_method,
@@ -81,7 +85,10 @@ async function getUserByEmail(email) {
       },
       select: {
         id: true,
+        name: true,
         email: true,
+        role: true,
+        password: true,
         is_activated: true,
         verificationCode: true,
         codeExpiry: true,
@@ -89,7 +96,7 @@ async function getUserByEmail(email) {
     });
 
     if (!user) {
-      throw new Error("User not found");
+      throw new Error("Invalid credentials. Check your email");
     }
 
     return user;
