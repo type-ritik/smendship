@@ -32,16 +32,13 @@ function VerifyOTPComponenet({ setFloatComponent }: VerifyOTPProps) {
   useEffect(() => {
     if (loading) {
       dispatch(signInStart());
-      console.log("Verifying OTP...");
     }
 
     if (error) {
       dispatch(signInFailure(error.message));
-      console.error("OTP Verification Error:", error.message);
     }
 
     if (data) {
-      console.log("OTP Verification Successful:", data.verifyAccount);
       dispatch(signInSuccess(data.verifyAccount));
       window.localStorage.setItem("token", data.verifyAccount.token);
       setFloatComponent(false);
