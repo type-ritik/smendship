@@ -1,7 +1,11 @@
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import type { UserObjState } from "../../../utils/userInterfaces";
 import { IoExitOutline } from "react-icons/io5";
+import { useMutation } from "@apollo/client";
+import { ALTER_PROFILE_DATA } from "../../../services/AuthService";
+import toast from "react-hot-toast";
+import { profileUpdate } from "../../../redux/user/userSlice";
 
 function EditProfile({
   isAlterProfileEnable,
@@ -12,15 +16,64 @@ function EditProfile({
 }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [bio, setBio] = useState("");
   //   const [password, setPassword] = useState("");
   const { currentUser } = useSelector((state: UserObjState) => state.user);
+  const dispatch = useDispatch();
+
+  const [updateprofile, { data, error, loading }] =
+    useMutation(ALTER_PROFILE_DATA);
+
+  useEffect(() => {
+    if (data) {
+      dispatch(profileUpdate(data.updateprofile));
+      console.log(data);
+    }
+
+    if (error) {
+      toast.error("Error updating user data.");
+    }
+  }, [error, data, dispatch]);
+
+  const handleProfileAltering = async (
+    e: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    // Implement the logic to handle profile altering here
+    e.preventDefault();
+
+    const inputPayload: Record<string, string> = {};
+
+    if (email.length > 7) {
+      inputPayload.email = email;
+    }
+
+    if (name.length > 3) {
+      inputPayload.name = name;
+    }
+
+    if (Object.keys(inputPayload).length === 0) {
+      toast.error("No valid fields provided to update.");
+      return;
+    }
+
+    try {
+      await updateprofile({
+        variables: {
+          input: inputPayload,
+        },
+      });
+    } catch (err: unknown) {
+      const error = err as Error;
+      toast.error("Mutation execution failed: " + (error?.message || ""));
+    }
+  };
 
   return (
     <>
       {isAlterProfileEnable && (
         <>
           <div
-            className={`fixed nset-0 bg-white/30 backdrop-blur-md top-0 left-0 z-10 w-full h-full flex justify-center items-center`}
+            className={`fixed inset-0 bg-white/30 backdrop-blur-md top-0 left-0 z-10 w-full h-full flex justify-center items-center`}
           >
             <div className="w-3/4 h-[80%] md:w-1/3 absolute rounded bg-white p-5! shadow-xs shadow-black justify-evenly items-center gap-2 flex-col flex ">
               <div
@@ -62,8 +115,8 @@ function EditProfile({
                   </div>
                   <div className="border rounded w-full flex p-3! bg-[#f0ffff] ">
                     <input
-                      type="text"
-                      id="name"
+                      type="email"
+                      id="email"
                       placeholder={currentUser?.user.email}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -75,10 +128,11 @@ function EditProfile({
                     <textarea
                       maxLength={200}
                       rows={3}
-                      id="name"
-                      placeholder={"bio"}
-                      value={""}
-                    //   onChange={(e) => setEmail(e.target.value)}
+                      id="bio"
+                      // placeholder={"bio"}
+                      defaultValue={"Tell about yourself!"}
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
                       className="border rounded p-3! min-h-20 w-full max-h-20 bg-white outline-none text-sm text-gray-700"
                     />
                   </div>
@@ -99,10 +153,14 @@ function EditProfile({
                 <div className="w-full flex flex-col">
                   <div className="flex justify-center items-center w-full mt-5!">
                     <button
-                      //   onClick={(e) => handleProfileAltering(e)}
-                      className="flex-1 w-full flex justify-center items-center bg-[#bdf7bd]! shadow-sm shadow-green-950"
+                      onClick={(e) => handleProfileAltering(e)}
+                      className="flex-1 w-full flex justify-center items-center bg-[#bdf7bd]! shadow-sm shadow-green-950 focus:bg-green-400!"
+                      disabled={loading}
                     >
-                      <h1 className="text-black text-sm">Save Changes</h1>
+                      <h1 className="text-black text-sm">
+                        {" "}
+                        {loading ? "Saving..." : "Save Profile"}
+                      </h1>
                     </button>
                   </div>
 
