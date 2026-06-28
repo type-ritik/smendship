@@ -1,6 +1,5 @@
-import { useMutation } from "@apollo/client";
 import type { InvitationRequestInterface } from "../../../utils/userInterfaces";
-import { FRIEND_REQUEST_RESPONSE } from "../../../services/InvitationService";
+import { useUpdateFriendRequestResponse } from "../../../services/InvitationService";
 import toast from "react-hot-toast";
 import { useEffect } from "react";
 
@@ -10,9 +9,8 @@ type RequestCardProps = {
 };
 
 function RequestCard({ responseCall, invitationRequest }: RequestCardProps) {
-  const [friendRequestResponse, { data, loading, error }] = useMutation(
-    FRIEND_REQUEST_RESPONSE,
-  );
+  const { friendRequestResponse, data, loading, error } =
+    useUpdateFriendRequestResponse();
 
   useEffect(() => {
     if (loading) {

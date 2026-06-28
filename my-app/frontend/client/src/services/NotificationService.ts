@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql, useQuery } from "@apollo/client";
 
 export const NOTIFICATION_SUBSCRIPTION = gql`
   subscription ($userId: String!) {
@@ -18,6 +18,10 @@ export const NOTIFICATION_SUBSCRIPTION = gql`
     }
   }
 `;
+
+export const useRetriveNotification = () => {
+  return useQuery(RETRIVE_NOTIFICATION);
+}
 
 export const RETRIVE_NOTIFICATION = gql`
   query {

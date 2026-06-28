@@ -1,4 +1,33 @@
-import { gql } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
+
+export const useFetchListOfFollower = () => {
+  return useQuery(LIST_OF_FOLLOWERS);
+};
+
+export const useFetchListOfFollowing = () => {
+  return useQuery(LIST_OF_FOLLOWINGS);
+};
+
+export const useFetchListOfReceivedFriendRequest = () => {
+  return useQuery(LIST_OF_RECEIVED_FRIEND_REQUEST);
+};
+
+export const useFetchListOfSentFriendRequest = () => {
+  return useQuery(LIST_OF_SENT_FRIEND_REQUEST);
+};
+
+export const useUpdateFriendRequestResponse = () => {
+  const [friendRequestResponse, { loading, data, error }] = useMutation(
+    FRIEND_REQUEST_RESPONSE,
+  );
+
+  return {
+    friendRequestResponse,
+    loading,
+    data,
+    error,
+  };
+};
 
 export const LIST_OF_FOLLOWERS = gql`
   query ListOfFollowers {

@@ -1,10 +1,9 @@
 import { Link } from "react-router-dom";
 import RequestCard from "../helperComponent/Card/RequestCard";
 import { useEffect, useState, type ComponentType } from "react";
-import { useQuery } from "@apollo/client";
 import {
-  LIST_OF_RECEIVED_FRIEND_REQUEST,
-  LIST_OF_SENT_FRIEND_REQUEST,
+  useFetchListOfReceivedFriendRequest,
+  useFetchListOfSentFriendRequest,
 } from "../../services/InvitationService";
 import type { InvitationRequestInterface } from "../../utils/userInterfaces";
 import toast from "react-hot-toast";
@@ -21,12 +20,12 @@ function NetworkInvitationRequests() {
     InvitationRequestInterface[]
   >([]);
 
-  const { data, loading, error } = useQuery(LIST_OF_RECEIVED_FRIEND_REQUEST);
+  const { data, loading, error } = useFetchListOfReceivedFriendRequest();
   const {
     data: sentRequestData,
     loading: sentRequestLoading,
     error: sentRequestError,
-  } = useQuery(LIST_OF_SENT_FRIEND_REQUEST);
+  } = useFetchListOfSentFriendRequest();
 
   // List of sent friend request
   useEffect(() => {
@@ -74,7 +73,7 @@ function NetworkInvitationRequests() {
 
   const [isReceivedActive, setIsReceivedActive] = useState(true);
   return (
-    <div className="w-full h-ful flex flex-col border rounded p-5! bg-white mt-30!">
+    <div className="w-full h-full flex flex-col border rounded p-5! bg-white mt-30!">
       <div className="w-full h-full justify-center items-center flex flex-col gap-5">
         <div className="flex w-full gap-5 border p-4! rounded items-center bg-[#f0ffff] h-20">
           <div

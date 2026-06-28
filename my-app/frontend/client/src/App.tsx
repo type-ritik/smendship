@@ -1,6 +1,11 @@
 import "./App.css";
 import LoginComponent from "./components/Auth/LoginComponent";
-import { Route, Routes, useNavigate } from "react-router-dom";
+import {
+  Navigate,
+  Route,
+  Routes,
+  useNavigate,
+} from "react-router-dom";
 import SignupComponent from "./components/Auth/SignupComponent";
 import IndexPage from "./pages/IndexPage";
 import ChatBoxComponent from "./components/Chat/ChatBoxComponent";
@@ -39,7 +44,11 @@ function App() {
             path="network/invitation/requests"
             element={<NetworkInvitationRequests />}
           />
-          <Route path="network/manage" element={<ManageMyNetwork />} />
+          <Route
+            path="network/manage"
+            element={<Navigate to={"/network/manage/follower"} replace />}
+          />
+          <Route path="/network/manage/:tab" element={<ManageMyNetwork />} />
           <Route path="notification" element={<Notification />} />
         </Route>
       </Routes>
