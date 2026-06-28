@@ -42,6 +42,20 @@ const userSlice = createSlice({
       state.error = "";
       state.loading = false;
     },
+    profileUpdate: (state, action: PayloadAction<userObj>) => {
+      if (state.currentUser) {
+        state.currentUser = {
+          ...state.currentUser,
+          user: {
+            ...state.currentUser.user,
+            name: action.payload.user.name || state.currentUser.user.name,
+            email: action.payload.user.email || state.currentUser.user.email,
+          },
+        };
+      }
+      state.loading = false;
+      state.error = "";
+    },
   },
 });
 
@@ -53,6 +67,7 @@ export const {
   loginFailure,
   loginSuccess,
   logOut,
+  profileUpdate,
 } = userSlice.actions;
 
 export default userSlice.reducer;

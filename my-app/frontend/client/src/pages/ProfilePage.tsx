@@ -12,6 +12,7 @@ import {
 // import toast from "react-hot-toast";
 import { FiEdit } from "react-icons/fi";
 import EditProfile from "../components/helperComponent/Card/EditProfile";
+import { useNavigate } from "react-router-dom";
 
 const CURRENT_STATE = {
   MY_POST: "MY_POST",
@@ -27,49 +28,11 @@ function ProfilePage() {
     CURRENT_STATE.MY_POST,
   );
 
+  const navigate = useNavigate();
+
   const countTo = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 
   const { currentUser } = useSelector((state: UserObjState) => state.user);
-  // const [updateProfile, { data, loading, error }] =
-  //   useMutation(ALTER_PROFILE_DATA);
-  // const dispatch = useDispatch();
-
-  // useEffect(() => {
-  //   if (error) {
-  //     toast.error("Something went wrong");
-  //   }
-
-  //   if (loading) {
-  //     toast.loading("Updating profile...");
-  //   }
-
-  //   if (data) {
-  //     toast.success("Profile updated successfully");
-  //     dispatch({
-  //       type: "UPDATE_USER",
-  //       payload: {
-  //         user: data.updateProfile,
-  //       },
-  //     });
-  //   }
-  // }, [data, loading, error, dispatch]);
-
-  // const handleProfileAltering = async (
-  //   e: React.MouseEvent<HTMLButtonElement>,
-  // ) => {
-  //   e.preventDefault();
-  //   const variable = {
-  //     name: "",
-  //     email: "",
-  //     password: "",
-  //   };
-
-  //   await updateProfile({
-  //     variables: {
-  //       input: variable,
-  //     },
-  //   });
-  // };
 
   return (
     <>
@@ -105,12 +68,18 @@ function ProfilePage() {
               </div>
             </div>
             <div className="tail flex flex-col justify-between gap-5 w-2/5 ">
-              <div className="w-full flex justify-start items-center px-5!">
+              <div
+                className="w-full flex justify-start items-center px-5! cursor-pointer"
+                onClick={() => navigate("/network/manage/follower")}
+              >
                 <h1>
                   Follower: <span className="text-blue-600">80</span>
                 </h1>
               </div>
-              <div className="w-full flex justify-start items-center px-5!">
+              <div
+                className="w-full flex justify-start items-center cursor-pointer px-5!"
+                onClick={() => navigate("/network/manage/following")}
+              >
                 <h1>
                   Following: <span className="text-blue-600">100</span>
                 </h1>
@@ -171,10 +140,10 @@ function ProfilePage() {
                           Quisquam, quae. Quisquam,
                         </p>
                         <div className="w-full flex justify-between border-t pt-1!">
-                          <p>
+                          <p className="cursor-pointer">
                             Likes: <span>20</span>
                           </p>
-                          <p>
+                          <p className="cursor-pointer">
                             Comments: <span>30</span>
                           </p>
                         </div>
@@ -268,7 +237,7 @@ function ProfilePage() {
                             </span>
                           </div>
                           <div className="w-full flex justify-between border-t  pt-1!">
-                            <p>
+                            <p className="cursor-pointer">
                               Likes: <span>20</span>
                             </p>
                             <p>

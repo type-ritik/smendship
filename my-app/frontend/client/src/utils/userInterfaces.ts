@@ -1,8 +1,12 @@
 export interface userObj {
-  id: string;
-  name: string;
-  email: string;
+  status: string;
+  message: string;
   token: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
 export interface UserState {
@@ -13,9 +17,7 @@ export interface UserState {
 
 export interface UserObjState {
   user: {
-    currentUser: {
-      user: userObj;
-    } | null;
+    currentUser: userObj | null;
   };
 }
 
