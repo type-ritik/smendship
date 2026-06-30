@@ -24,6 +24,15 @@ export const SIGNUP_NOW = gql`
   }
 `;
 
+export const RESET_USER_PASSWORD = gql`
+  mutation ResetUserPassword($password: String!) {
+    resetUserPassword(password: $password) {
+      status
+      message
+    }
+  }
+`;
+
 export const OTP_VERIFICATION = gql`
   mutation VerifyAccount($email: String!, $OTP: String!) {
     verifyAccount(email: $email, OTP: $OTP) {
