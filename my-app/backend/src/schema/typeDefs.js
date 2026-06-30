@@ -170,6 +170,7 @@ const typeDefs = gql`
 
   type Mutation {
     verifyAccount(email: String!, OTP: String!): AuthPayload
+    resetUserPassword(password: String!): AuthPayload
     googleAuthExchangeToken(token: String!): AuthPayload
     githubAuthExchangeToken(token: String!): AuthPayload
     signup(name: String!, email: String!, password: String!): AuthPayload

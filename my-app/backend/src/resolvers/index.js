@@ -21,6 +21,7 @@ const {
   verifyUserAccount,
   googleAuth,
   githubAuth,
+  resetPassword,
 } = require("../services/UserAuthServices");
 const {
   deleteUserById,
@@ -374,6 +375,23 @@ const resolvers = {
   Mutation: {
     // Mutation is like a router for GraphQL
     // And mutation work like POST
+    resetUserPassword: async (_, { password }, context) => {
+      const userId = context.user.id;
+      if (!userId) throw new Error("Unauthorized user");
+
+      if (!password || password.length < 8) {
+        throw new Error("Invalid password. Please try again!");
+      }
+
+      try {
+        const payload = await resetPassword(userId, password);
+
+        return payload;
+      } catch (error) {
+        console.log("Error at password reset");
+        throw new Error(error.message);
+      }
+    },
     githubAuthExchangeToken: async (_, { token }, context) => {
       if (!token) {
         throw new Error("Please provide github code");

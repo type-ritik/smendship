@@ -20,7 +20,8 @@ async function createAuthAccount(name, email, auth_method, auth_id) {
 
     return user;
   } catch (error) {
-    console.log("[Google Auth Account Error:", error.message);
+    console.log("[Google Auth Account Error]:", error.message);
+    throw new Error(error.message);
   }
 }
 
@@ -64,6 +65,13 @@ async function getUserById(id) {
   try {
     const user = await prisma.user.findFirst({
       where: { id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        codeExpiry: true,
+        verificationCode: true,
+      },
     });
 
     if (!user) {
@@ -195,6 +203,27 @@ async function findUserByUserName(friendName) {
   }
 }
 
+async function updateUserPassword(userId, password) {
+  try {
+    const user = await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        password,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    return !!user;
+  } catch (error) {
+    console.log(`[User Repository Error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+}
+
 module.exports = {
   getUserById,
   getUserByEmail,
@@ -206,4 +235,5 @@ module.exports = {
   findUserByUserName,
   updateUserVerification,
   createAuthAccount,
+  updateUserPassword,
 };
