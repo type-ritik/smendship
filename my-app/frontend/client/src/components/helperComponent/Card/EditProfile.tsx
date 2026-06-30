@@ -6,6 +6,7 @@ import { useMutation } from "@apollo/client";
 import { ALTER_PROFILE_DATA } from "../../../services/AuthService";
 import toast from "react-hot-toast";
 import { profileUpdate } from "../../../redux/user/userSlice";
+import ResetPassword from "../../Auth/ResetPassword";
 
 function EditProfile({
   isAlterProfileEnable,
@@ -17,7 +18,7 @@ function EditProfile({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [bio, setBio] = useState("");
-  //   const [password, setPassword] = useState("");
+  const [isResetpassword, setIsResetPassword] = useState(false);
   const { currentUser } = useSelector((state: UserObjState) => state.user);
   const dispatch = useDispatch();
 
@@ -95,12 +96,16 @@ function EditProfile({
                     className="w-full h-full object-cover object-center"
                   />
                 </div>
-                <div className="w-1/2 flex justify-end ">
+                <div
+                  className="w-1/2 flex justify-end cursor-pointer"
+                  onClick={() => setIsResetPassword(true)}
+                >
                   <span className="text-sm text-blue-600 cursor-pointer">
                     Click to reset to password!
                   </span>
                 </div>
               </div>
+              {isResetpassword && <ResetPassword setIsResetPassword={setIsResetPassword} />}
               <div className="w-full border rounded justify-between flex flex-col gap-5 p-5! bg-[#f0ffff] items-center shadow-xs shadow-black">
                 <div className="bg-white p-5! rounded  w-full flex justify-evenly flex-col gap-2">
                   <div className="border rounded flex w-full p-3! bg-[#f0ffff] ">
@@ -136,17 +141,6 @@ function EditProfile({
                       className="border rounded p-3! min-h-20 w-full max-h-20 bg-white outline-none text-sm text-gray-700"
                     />
                   </div>
-                  {/* <div className="border rounded p-3! bg-[#f0ffff] shadow-xs shadow-blue-950">
-                      <input
-                        type="text"
-                        id="name"
-                        placeholder="********"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        disabled={isAlterProfileEnable}
-                        className="border rounded outline-none p-3! w-full bg-white"
-                      />
-                    </div> */}
                 </div>
               </div>
               <div className="w-full">

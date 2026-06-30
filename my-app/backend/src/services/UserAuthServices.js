@@ -1,6 +1,6 @@
 const {
-  sendVerificationCode,
   sendVerificationSuccessfullMessage,
+  sendVerificationCode,
 } = require("../config/mailConfig");
 const {
   oAuth2Client,
@@ -16,6 +16,7 @@ const {
   findUserByUserName,
   updateUserVerification,
   createAuthAccount,
+  updateUserPassword,
 } = require("../repository/UserRepository");
 const {
   generateVerificationCode,
@@ -142,6 +143,7 @@ async function verifyUserAccount(email, verificationCode) {
     };
   } catch (error) {
     console.log("[User Verification Error]:", error.message);
+    throw new Error(error.message);
   }
 }
 
@@ -280,6 +282,31 @@ async function searchFriendByName(friendName) {
   }
 }
 
+async function resetPassword(userId, password) {
+  try {
+    const isPasswordHashed = await hashPassword(password);
+
+    if (!isPasswordHashed) {
+      console.log("Error hashing user password.");
+      throw new Error("Server error!");
+    }
+
+    const updatePassword = await updateUserPassword(userId, isPasswordHashed);
+
+    if (!isPasswordHashed) {
+      throw new Error("Server error updating password.");
+    }
+
+    return {
+      status: 200,
+      message: "Password updated successfully!",
+    };
+  } catch (error) {
+    console.log(`[Password reset error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+}
+
 module.exports = {
   userLogin,
   createAccount,
@@ -287,4 +314,5 @@ module.exports = {
   verifyUserAccount,
   googleAuth,
   githubAuth,
+  resetPassword,
 };

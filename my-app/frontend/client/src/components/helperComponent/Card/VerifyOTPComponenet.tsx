@@ -8,6 +8,7 @@ import {
   signInStart,
   signInSuccess,
 } from "../../../redux/user/userSlice";
+import { IoExitOutline } from "react-icons/io5";
 
 type VerifyOTPProps = {
   setFloatComponent: (visible: boolean) => void;
@@ -48,7 +49,13 @@ function VerifyOTPComponenet({ setFloatComponent }: VerifyOTPProps) {
   return (
     <>
       <div className="absolute top-0 bottom-0 left-0 right-0 w-full h-full flex justify-center items-center backdrop-blur-sm">
-        <div className="border w-3/4 h-2/4! bg-white md:w-2/4 md:h-2/4 flex flex-col rounded p-5! justify-evenly">
+        <div className="border relative w-3/4 h-2/4! bg-white md:w-2/4 md:h-2/4 flex flex-col rounded p-5! justify-evenly">
+          <div
+            className="absolute top-0 right-0 p-2! cursor-pointer"
+            onClick={() => setFloatComponent(false)}
+          >
+            <IoExitOutline />
+          </div>
           <div className="flex flex-col items-center gap-5">
             <h1 className="text-xl font-semibold">
               Verification code is sent.
