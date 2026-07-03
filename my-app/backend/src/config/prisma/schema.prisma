@@ -111,6 +111,8 @@ model User {
   verificationCode                      String?         @db.Char(6)
   auth_method                           String?         @default("email") @db.VarChar(50)
   auth_method_id                        String?         @unique @db.VarChar(255)
+  profile_image                         String?
+  bio                                   String?
   Comment                               Comment[]
   CommentLike                           CommentLike[]
   FriendRequestReceived                 FriendRequest[] @relation("ReceiverRequests")
