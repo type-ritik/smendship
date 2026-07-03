@@ -5,17 +5,19 @@ import "./Header.css";
 export default class HeaderComponenet extends Component {
   private navLink = [
     { name: "Home", route: "/" },
-    { name: "Network", route: "/network" },
-    { name: "Message", route: "/message" },
+    { name: "Connection", route: "/network" },
+    { name: "Chat", route: "/chatroom/user/list" },
     { name: "Notification", route: "/notification" },
     { name: "Profile", route: "/profile" },
   ];
+
+
 
   private name = "Facebook";
 
   render() {
     return (
-      <div className="w-full h-20 z-20 flex fixed justify-between bg-blue-200 top-0 left-0">
+      <div className="w-full h-20 z-20 flex fixed justify-between bg-blue-200 top-0 left-0 shadow-xs shadow-black">
         <div className="w-2/6 flex justify-center items-center">
           <h1 className="text-3xl pr-5! pl-20! not-md:text-2xl font-bold text-blue-800">
             {this.name}

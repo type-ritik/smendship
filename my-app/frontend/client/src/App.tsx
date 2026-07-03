@@ -36,7 +36,8 @@ function App() {
         <Route path="/auth/login" element={<LoginComponent />} />
         <Route path="/auth/signup" element={<SignupComponent />} />
         <Route path="/" element={<IndexPage />}>
-          <Route path="message" element={<ChatBoxComponent />} />
+        <Route path="/chatroom/user" element={<Navigate to={"/chatroom/user/list"} replace /> } />
+          <Route path="/chatroom/user/:id" element={<ChatBoxComponent />} />
           <Route path="chat/user/list" element={<UsersChatList />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="network" element={<NetworkPage />} />
