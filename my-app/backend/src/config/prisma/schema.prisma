@@ -105,7 +105,7 @@ model User {
   password                              String?         @db.VarChar(255)
   createdAt                             DateTime        @default(now()) @db.Timestamp(6)
   role                                  Role            @default(USER)
-  status                                user_status?    @default(ACTIVE)
+  status                                user_status?    @default(offline)
   is_activated                          Boolean?        @default(true)
   codeExpiry                            DateTime?       @db.Timestamp(6)
   verificationCode                      String?         @db.Char(6)
@@ -185,6 +185,6 @@ enum Msg {
 }
 
 enum user_status {
-  ACTIVE
-  SUSPENDED
+  online
+  offline
 }

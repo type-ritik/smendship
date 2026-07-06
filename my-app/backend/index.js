@@ -7,6 +7,9 @@ const { makeExecutableSchema } = require("@graphql-tools/schema");
 const typeDefs = require("./src/schema/typeDefs");
 const resolvers = require("./src/resolvers/index");
 const { verifyToken } = require("./src/services/JwtServices");
+const {
+  updateUserConnectivity,
+} = require("./src/services/UserConnectionService");
 
 async function main() {
   // Connect to Database
@@ -30,6 +33,23 @@ async function main() {
   useServer(
     {
       schema,
+      onConnect: async (ctx) => {
+        const token = ctx.connectionParams.authorization;
+
+        if (!token) {
+          throw new Error("Unauthorized");
+        }
+
+        const user = verifyToken(token);
+        if (!user) {
+          console.log("Invalid auth token for subscription");
+          throw new Error("Invalid token");
+        }
+
+        const userId = user.id;
+
+        await updateUserConnectivity(userId, true);
+      },
       onSubscribe: (ctx) => {
         const token = ctx.connectionParams.authorization;
 
@@ -59,6 +79,21 @@ async function main() {
         return {
           user,
         };
+      },
+      onDisconnect: async (ctx) => {
+        const token = ctx.connectionParams.authorization;
+        if (!token) {
+          throw new Error("Unauthorized");
+        }
+
+        const user = verifyToken(token);
+        if (!user) {
+          console.log("Invalid auth token for subscription");
+          throw new Error("Invalid token");
+        }
+
+        const userId = user.id;
+        await updateUserConnectivity(userId, false);
       },
     },
     wsServer,
