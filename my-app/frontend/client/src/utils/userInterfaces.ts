@@ -21,11 +21,14 @@ export interface UserObjState {
   };
 }
 
+export type user_status = "online" | "offline";
+
 export interface InvitationRequestInterface {
   id: number;
   user: {
     id: number;
     name: string;
+    status: user_status;
   };
   createdAt: string;
 }

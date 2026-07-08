@@ -3,15 +3,25 @@ import EditorComponent from "../Editor/EditorComponent";
 import { useSelector } from "react-redux";
 import type { UserObjState } from "../../utils/userInterfaces";
 import { useEffect, useState } from "react";
-import { useMutation, useQuery } from "@apollo/client";
+import { useMutation, useQuery, useSubscription } from "@apollo/client";
 import { FOLLOW_FRIEND, GET_POSTS } from "../../services/HomeService";
 import toast from "react-hot-toast";
 import type { postObj, postState } from "../../utils/postInterfaces";
+import { ON_USER_EVENT } from "../../services/NotificationService";
+import type { NotifyInterface } from "../../utils/NotificationInterface";
 
 function HomeComponent() {
-  const { currentUser } = useSelector((state: UserObjState) => state.user);
-  const { loading, error, data } = useQuery<postState>(GET_POSTS);
+  // States
   const [postData, setPostData] = useState<postObj[]>([]);
+  const [notify, setNotify] = useState<NotifyInterface[]>([]);
+
+  // Navigator
+  const navigate = useNavigate();
+
+  // Selector
+  const { currentUser } = useSelector((state: UserObjState) => state.user);
+
+  // Mutations
   const [
     friendSendRequest,
     {
@@ -21,7 +31,29 @@ function HomeComponent() {
     },
   ] = useMutation(FOLLOW_FRIEND);
 
-  const navigate = useNavigate();
+  // Query
+  const { loading, error, data } = useQuery<postState>(GET_POSTS);
+
+  // Subscriptions
+  const {
+    data: notifyData,
+    loading: notifyLoading,
+    error: notifyError,
+  } = useSubscription(ON_USER_EVENT);
+
+  useEffect(() => {
+    if (notifyError) {
+      toast.error(notifyError.message);
+    }
+    if (notifyLoading) {
+      console.log("Notification subscription loading...");
+    }
+
+    if (notifyData) {
+      console.log("Notification subscription data:", notifyData);
+      setNotify((prevNotify) => [...prevNotify, notifyData.iNotified]);
+    }
+  }, [notifyData, notifyLoading, notifyError]);
 
   useEffect(() => {
     if (error) {
