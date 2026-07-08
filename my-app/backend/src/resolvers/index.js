@@ -55,13 +55,9 @@ const {
   myFollowers,
   myFollowings,
 } = require("../services/ExploreFriendServices");
-const {
-  friendRequestReceiveSubs,
-  activeChatSubs,
-  notifyUserSubs,
-} = require("../services/SubscriptionService");
+const { userEventSubs } = require("../services/SubscriptionService");
 const { GraphQLScalarType, Kind } = require("graphql");
-const GraphQLJSON = require("graphql-type-json");
+
 // import { subscribeToNotify } from "../utils/subscriber.js";
 
 const resolvers = {
@@ -80,9 +76,8 @@ const resolvers = {
       return ast.kind === Kind.STRING ? new Date(ast.value) : null;
     },
   }),
-  JSON: GraphQLJSON,
   Notification: {
-    fromUserId: async (parent, _) => {
+    fromUser: async (parent, _) => {
       const userId = parent.fromUserId;
 
       if (!userId) {
@@ -102,7 +97,7 @@ const resolvers = {
         throw new Error(error.message);
       }
     },
-    toUserId: async (parent, _) => {
+    toUser: async (parent, _) => {
       const userId = parent.toUserId;
 
       if (!userId) {
@@ -339,7 +334,7 @@ const resolvers = {
       }
 
       try {
-        const payload = await retriveAllParticipantsList(useId);
+        const payload = await retriveAllParticipantsList(userId);
 
         if (!payload) {
           throw new Error("Failed to retrieve participants list.");
@@ -837,15 +832,10 @@ const resolvers = {
         const userId = context.user.id;
         if (!userId) throw new Error("Unauthorized");
 
-        if (!isValidUUID(targetUserId)) {
-          throw new Error("Invalid Target User ID");
-        }
-
-        const payload = await chatRoomActivate(user, targetUserId);
+        const payload = await chatRoomActivate(userId, targetUserId);
 
         return {
           id: payload.id,
-          isGroup: payload.isGroup,
         };
       } catch (error) {
         console.log("[Chat Room Activation Failed]: ", error.message);
@@ -888,48 +878,16 @@ const resolvers = {
   },
   Subscription: {
     // Work on Subscription to subscribe self
-    friendRequestReceived: {
-      subscribe: (_, { userId }) => {
-        try {
-          const payload = friendRequestReceiveSubs(userId);
+    onUserEvent: {
+      subscribe: (_, parent, context) => {
+        const userId = context.user.id;
 
-          if (!payload) {
-            throw new Error(
-              "Failed to subscribe to friend request sent events.",
-            );
-          }
-
-          return payload;
-        } catch (error) {
-          console.log(`[Subscription Error]: ${error.message}`);
-          throw new Error(error.message);
-        }
-      },
-    },
-    activeChat: {
-      subscribe: (_, { userId }) => {
-        try {
-          const payload = activeChatSubs(userId);
-
-          if (!payload) {
-            throw new Error("Failed to subscribe to active chats.");
-          }
-
-          return payload;
-        } catch (error) {
-          console.log(`[Subscription Error]: ${error.message}`);
-          throw new Error(error.message);
-        }
-      },
-    },
-    iNotified: {
-      subscribe: (_, { userId }, context) => {
         if (!userId) {
           throw new Error("Unauthorized Access");
         }
 
         try {
-          const payload = notifyUserSubs(userId);
+          const payload = userEventSubs(userId);
 
           if (!payload) {
             throw new Error(
@@ -944,10 +902,10 @@ const resolvers = {
         }
       },
       resolve: (payload) => {
-        if (!payload || !payload.iNotified || !payload.iNotified.id) {
+        if (!payload) {
           throw new Error("Invalid payload for activeNotify subscription");
         }
-        return payload.iNotified;
+        return payload.onUserEvent;
       },
     },
   },

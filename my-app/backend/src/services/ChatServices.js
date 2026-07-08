@@ -1,31 +1,27 @@
 const {
-  findChatRoomByUserIdAndTargetUserId,
+  findChatRoomByTargetUserId,
   createChatRoom,
   getAllParticipantsByUserId,
   getAllChatroomChatListByUserIdAndChatroomId,
+  createParticipants,
 } = require("../repository/ChatRoomRepository");
-const { createNotification } = require("../repository/NotificationRepository");
-const { pubsub } = require("../subscription/pubsub");
 
 const chatRoomActivate = async (userId, targetUserId) => {
   try {
-    let room = await findChatRoomByUserIdAndTargetUserId(userId, targetUserId);
+    let room = await findChatRoomByTargetUserId(targetUserId);
 
     if (!room) {
-      room = await createChatRoom(userId, targetUserId);
+      room = await createChatRoom();
+    } else {
+      return room;
     }
 
-    const notification = await createNotification(
-      "CHAT_ROOM_ACTIVATED",
-      targetUserId,
-      userId,
-    );
+    await createParticipants(userId, "creator", room);
+    await createParticipants(targetUserId, "member", room);
 
-    await pubsub.publish(`notify:${targetUserId}`, {
-      iNotified: notification,
-    });
-
-    return room;
+    return {
+      id: room,
+    };
   } catch (error) {
     console.log(`[Chat Service Error]: ${error.message}`);
     throw new Error(error.message);
@@ -40,7 +36,18 @@ const retriveAllParticipantsList = async (userId) => {
       throw new Error("Failed to retrieve participants list.");
     }
 
-    return payload;
+    const members = payload.map((item) => {
+      const otherParticipant = item.chatRoom.participants.find(
+        (member) => member.user.id !== userId,
+      );
+
+      return {
+        chatroomId: item.chatRoomId,
+        participants: otherParticipant ? otherParticipant : null,
+      };
+    });
+
+    return members;
   } catch (error) {
     console.log(`[Chat Service Error]: ${error.message}`);
     throw new Error(error.message);

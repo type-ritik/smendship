@@ -1,27 +1,20 @@
 const { prisma } = require("../config/prismaConfig");
 
-const findChatRoomByUserIdAndTargetUserId = async (userId, targetUserId) => {
+const findChatRoomByTargetUserId = async (targetUserId) => {
   try {
-    const chatRoom = await prisma.chatRoom.findFirst({
+    const chatRoom = await prisma.participant.findFirst({
       where: {
-        isGroup: false,
-        OR: [
-          {
-            user1Id: userId,
-            user2Id: targetUserId,
-          },
-          {
-            user1Id: targetUserId,
-            user2Id: userId,
-          },
-        ],
+        userId: targetUserId,
+      },
+      select: {
+        id: true,
       },
     });
 
     if (!chatRoom) {
-      return null;
+      return false;
     } else {
-      return chatRoom;
+      return chatRoom.id;
     }
   } catch (error) {
     console.log(`[Chat Room Repository Error]: ${error.message}`);
@@ -29,21 +22,33 @@ const findChatRoomByUserIdAndTargetUserId = async (userId, targetUserId) => {
   }
 };
 
-const createChatRoom = async (userId, targetUserId) => {
+const createParticipants = async (userId, role, chatroomId) => {
   try {
-    const room = await prisma.chatRoom.create({
+    const member = await prisma.participant.create({
       data: {
-        user1Id: userId,
-        user2Id: targetUserId,
-        isGroup: false,
+        userId,
+        role,
+        chatRoomId: chatroomId,
       },
     });
 
-    if (!room) {
-      throw new Error("Failed to create chat room.");
-    } else {
-      return room;
-    }
+    return member;
+  } catch (error) {
+    console.log(`[Chat room repository error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+};
+
+const createChatRoom = async () => {
+  try {
+    const room = await prisma.chatRoom.create({
+      data: {},
+      select: {
+        id: true,
+      },
+    });
+
+    return room.id;
   } catch (error) {
     console.log(`[Chat Room Repository Error]: ${error.message}`);
     throw new Error(error.message);
@@ -53,14 +58,33 @@ const createChatRoom = async (userId, targetUserId) => {
 const getAllParticipantsByUserId = async (userId) => {
   try {
     const payload = await prisma.participant.findMany({
-      where: { userId },
-      include: {
-        chatRoom: true,
-        user: true,
+      where: {
+        userId,
+      },
+
+      select: {
+        chatRoomId: true,
+        chatRoom: {
+          include: {
+            participants: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    profile_image: true,
+                    status: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
+    console.log(payload);
 
-    if (!payload) {
+    if (payload.length < 1) {
       return false;
     }
 
@@ -98,8 +122,9 @@ const getAllChatroomChatListByUserIdAndChatroomId = async (
 };
 
 module.exports = {
-  findChatRoomByUserIdAndTargetUserId,
+  findChatRoomByTargetUserId,
   createChatRoom,
   getAllParticipantsByUserId,
+  createParticipants,
   getAllChatroomChatListByUserIdAndChatroomId,
 };
