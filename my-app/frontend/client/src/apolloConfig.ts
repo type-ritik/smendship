@@ -20,6 +20,7 @@ const wsLnk = new GraphQLWsLink(
     connectionParams: () => ({
       authorization: window.localStorage.getItem("token") || "",
     }),
+    keepAlive: 10000,
   }),
 );
 
