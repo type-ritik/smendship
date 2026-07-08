@@ -137,11 +137,12 @@ model ChatRoom {
 }
 
 model Participant {
-  id         String   @id @default(uuid()) @db.Uuid
-  userId     String   @db.Uuid
-  chatRoomId String   @db.Uuid
-  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
-  user       User     @relation(fields: [userId], references: [id])
+  id         String            @id @default(uuid()) @db.Uuid
+  userId     String            @db.Uuid
+  chatRoomId String            @db.Uuid
+  role       participant_role? @default(member)
+  chatRoom   ChatRoom          @relation(fields: [chatRoomId], references: [id])
+  user       User              @relation(fields: [userId], references: [id])
 
   @@unique([userId, chatRoomId])
 }
@@ -187,4 +188,10 @@ enum Msg {
 enum user_status {
   online
   offline
+}
+
+enum participant_role {
+  member
+  creator
+  admin
 }
