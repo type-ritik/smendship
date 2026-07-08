@@ -1,4 +1,26 @@
+import { useEffect, useState } from "react";
+import { useListOfChatRoomParticipant } from "../../services/ChatRoomService";
+import type { RoomInterface } from "../../utils/ChatInterface";
+
 function ChatFriends() {
+  const [rooms, setRooms] = useState<RoomInterface[]>([]);
+  const { loading, data, error } = useListOfChatRoomParticipant();
+
+  useEffect(() => {
+    if (loading) {
+      console.log("Loading chat room participants...");
+    }
+
+    if (error) {
+      console.error("Error fetching chat room participants:", error);
+    }
+
+    if (data) {
+      console.log("Chat room participants data:", data);
+      setRooms(data.userChatRoomId);
+    }
+  }, [loading, error, data]);
+
   return (
     <div className="flex flex-col h-fullmax-w-2xl mx-auto border border-gray-200 w-full rounded-2xl shadow-lg bg-[#efeae2] overflow-hidden">
       <div className="flex justify-center items-center w-full p-6! bg-white border-b ">
@@ -18,15 +40,20 @@ function ChatFriends() {
         </div>
         <div className="relative w-full h-full rounded bg-[#efeae2] overflow-y-scroll border no-scrollbar">
           <ul className="flex flex-col gap-5 w-full p-5! absolute top-0 left-0">
-            <li className="flex items-center gap-5 w-full p-3! bg-white rounded-sm shadow-xs shadow-black cursor-pointer">
+            {
+              rooms && rooms.map((item, index) => (
+                <li key={index} className="flex items-center gap-5 w-full p-3! bg-white rounded-sm shadow-xs shadow-black cursor-pointer">
               <div className="flex justify-center items-center w-10 h-10 bg-[#f0ffff] rounded-full shadow-xs shadow-black">
-                <span className="text-sm! font-semibold uppercase">A</span>
+                <span className="text-sm! font-semibold uppercase">{item.participants.user.name[0]}</span>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-sm! font-semibold uppercase">Alice</span>
-                <span className="text-xs! text-emerald-400">Online</span>
+                <span className="text-sm! font-semibold uppercase">{item.participants.user.name}</span>
+                <span className="text-xs! text-emerald-400">{item.participants.user.status}</span>
               </div>
             </li>
+              ))
+            }
+
           </ul>
         </div>
       </div>
