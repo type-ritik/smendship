@@ -3,7 +3,6 @@ const { gql } = require("graphql-tag");
 
 const typeDefs = gql`
   scalar DateTime
-  scalar JSON
 
   type Post {
     id: ID!
@@ -17,18 +16,11 @@ const typeDefs = gql`
   type Notification {
     id: String!
     type: String!
-    fromUserId: User!
-    toUserId: User!
+    fromUser: User!
+    toUser: User!
     post: Post
     isRead: Boolean!
     notifiedAt: String!
-  }
-
-  type Message {
-    id: String!
-    content: String!
-    sender: User!
-    chatRoom: ChatRoom!
   }
 
   type ChatRoom {
@@ -45,14 +37,18 @@ const typeDefs = gql`
   }
 
   type FriendRequest {
-    id: ID!
-    senderId: User!
-    receiverId: User!
+    id: String!
+    sender: User!
+    receiver: User!
     isAccepted: Boolean
   }
 
   type RequestAccepted {
     isAccepted: Boolean
+  }
+
+  type ChatRoomPayload {
+    id: String!
   }
 
   type Comment {
@@ -63,9 +59,11 @@ const typeDefs = gql`
   }
 
   type User {
-    id: ID!
+    id: String!
     name: String!
     email: String
+    profile_image: String
+    status: String
     createdAt: String
   }
 
@@ -133,6 +131,11 @@ const typeDefs = gql`
     lastUpdated: String
   }
 
+  type ChatRoomParticipantList {
+    chatroomId: String!
+    participants: Participant!
+  }
+
   type FriendsPayload {
     id: String!
     user: User
@@ -143,6 +146,14 @@ const typeDefs = gql`
     name: String
     email: String
     password: String
+  }
+
+  union EventPayload = Message | FriendRequest | Notification
+
+  type LiveEvent {
+    action: String!
+    createdAt: String!
+    data: EventPayload!
   }
 
   input UpdatePostInput {
@@ -160,7 +171,7 @@ const typeDefs = gql`
     getNotification: [Notification!]!
     friendChatList: [Friendship!]!
     chatRoomChatList(chatRoomId: String): [Message!]!
-    userChatRoomId: [Participant!]!
+    userChatRoomId: [ChatRoomParticipantList!]!
     listOfReceivedFriendRequest: [FriendsPayload]
     listOfSentFriendRequest: [FriendsPayload]
     searchFriends(friendName: String!): [User]
@@ -196,16 +207,14 @@ const typeDefs = gql`
       responseCode: String!
     ): FriendRequestPayload
 
-    activateChatRoom(targetUserId: String!): ChatRoom!
+    activateChatRoom(targetUserId: String!): ChatRoomPayload!
     textMessage(chatRoomId: String!, content: String!): Message!
 
     iNotify(id: String!): Notification
   }
 
   type Subscription {
-    friendRequestReceived(userId: String!): FriendRequestPayload
-    activeChat(userId: String!): Message!
-    iNotified(userId: String!): Notification
+    onUserEvent: LiveEvent!
   }
 `;
 

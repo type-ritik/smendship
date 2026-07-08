@@ -105,12 +105,14 @@ model User {
   password                              String?         @db.VarChar(255)
   createdAt                             DateTime        @default(now()) @db.Timestamp(6)
   role                                  Role            @default(USER)
-  status                                user_status?    @default(ACTIVE)
+  status                                user_status?    @default(offline)
   is_activated                          Boolean?        @default(true)
   codeExpiry                            DateTime?       @db.Timestamp(6)
   verificationCode                      String?         @db.Char(6)
   auth_method                           String?         @default("email") @db.VarChar(50)
   auth_method_id                        String?         @unique @db.VarChar(255)
+  profile_image                         String?
+  bio                                   String?
   Comment                               Comment[]
   CommentLike                           CommentLike[]
   FriendRequestReceived                 FriendRequest[] @relation("ReceiverRequests")
@@ -135,11 +137,12 @@ model ChatRoom {
 }
 
 model Participant {
-  id         String   @id @default(uuid()) @db.Uuid
-  userId     String   @db.Uuid
-  chatRoomId String   @db.Uuid
-  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
-  user       User     @relation(fields: [userId], references: [id])
+  id         String            @id @default(uuid()) @db.Uuid
+  userId     String            @db.Uuid
+  chatRoomId String            @db.Uuid
+  role       participant_role? @default(member)
+  chatRoom   ChatRoom          @relation(fields: [chatRoomId], references: [id])
+  user       User              @relation(fields: [userId], references: [id])
 
   @@unique([userId, chatRoomId])
 }
@@ -183,6 +186,12 @@ enum Msg {
 }
 
 enum user_status {
-  ACTIVE
-  SUSPENDED
+  online
+  offline
+}
+
+enum participant_role {
+  member
+  creator
+  admin
 }
