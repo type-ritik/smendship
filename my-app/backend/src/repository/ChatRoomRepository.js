@@ -1,5 +1,30 @@
 const { prisma } = require("../config/prismaConfig");
 
+const retriveChatList = async (chatRoomId) => {
+  try {
+    const chats = await prisma.message.findMany({
+      where: {
+        chatRoomId,
+      },
+      select: {
+        id: true,
+        content: true,
+        seenAt: true,
+        sender: {
+          select: {
+            id: true,
+            name: true,
+            profile_image: true,
+            status: true,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
 const findChatRoomByTargetUserId = async (targetUserId) => {
   try {
     const chatRoom = await prisma.participant.findFirst({
@@ -7,14 +32,14 @@ const findChatRoomByTargetUserId = async (targetUserId) => {
         userId: targetUserId,
       },
       select: {
-        id: true,
+        chatRoomId: true,
       },
     });
 
     if (!chatRoom) {
       return false;
     } else {
-      return chatRoom.id;
+      return chatRoom.chatRoomId;
     }
   } catch (error) {
     console.log(`[Chat Room Repository Error]: ${error.message}`);
@@ -82,7 +107,6 @@ const getAllParticipantsByUserId = async (userId) => {
         },
       },
     });
-    console.log(payload);
 
     if (payload.length < 1) {
       return false;
@@ -95,29 +119,32 @@ const getAllParticipantsByUserId = async (userId) => {
   }
 };
 
-const getAllChatroomChatListByUserIdAndChatroomId = async (
-  chatRoomId,
-  userId,
-) => {
+const retriveParticipantData = async (chatRoomId, userId) => {
   try {
-    const payload = await prisma.message.findMany({
+    const payload = await prisma.participant.findFirst({
       where: {
         chatRoomId,
+        NOT: {
+          userId,
+        },
       },
-      include: {
-        sender: true,
-        chatRoom: true,
+      select: {
+        id: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            profile_image: true,
+            status: true,
+          },
+        },
       },
     });
-
-    if (!payload) {
-      return false;
-    }
+    console.log("Member: ", payload);
 
     return payload;
   } catch (error) {
-    console.log(`[Chat Room Repository Error]: ${error.message}`);
-    throw new Error(error.message);
+    console.log(`[ChatRoom repository error]: ${error.message}`);
   }
 };
 
@@ -126,5 +153,6 @@ module.exports = {
   createChatRoom,
   getAllParticipantsByUserId,
   createParticipants,
-  getAllChatroomChatListByUserIdAndChatroomId,
+  retriveChatList,
+  retriveParticipantData,
 };

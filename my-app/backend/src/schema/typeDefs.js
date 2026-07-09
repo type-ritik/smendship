@@ -33,7 +33,7 @@ const typeDefs = gql`
   type Participant {
     id: String!
     user: User!
-    chatRoom: ChatRoom!
+    chatRoom: ChatRoom
   }
 
   type FriendRequest {
@@ -177,6 +177,7 @@ const typeDefs = gql`
     searchFriends(friendName: String!): [User]
     listOfFollowers: [FriendsPayload]
     listOfFollowings: [FriendsPayload]
+    getRoomMemberProfile(chatRoomId: String!): Participant
   }
 
   type Mutation {

@@ -44,7 +44,8 @@ const {
 const {
   chatRoomActivate,
   retriveAllParticipantsList,
-  retriveAllChatroomChatList,
+  retriveChatList,
+  retrieveRoomMemberData,
 } = require("../services/ChatServices");
 const {
   retriveNotification,
@@ -314,7 +315,7 @@ const resolvers = {
       if (!userId) throw new Error("Unauthorized");
 
       try {
-        const payload = await retriveAllChatroomChatList(chatRoomId, userId);
+        const payload = await retriveChatList(chatRoomId);
 
         if (!payload) {
           throw new Error("Failed to retrieve chat list.");
@@ -363,6 +364,19 @@ const resolvers = {
         return payload;
       } catch (error) {
         console.log("[Server Error]: ", error.message);
+        throw new Error(error.message);
+      }
+    },
+    getRoomMemberProfile: async (_, { chatRoomId }, context) => {
+      const userId = context.user.id;
+      if (!userId) throw new Error("Unauthorized Access");
+
+      try {
+        const payload = await retrieveRoomMemberData(chatRoomId, userId);
+
+        return payload;
+      } catch (error) {
+        console.log(error.message);
         throw new Error(error.message);
       }
     },

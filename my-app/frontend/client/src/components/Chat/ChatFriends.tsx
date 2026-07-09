@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useListOfChatRoomParticipant } from "../../services/ChatRoomService";
 import type { RoomInterface } from "../../utils/ChatInterface";
+import { useNavigate } from "react-router-dom";
 
 function ChatFriends() {
   const [rooms, setRooms] = useState<RoomInterface[]>([]);
   const { loading, data, error } = useListOfChatRoomParticipant();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (loading) {
@@ -16,7 +18,6 @@ function ChatFriends() {
     }
 
     if (data) {
-      console.log("Chat room participants data:", data);
       setRooms(data.userChatRoomId);
     }
   }, [loading, error, data]);
@@ -40,20 +41,30 @@ function ChatFriends() {
         </div>
         <div className="relative w-full h-full rounded bg-[#efeae2] overflow-y-scroll border no-scrollbar">
           <ul className="flex flex-col gap-5 w-full p-5! absolute top-0 left-0">
-            {
-              rooms && rooms.map((item, index) => (
-                <li key={index} className="flex items-center gap-5 w-full p-3! bg-white rounded-sm shadow-xs shadow-black cursor-pointer">
-              <div className="flex justify-center items-center w-10 h-10 bg-[#f0ffff] rounded-full shadow-xs shadow-black">
-                <span className="text-sm! font-semibold uppercase">{item.participants.user.name[0]}</span>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-sm! font-semibold uppercase">{item.participants.user.name}</span>
-                <span className="text-xs! text-emerald-400">{item.participants.user.status}</span>
-              </div>
-            </li>
-              ))
-            }
-
+            {rooms &&
+              rooms.map((item, index) => (
+                <li
+                  key={index}
+                  onClick={() => navigate(`/chatroom/user/${item.chatroomId}`)}
+                  className="flex items-center gap-5 w-full p-3! bg-white rounded-sm shadow-xs shadow-black cursor-pointer"
+                >
+                  <div className="flex justify-center items-center w-10 h-10 bg-[#f0ffff] rounded-full shadow-xs shadow-black">
+                    <span className="text-sm font-semibold uppercase">
+                      {item.participants.user.name[0]}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-semibold uppercase">
+                      {item.participants.user.name}
+                    </span>
+                    <span
+                      className={`text-xs ${item.participants.user.status === "online" ? "text-emerald-400" : "text-gray-400"}`}
+                    >
+                      {item.participants.user.status}
+                    </span>
+                  </div>
+                </li>
+              ))}
           </ul>
         </div>
       </div>

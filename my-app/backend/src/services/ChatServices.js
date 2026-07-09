@@ -2,8 +2,9 @@ const {
   findChatRoomByTargetUserId,
   createChatRoom,
   getAllParticipantsByUserId,
-  getAllChatroomChatListByUserIdAndChatroomId,
   createParticipants,
+  retriveChatList,
+  retriveParticipantData,
 } = require("../repository/ChatRoomRepository");
 
 const chatRoomActivate = async (userId, targetUserId) => {
@@ -13,7 +14,9 @@ const chatRoomActivate = async (userId, targetUserId) => {
     if (!room) {
       room = await createChatRoom();
     } else {
-      return room;
+      return {
+        id: room,
+      };
     }
 
     await createParticipants(userId, "creator", room);
@@ -54,16 +57,9 @@ const retriveAllParticipantsList = async (userId) => {
   }
 };
 
-const retriveAllChatroomChatList = async (chatroomId, userId) => {
+const retrieveUserChatData = async (chatRoomId) => {
   try {
-    const payload = await getAllChatroomChatListByUserIdAndChatroomId(
-      chatRoomActivate,
-      userId,
-    );
-
-    if (!payload) {
-      throw new Error("Failed to retrieve chat list.");
-    }
+    const payload = await retriveChatList(chatroomId);
 
     return payload;
   } catch (error) {
@@ -72,8 +68,19 @@ const retriveAllChatroomChatList = async (chatroomId, userId) => {
   }
 };
 
+const retrieveRoomMemberData = async (chatRoomId, userId) => {
+  try {
+    const payload = await retriveParticipantData(chatRoomId, userId);
+
+    return payload;
+  } catch (error) {
+    console.log(`[Chat Service Error]: ${error.message}`);
+  }
+};
+
 module.exports = {
   chatRoomActivate,
   retriveAllParticipantsList,
-  retriveAllChatroomChatList,
+  retriveChatList,
+  retrieveRoomMemberData,
 };
