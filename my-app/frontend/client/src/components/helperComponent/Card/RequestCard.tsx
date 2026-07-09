@@ -2,6 +2,8 @@ import type { InvitationRequestInterface } from "../../../utils/userInterfaces";
 import { useUpdateFriendRequestResponse } from "../../../services/InvitationService";
 import toast from "react-hot-toast";
 import { useEffect } from "react";
+import { useChatroomCreation } from "../../../services/ChatRoomService";
+import { useNavigate } from "react-router-dom";
 
 type RequestCardProps = {
   responseCall: string;
@@ -9,8 +11,30 @@ type RequestCardProps = {
 };
 
 function RequestCard({ responseCall, invitationRequest }: RequestCardProps) {
+  const navigate = useNavigate();
   const { friendRequestResponse, data, loading, error } =
     useUpdateFriendRequestResponse();
+
+  const {
+    activateChatRoom,
+    data: chatData,
+    loading: chatLoading,
+    error: chatError,
+  } = useChatroomCreation();
+
+  useEffect(() => {
+    if (chatLoading) {
+      console.log("Chat activation is loading...");
+    }
+
+    if (chatError) {
+      console.log("Error activating chat room", chatError.message);
+    }
+
+    if (chatData) {
+      navigate(`/chatroom/user/${chatData.activateChatRoom.id}`);
+    }
+  }, [chatData, chatLoading, chatError, navigate]);
 
   useEffect(() => {
     if (loading) {
@@ -45,6 +69,13 @@ function RequestCard({ responseCall, invitationRequest }: RequestCardProps) {
           variables: {
             requestId: requestId,
             responseCode: responseCode,
+          },
+        });
+        break;
+      case "CHAT":
+        await activateChatRoom({
+          variables: {
+            targetUserId: requestId,
           },
         });
         break;
@@ -95,8 +126,11 @@ function RequestCard({ responseCall, invitationRequest }: RequestCardProps) {
                 </h3>
                 <p className="text-[14px] text-gray-600">{item.user.id}</p>
                 <span className="time text-[12px]">
-                  <span className="text-gray-500">{item.createdAt}</span>{" "}
-                  &#8226;{" "}
+                  <span
+                    className={`${item.user.status === "online" ? "text-green-400" : "text-gray-400"}`}
+                  >
+                    {item.user.status}
+                  </span>{" "}
                 </span>
               </div>
               <div className="flex gap-5 w-1/2 justify-end-safe">
@@ -127,7 +161,10 @@ function RequestCard({ responseCall, invitationRequest }: RequestCardProps) {
                     <button
                       onClick={() =>
                         handleRequestResponse(
-                          item.id,
+                          responseCall === "RECEIVE" ||
+                            responseCall === "ACCEPT"
+                            ? item.id
+                            : item.user.id,
                           responseCall === "RECEIVE" ? "ACCEPT" : "CHAT",
                         )
                       }

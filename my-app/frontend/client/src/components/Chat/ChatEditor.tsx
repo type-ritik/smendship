@@ -8,7 +8,7 @@ interface Message {
 }
 
 interface ChatEditorProp {
-  chatRoomId: string;
+  chatRoomId: string | undefined;
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }
 
