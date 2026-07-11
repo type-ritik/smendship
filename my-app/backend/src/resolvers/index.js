@@ -58,6 +58,7 @@ const {
 } = require("../services/ExploreFriendServices");
 const { userEventSubs } = require("../services/SubscriptionService");
 const { GraphQLScalarType, Kind } = require("graphql");
+const { createMessage } = require("../repository/MessageRepository");
 
 // import { subscribeToNotify } from "../utils/subscriber.js";
 
@@ -861,7 +862,7 @@ const resolvers = {
       if (!userId) throw new Error("Unauthorized");
 
       try {
-        const message = await sendTextMessage(content, chatRoomId, userId);
+        const message = await createMessage(content, chatRoomId, userId);
 
         if (!message) {
           throw new Error("Failed to send the message.");

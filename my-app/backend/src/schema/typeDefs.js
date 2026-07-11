@@ -25,9 +25,9 @@ const typeDefs = gql`
 
   type ChatRoom {
     id: String!
-    isGroup: Boolean!
-    participants: [Participant!]!
-    messages: [Message!]!
+    isGroup: Boolean
+    participants: [Participant!]
+    messages: [Message!]
   }
 
   type Participant {
