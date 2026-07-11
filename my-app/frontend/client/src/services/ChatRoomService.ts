@@ -65,3 +65,30 @@ export const LIST_OF_PARTICIPANT = gql`
     }
   }
 `;
+
+export const useSendTextMessage = () => {
+  const [sendTextMessage, { loading, error, data }] = useMutation(TEXT_MESSAGE);
+  return {
+    sendTextMessage,
+    loading,
+    error,
+    data,
+  };
+};
+
+export const TEXT_MESSAGE = gql`
+  mutation TextMessage($chatRoomId: String!, $content: String!) {
+    textMessage(chatRoomId: $chatRoomId, content: $content) {
+      id
+      content
+      sender {
+        id
+        name
+        profile_image
+      }
+      chatRoom {
+        id
+      }
+    }
+  }
+`;

@@ -18,3 +18,12 @@ export interface RoomMember {
     status: string;
   };
 }
+
+export interface Message {
+  id: string;
+  content: string;
+  sender: {
+    id: string;
+    name: string;
+  };
+}

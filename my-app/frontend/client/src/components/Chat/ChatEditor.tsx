@@ -1,47 +1,67 @@
 import React, { useState, useRef, useEffect } from "react";
-
-interface Message {
-  id: string;
-  text: string;
-  sender: "me" | "them";
-  time: string;
-}
+import { useSendTextMessage } from "../../services/ChatRoomService";
+import type { Message } from "../../utils/ChatInterface";
 
 interface ChatEditorProp {
   chatRoomId: string | undefined;
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  setMessages: React.Dispatch<React.SetStateAction<Message[] | []>>;
 }
 
 export default function ChatEditor({
   chatRoomId,
   setMessages,
 }: ChatEditorProp) {
-  console.log(chatRoomId);
   const [text, setText] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { loading, data, error, sendTextMessage } = useSendTextMessage();
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const el = textareaRef.current;
     if (el && el.value.trimStart().length > 0) {
       el.focus();
-      const currentTime = new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
+
+      await sendTextMessage({
+        variables: {
+          chatRoomId,
+          content: text,
+        },
       });
+      // const newMessage: Message = {
+      //   id: Date.now().toString(),
+      //   text: text.trim(),
+      //   sender: "me",
+      //   time: currentTime,
+      // };
 
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        text: text.trim(),
-        sender: "me",
-        time: currentTime,
-      };
-
-      setMessages((prev) => [...prev, newMessage]);
-      console.log("Sending value: ", el.value);
+      // setMessages((prev) => [...prev, newMessage]);
+      // console.log("Sending value: ", el.value);
       setText("");
       textareaRef.current?.focus();
     }
   };
+
+  useEffect(() => {
+    if (loading) {
+      console.log("Loading...");
+    }
+
+    if (error) {
+      console.error("Error sending message:", error);
+    }
+
+    if (data) {
+      console.log("Message sent successfully:", data);
+      const newMessage: Message = {
+        id: data.textMessage.id,
+        content: data.textMessage.content,
+        sender: {
+          id: data.textMessage.sender.id,
+          name: data.textMessage.sender.name,
+        },
+      };
+      setMessages((prev) => [...prev, newMessage]);
+    }
+  }, [loading, data, error, setMessages]);
 
   useEffect(() => {
     const el = textareaRef.current;
@@ -58,9 +78,7 @@ export default function ChatEditor({
       event.preventDefault();
       if (el && el.value.trimStart().length > 0) {
         el.focus();
-        console.log(el.value);
         handleSend();
-        setText("");
       }
     }
   };
