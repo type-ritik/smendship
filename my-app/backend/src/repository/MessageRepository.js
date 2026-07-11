@@ -1,24 +1,32 @@
 const { prisma } = require("../config/prismaConfig");
 
-const createMessage = async (chatRoomId, senderId, content) => {
+const createMessage = async (content, chatRoomId, userId) => {
   try {
     const message = await prisma.message.create({
       data: {
         content,
         chatRoomId,
-        senderId,
+        senderId: userId,
       },
-      include: {
-        sender: true,
-        chatRoom: true,
+      select: {
+        id: true,
+        content: true,
+        sender: {
+          select: {
+            id: true,
+            name: true,
+            profile_image: true,
+          },
+        },
+        chatRoom: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
-    if (!message) {
-      return null;
-    } else {
-      return message;
-    }
+    return message;
   } catch (error) {
     console.error("Error creating message:", error);
     throw new Error(error.message);
