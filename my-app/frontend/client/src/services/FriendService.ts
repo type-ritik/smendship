@@ -1,4 +1,4 @@
-import { gql, useLazyQuery } from "@apollo/client";
+import { gql, useMutation, useLazyQuery } from "@apollo/client";
 
 export const useFetchFriends = () => {
   const [loadFriend, { loading, error, data }] = useLazyQuery(SEARCH_FRIEND);
@@ -16,6 +16,27 @@ export const SEARCH_FRIEND = gql`
       id
       name
       status
+    }
+  }
+`;
+
+export const useSendFriendRequest = () => {
+  const [loadRequest, { loading, error, data }] =
+    useMutation(FRIEND_SEND_REQUEST);
+
+  return {
+    loadRequest,
+    loading,
+    error,
+    data,
+  };
+};
+
+export const FRIEND_SEND_REQUEST = gql`
+  mutation FriendSendRequest($receiverId: String!) {
+    friendSendRequest(receiverId: $receiverId) {
+      message
+      response
     }
   }
 `;

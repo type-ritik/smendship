@@ -2,9 +2,15 @@ import { Link } from "react-router-dom";
 import "./Header.css";
 import { useFetchFriends } from "../../services/FriendService";
 import { useEffect, useState } from "react";
+import FriendCanva from "../Friends/FriendCanva";
+import type { InvitationRequestInterface } from "../../utils/userInterfaces";
 
 function HeaderComponenet() {
   const [searchFriend, setSearchFriend] = useState("");
+  const [showFriends, setShowFriends] = useState(false);
+  const [searchOutput, setSearchOutput] = useState<
+    [InvitationRequestInterface["user"]] | []
+  >([]);
 
   const navLink = [
     { name: "Home", route: "/" },
@@ -17,12 +23,21 @@ function HeaderComponenet() {
   const { loading, loadFriend, error, data } = useFetchFriends();
 
   const handleFetchFriends = async () => {
-    await loadFriend({
-      variables: {
-        friendName: searchFriend,
-      },
-    });
+    if (searchFriend.length > 0) {
+      await loadFriend({
+        variables: {
+          friendName: searchFriend,
+        },
+      });
+    }
   };
+
+  useEffect(() => {
+    if (searchFriend.length < 1) {
+      setSearchOutput([]);
+      setShowFriends(false);
+    }
+  }, [searchFriend]);
 
   useEffect(() => {
     if (loading) {
@@ -35,6 +50,7 @@ function HeaderComponenet() {
 
     if (data) {
       console.log("Fetched friends:", data.searchFriends);
+      setSearchOutput(data.searchFriends);
     }
   }, [loading, error, data]);
 
@@ -46,13 +62,14 @@ function HeaderComponenet() {
         <h1 className="text-3xl pr-5! pl-20! not-md:text-2xl font-bold text-blue-800">
           {name}
         </h1>
-        <div className="w-full">
+        <div className="w-full relative flex">
           <input
             type="search"
             name="search"
             id="search"
             onChange={(e) => {
               setSearchFriend(e.target.value);
+              setShowFriends(true);
               handleFetchFriends();
             }}
             value={searchFriend}
@@ -60,6 +77,7 @@ function HeaderComponenet() {
             className="rounded-full! flex-1 flex text-base pl-5! bg-white!"
           />
         </div>
+        {showFriends && <FriendCanva friendsList={searchOutput} />}
       </div>
       <div className="flex w-2/4 not-md:w-2/3 items-center">
         <ul className="w-full flex gap-15 uppercase font-semibold text-[14px] pr-20! not-md:text-[12px] justify-end">
