@@ -31,6 +31,7 @@ const retriveFollowersByUserId = async (userId) => {
           select: {
             id: true,
             name: true,
+            status: true,
           },
         },
       },
@@ -54,6 +55,7 @@ const retriveFollowingsByUserId = async (userId) => {
           select: {
             id: true,
             name: true,
+            status: true,
           },
         },
       },

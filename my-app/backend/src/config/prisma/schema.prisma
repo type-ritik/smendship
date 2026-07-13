@@ -155,6 +155,9 @@ model Message {
   chatRoomId String   @db.Uuid
   chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
   sender     User     @relation("UserMessages", fields: [senderId], references: [id])
+
+  // Cursor pagination on timestamps
+  @@unique([seenAt, id])
 }
 
 enum Role {
