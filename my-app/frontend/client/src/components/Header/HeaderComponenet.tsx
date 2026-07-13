@@ -1,9 +1,12 @@
-import { Component } from "react";
 import { Link } from "react-router-dom";
 import "./Header.css";
+import { useFetchFriends } from "../../services/FriendService";
+import { useEffect, useState } from "react";
 
-export default class HeaderComponenet extends Component {
-  private navLink = [
+function HeaderComponenet() {
+  const [searchFriend, setSearchFriend] = useState("");
+
+  const navLink = [
     { name: "Home", route: "/" },
     { name: "Connection", route: "/network" },
     { name: "Chat", route: "/chatroom/user/list" },
@@ -11,39 +14,66 @@ export default class HeaderComponenet extends Component {
     { name: "Profile", route: "/profile" },
   ];
 
+  const { loading, loadFriend, error, data } = useFetchFriends();
 
+  const handleFetchFriends = async () => {
+    await loadFriend({
+      variables: {
+        friendName: searchFriend,
+      },
+    });
+  };
 
-  private name = "Facebook";
+  useEffect(() => {
+    if (loading) {
+      console.log("Loading friends...");
+    }
 
-  render() {
-    return (
-      <div className="w-full h-20 z-20 flex fixed justify-between bg-blue-200 top-0 left-0 shadow-xs shadow-black">
-        <div className="w-2/6 flex justify-center items-center">
-          <h1 className="text-3xl pr-5! pl-20! not-md:text-2xl font-bold text-blue-800">
-            {this.name}
-          </h1>
-          <div className="w-full">
-            <input
-              type="search"
-              name="search"
-              id="search"
-              placeholder="Find here..."
-              className="rounded-full! flex-1 flex text-base pl-5! bg-white!"
-            />
-          </div>
-        </div>
-        <div className="flex w-2/4 not-md:w-2/3 items-center">
-          <ul className="w-full flex gap-15 uppercase font-semibold text-[14px] pr-20! not-md:text-[12px] justify-end">
-            {this.navLink.map((item, index) => (
-              <li key={index} className="hover:text-blue-500">
-                <Link to={item.route} className="focus:text-white px-4! py-2!">
-                  {item.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
+    if (error) {
+      console.error("Error fetching friends:", error);
+    }
+
+    if (data) {
+      console.log("Fetched friends:", data.searchFriends);
+    }
+  }, [loading, error, data]);
+
+  const name = "Facebook";
+
+  return (
+    <div className="w-full h-20 z-20 flex fixed justify-between bg-blue-200 top-0 left-0 shadow-xs shadow-black">
+      <div className="w-2/6 flex justify-center items-center">
+        <h1 className="text-3xl pr-5! pl-20! not-md:text-2xl font-bold text-blue-800">
+          {name}
+        </h1>
+        <div className="w-full">
+          <input
+            type="search"
+            name="search"
+            id="search"
+            onChange={(e) => {
+              setSearchFriend(e.target.value);
+              handleFetchFriends();
+            }}
+            value={searchFriend}
+            placeholder="Find here..."
+            className="rounded-full! flex-1 flex text-base pl-5! bg-white!"
+          />
         </div>
       </div>
-    );
-  }
+      <div className="flex w-2/4 not-md:w-2/3 items-center">
+        <ul className="w-full flex gap-15 uppercase font-semibold text-[14px] pr-20! not-md:text-[12px] justify-end">
+          {navLink.map((item, index) => (
+            <li key={index} className="hover:text-blue-500">
+              <Link to={item.route} className="focus:text-white px-4! py-2!">
+                {item.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
 }
+
+export default HeaderComponenet;
