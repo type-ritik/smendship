@@ -92,3 +92,31 @@ export const TEXT_MESSAGE = gql`
     }
   }
 `;
+
+export const useChatroomChatList = () => {
+  const [loadChatList, { loading, data, error }] =
+    useLazyQuery(CHATROOM_CHATLIST);
+  return {
+    loadChatList,
+    loading,
+    data,
+    error,
+  };
+};
+
+export const CHATROOM_CHATLIST = gql`
+  query ChatRoomChatList($chatRoomId: String!) {
+    chatRoomChatList(chatRoomId: $chatRoomId) {
+      id
+      content
+      sender {
+        id
+        name
+        profile_image
+      }
+      chatRoom {
+        id
+      }
+    }
+  }
+`;

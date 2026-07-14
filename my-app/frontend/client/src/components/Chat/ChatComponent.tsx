@@ -41,7 +41,11 @@ export default function ChatComponent() {
       {roomMember && (
         <div className="flex flex-col h-full gap-2 max-w-2xl mx-auto border border-gray-200 w-full rounded-2xl shadow-lg bg-[#efeae2] overflow-hidden">
           <ChatHeader roomData={roomMember} />
-          <ChatCanva messagesEndRef={messagesEndRef} messages={messages} />
+          <ChatCanva
+            messagesEndRef={messagesEndRef}
+            messages={messages}
+            setMessages={setMessages}
+          />
           <ChatEditor chatRoomId={roomId} setMessages={setMessages} />
         </div>
       )}

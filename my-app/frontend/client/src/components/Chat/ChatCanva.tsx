@@ -2,17 +2,46 @@ import React, { useEffect } from "react";
 import type { Message } from "../../utils/ChatInterface";
 import { useSelector } from "react-redux";
 import type { UserObjState } from "../../utils/userInterfaces";
+import { useChatroomChatList } from "../../services/ChatRoomService";
+import { useParams } from "react-router-dom";
 
 interface ChatCanvaProps {
   messagesEndRef: React.RefObject<HTMLDivElement>;
   messages: Message[];
+  setMessages: React.Dispatch<React.SetStateAction<Message[] | []>>;
 }
 
-function ChatCanva({ messagesEndRef, messages }: ChatCanvaProps) {
+function ChatCanva({ messagesEndRef, messages, setMessages }: ChatCanvaProps) {
+  const { loadChatList, loading, error, data } = useChatroomChatList();
   const { currentUser } = useSelector((state: UserObjState) => state.user);
+  const roomId = useParams().id;
+
+  useEffect(() => {
+    if (!roomId) {
+      setMessages([]);
+      return;
+    }
+
+    loadChatList({ variables: { chatRoomId: roomId } });
+  }, [roomId, loadChatList, setMessages]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messagesEndRef, messages]);
+
+  useEffect(() => {
+    if (error) {
+      console.error("Error loading chat messages:", error);
+    }
+
+    if (loading) {
+      console.log("Loading chat messages");
+    }
+
+    if (data?.chatRoomChatList) {
+      setMessages(data.chatRoomChatList);
+    }
+  }, [setMessages, error, loading, data]);
 
   return (
     <div className="flex-1 overflow-y-auto px-4! flex flex-col gap-3 no-scrollbar">
