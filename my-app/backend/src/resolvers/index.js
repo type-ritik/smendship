@@ -44,8 +44,8 @@ const {
 const {
   chatRoomActivate,
   retriveAllParticipantsList,
-  retriveChatList,
   retrieveRoomMemberData,
+  retrieveUserChatData,
 } = require("../services/ChatServices");
 const {
   retriveNotification,
@@ -58,7 +58,7 @@ const {
 } = require("../services/ExploreFriendServices");
 const { userEventSubs } = require("../services/SubscriptionService");
 const { GraphQLScalarType, Kind } = require("graphql");
-const { createMessage } = require("../repository/MessageRepository");
+const { sendTextMessage } = require("../services/TextServices");
 
 // import { subscribeToNotify } from "../utils/subscriber.js";
 
@@ -316,12 +316,7 @@ const resolvers = {
       if (!userId) throw new Error("Unauthorized");
 
       try {
-        const payload = await retriveChatList(chatRoomId);
-
-        if (!payload) {
-          throw new Error("Failed to retrieve chat list.");
-        }
-
+        const payload = await retrieveUserChatData(chatRoomId);
         return payload;
       } catch (error) {
         console.log("[Server Error]: ", error.message);
@@ -862,7 +857,7 @@ const resolvers = {
       if (!userId) throw new Error("Unauthorized");
 
       try {
-        const message = await createMessage(content, chatRoomId, userId);
+        const message = await sendTextMessage(content, chatRoomId, userId);
 
         if (!message) {
           throw new Error("Failed to send the message.");

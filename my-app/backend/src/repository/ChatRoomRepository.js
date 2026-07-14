@@ -18,8 +18,15 @@ const retriveChatList = async (chatRoomId) => {
             status: true,
           },
         },
+        chatRoom: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
+
+    return chats;
   } catch (error) {
     throw new Error(error.message);
   }
@@ -140,11 +147,64 @@ const retriveParticipantData = async (chatRoomId, userId) => {
         },
       },
     });
-    console.log("Member: ", payload);
 
     return payload;
   } catch (error) {
     console.log(`[ChatRoom repository error]: ${error.message}`);
+    throw new Error(error.message);
+  }
+};
+
+const retrieveRoomMessage = async (chatRoomId, lastMessageId) => {
+  try {
+    const payload = !lastMessageId
+      ? await prisma.message.findMany({
+          where: {
+            chatRoomId,
+          },
+          take: 10,
+          orderBy: { id: "asc" },
+          select: {
+            id: true,
+            sender: {
+              select: {
+                id: true,
+                name: true,
+                profile_image: true,
+              },
+            },
+            content: true,
+            seenAt: true,
+          },
+        })
+      : await prisma.message.findMany({
+          where: {
+            chatRoomId,
+          },
+          take: 10,
+          skip: 1,
+          cursor: {
+            id: lastMessageId,
+          },
+          orderBy: { id: "asc" },
+          select: {
+            id: true,
+            sender: {
+              select: {
+                id: true,
+                name: true,
+                profile_image: true,
+              },
+            },
+            content: true,
+            seenAt: true,
+          },
+        });
+
+    return payload;
+  } catch (error) {
+    console.log("Chatroom repo error: ", error.message);
+    throw new Error(error.message);
   }
 };
 
@@ -155,4 +215,5 @@ module.exports = {
   createParticipants,
   retriveChatList,
   retriveParticipantData,
+  retrieveRoomMessage,
 };
