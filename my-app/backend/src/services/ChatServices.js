@@ -59,7 +59,7 @@ const retriveAllParticipantsList = async (userId) => {
 
 const retrieveUserChatData = async (chatRoomId) => {
   try {
-    const payload = await retriveChatList(chatroomId);
+    const payload = await retriveChatList(chatRoomId);
 
     return payload;
   } catch (error) {
@@ -81,6 +81,6 @@ const retrieveRoomMemberData = async (chatRoomId, userId) => {
 module.exports = {
   chatRoomActivate,
   retriveAllParticipantsList,
-  retriveChatList,
+  retrieveUserChatData,
   retrieveRoomMemberData,
 };

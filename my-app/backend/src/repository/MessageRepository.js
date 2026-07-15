@@ -11,6 +11,7 @@ const createMessage = async (content, chatRoomId, userId) => {
       select: {
         id: true,
         content: true,
+        seenAt: true,
         sender: {
           select: {
             id: true,
@@ -21,6 +22,15 @@ const createMessage = async (content, chatRoomId, userId) => {
         chatRoom: {
           select: {
             id: true,
+            participants: {
+              select: {
+                user: {
+                  select: {
+                    id: true,
+                  },
+                },
+              },
+            },
           },
         },
       },

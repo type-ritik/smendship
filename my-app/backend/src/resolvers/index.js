@@ -44,8 +44,8 @@ const {
 const {
   chatRoomActivate,
   retriveAllParticipantsList,
-  retriveChatList,
   retrieveRoomMemberData,
+  retrieveUserChatData,
 } = require("../services/ChatServices");
 const {
   retriveNotification,
@@ -58,7 +58,7 @@ const {
 } = require("../services/ExploreFriendServices");
 const { userEventSubs } = require("../services/SubscriptionService");
 const { GraphQLScalarType, Kind } = require("graphql");
-const { createMessage } = require("../repository/MessageRepository");
+const { sendTextMessage } = require("../services/TextServices");
 
 // import { subscribeToNotify } from "../utils/subscriber.js";
 
@@ -316,12 +316,7 @@ const resolvers = {
       if (!userId) throw new Error("Unauthorized");
 
       try {
-        const payload = await retriveChatList(chatRoomId);
-
-        if (!payload) {
-          throw new Error("Failed to retrieve chat list.");
-        }
-
+        const payload = await retrieveUserChatData(chatRoomId);
         return payload;
       } catch (error) {
         console.log("[Server Error]: ", error.message);
@@ -862,7 +857,7 @@ const resolvers = {
       if (!userId) throw new Error("Unauthorized");
 
       try {
-        const message = await createMessage(content, chatRoomId, userId);
+        const message = await sendTextMessage(content, chatRoomId, userId);
 
         if (!message) {
           throw new Error("Failed to send the message.");
@@ -916,12 +911,28 @@ const resolvers = {
           throw new Error(error.message);
         }
       },
-      resolve: (payload) => {
-        if (!payload) {
-          throw new Error("Invalid payload for activeNotify subscription");
-        }
-        return payload.onUserEvent;
-      },
+    },
+  },
+  EventPayload: {
+    __resolveType(obj, context, info) {
+      if (obj.content && obj.chatRoom) {
+        return "Message";
+      }
+
+      if (obj.isAccepted !== undefined) {
+        return "FriendRequest";
+      }
+
+      if (obj.isRead !== undefined) {
+        return "Notification";
+      }
+
+      // Option B: Or pass a clean explicit property from your publishers (Recommended)
+      if (obj.__typename) {
+        return obj.__typename;
+      }
+
+      return null;
     },
   },
 };

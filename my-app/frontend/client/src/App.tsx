@@ -1,6 +1,6 @@
 import "./App.css";
 import LoginComponent from "./components/Auth/LoginComponent";
-import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { Navigate, Outlet, Route, Routes, useNavigate } from "react-router-dom";
 import SignupComponent from "./components/Auth/SignupComponent";
 import IndexPage from "./pages/IndexPage";
 import ChatBoxComponent from "./components/Chat/ChatBoxComponent";
@@ -14,15 +14,24 @@ import type { UserObjState } from "./utils/userInterfaces";
 import ManageMyNetwork from "./pages/ManageMyNetwork";
 import Notification from "./pages/Notification";
 import ProfilePage from "./pages/ProfilePage";
+import { ChatProvider } from "./context/ChatProvider";
 // import ChatFriends from "./components/Chat/ChatFriends";
 
 function App() {
   const navigate = useNavigate();
   const { currentUser } = useSelector((state: UserObjState) => state.user);
 
+  const ChatLayout = () => {
+    return (
+      <ChatProvider>
+        <Outlet />
+      </ChatProvider>
+    );
+  };
+
   useEffect(() => {
     if (!currentUser) {
-      navigate("/auth/login");
+      navigate("/auth/login", { replace: true });
     }
   }, [navigate, currentUser]);
 
@@ -32,24 +41,27 @@ function App() {
         <Route path="/auth/login" element={<LoginComponent />} />
         <Route path="/auth/signup" element={<SignupComponent />} />
         <Route path="/" element={<IndexPage />}>
+          <Route element={<ChatLayout />}>
+            <Route
+              path="/chatroom/user"
+              element={<Navigate to={"/chatroom/user/list"} replace />}
+            />
+            <Route path="/chatroom/user/:id" element={<ChatBoxComponent />} />
+            <Route path="/chatroom/user/list" element={<ChatBoxComponent />} />
+          </Route>
+
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/network" element={<NetworkPage />} />
           <Route
-            path="/chatroom/user"
-            element={<Navigate to={"/chatroom/user/list"} replace />}
-          />
-          <Route path="/chatroom/user/:id" element={<ChatBoxComponent />} />
-          <Route path="/chatroom/user/list" element={<ChatBoxComponent />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="network" element={<NetworkPage />} />
-          <Route
-            path="network/invitation/requests"
+            path="/network/invitation/requests"
             element={<NetworkInvitationRequests />}
           />
           <Route
-            path="network/manage"
+            path="/network/manage"
             element={<Navigate to={"/network/manage/follower"} replace />}
           />
           <Route path="/network/manage/:tab" element={<ManageMyNetwork />} />
-          <Route path="notification" element={<Notification />} />
+          <Route path="/notification" element={<Notification />} />
         </Route>
       </Routes>
     </>
