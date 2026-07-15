@@ -12,9 +12,9 @@ interface ChatCanvaProps {
 }
 
 function ChatCanva({ messagesEndRef, messages, setMessages }: ChatCanvaProps) {
-  const { loadChatList, loading, error, data } = useChatroomChatList();
+  const { loadChatList, error, data } = useChatroomChatList();
   const { currentUser } = useSelector((state: UserObjState) => state.user);
-  const roomId = useParams().id;
+  const { id: roomId } = useParams();
 
   useEffect(() => {
     if (!roomId) {
@@ -34,14 +34,10 @@ function ChatCanva({ messagesEndRef, messages, setMessages }: ChatCanvaProps) {
       console.error("Error loading chat messages:", error);
     }
 
-    if (loading) {
-      console.log("Loading chat messages");
-    }
-
     if (data?.chatRoomChatList) {
       setMessages(data.chatRoomChatList);
     }
-  }, [setMessages, error, loading, data]);
+  }, [setMessages, error, data]);
 
   return (
     <div className="flex-1 overflow-y-auto px-4! flex flex-col gap-3 no-scrollbar">

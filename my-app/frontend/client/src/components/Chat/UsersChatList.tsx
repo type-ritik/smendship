@@ -1,15 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-function UsersChatList({ setChatUserId }) {
+function UsersChatList() {
   const [chatUser, setChatUser] = useState([]);
   useEffect(() => {
     getFriendList();
   }, []);
-
-  const baseUrl = "http://localhost:4000/graphql";
-
-  const userId = "f3782525-c95f-435e-9517-3f21c25e4528";
 
   const getFriendList = () => {
     const getList = async () => {
@@ -63,7 +59,8 @@ function UsersChatList({ setChatUserId }) {
             className="w-full flex flex-col border-2 text-blue-400 hover:text-blue-500 border-blue-500 hover:border-blue-300 rounded h-full hover:bg-blue-50 hover:transition"
             key={index}
           >
-            <Link to={"/chat"} onClick={() => setChatUserId(item.user1.id)}>
+            {/* <Link to={"/chat"} onClick={() => setChatUserId(item.user1.id)}> */}
+            <Link to={"/chat"}>
               <div className="w-full h-20 flex items-center">
                 <img
                   src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
@@ -72,7 +69,8 @@ function UsersChatList({ setChatUserId }) {
                   className="ml-3! rounded-full flex justify-center items-center"
                 />
                 <span className="font-semibold text-xl ml-4!">
-                  User {item.user1.name}
+                  {/* User {item.user1.name} */}
+                  User
                 </span>
               </div>
             </Link>
