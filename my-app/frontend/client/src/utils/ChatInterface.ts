@@ -21,6 +21,9 @@ export interface RoomMember {
 
 export interface Message {
   id: string;
+  chatRoom: {
+    id: string;
+  };
   content: string;
   sender: {
     id: string;
