@@ -911,12 +911,28 @@ const resolvers = {
           throw new Error(error.message);
         }
       },
-      resolve: (payload) => {
-        if (!payload) {
-          throw new Error("Invalid payload for activeNotify subscription");
-        }
-        return payload.onUserEvent;
-      },
+    },
+  },
+  EventPayload: {
+    __resolveType(obj, context, info) {
+      if (obj.content && obj.chatRoom) {
+        return "Message";
+      }
+
+      if (obj.isAccepted !== undefined) {
+        return "FriendRequest";
+      }
+
+      if (obj.isRead !== undefined) {
+        return "Notification";
+      }
+
+      // Option B: Or pass a clean explicit property from your publishers (Recommended)
+      if (obj.__typename) {
+        return obj.__typename;
+      }
+
+      return null;
     },
   },
 };
