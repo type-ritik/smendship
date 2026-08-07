@@ -1,7 +1,11 @@
+import { useState } from "react";
+import CreatePost from "../Post/CreatePost";
+
 export default function EditorComponent() {
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
   return (
     <>
-      <div className="w-full border border-black h-45 flex flex-col bg-white rounded-xl p-5!">
+      <div className="w-full border border-black h-45 flex flex-col bg-white rounded-xl p-5! relative">
         <div className="toolbar flex w-full h-20 justify-center items-center">
           <div className="profile_ w-1/6">
             <div className="w-14 h-14 overflow-hidden flex justify-center items-center rounded-full border-2 border-gray-400">
@@ -14,35 +18,22 @@ export default function EditorComponent() {
               />
             </div>
           </div>
-          {/* <div className="toolbar_image_ref" onClick={handleImage}></div>
-          <input
-            type="file"
-            name="images"
-            id="toolbar-image"
-            ref={imageRefs}
-            style={{ display: "none" }}
-          />
-        </div> */}
           <div className="w-full flex justify-center items-center">
             <input
               name="post"
               id="post"
               placeholder="Start a post"
               className="flex flex-1 h-14 pl-5! text-balance! outline-none border-2 rounded-full!"
+              onClick={() => setIsEditorOpen(true)}
             />
           </div>
         </div>
-        <div className="w-full h-20 flex justify-evenly items-center gap-5!">
-          <button className="border py-2! px-5! w-1/5 rounded justify-center flex text-sm font-medium">
-            Image
-          </button>
-          <button className="border py-2! px-5! w-1/5 rounded justify-center flex text-sm font-medium">
-            Video
-          </button>
-          <button className="border py-2! w-1/5 px-5! rounded justify-center flex text-sm font-medium">
-            Post
-          </button>
-        </div>
+        {isEditorOpen && (
+          <CreatePost
+            setIsEditorOpen={setIsEditorOpen}
+            isEditorOpen={isEditorOpen}
+          />
+        )}
       </div>
     </>
   );
