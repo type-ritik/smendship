@@ -21,7 +21,10 @@ const retriveNotification = async (userId) => {
 
 const updateNotification = async (notificationId, userId) => {
   try {
-    const payload = await updateNotificationAsReadByIdAndUserId(notificationId, userId);
+    const payload = await updateNotificationAsReadByIdAndUserId(
+      notificationId,
+      userId,
+    );
 
     if (!payload) {
       throw new Error("Failed to update notification as read.");
