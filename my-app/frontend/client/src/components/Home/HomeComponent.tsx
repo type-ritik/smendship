@@ -7,12 +7,15 @@ import { useMutation, useQuery } from "@apollo/client";
 import { FOLLOW_FRIEND, GET_POSTS } from "../../services/HomeService";
 import toast from "react-hot-toast";
 import type { postObj, postState } from "../../utils/postInterfaces";
+import CommentComponent from "../Comment/CommentComponent";
 
 function HomeComponent() {
   // States
   const [postData, setPostData] = useState<postObj[]>([]);
   // Navigator
   const navigate = useNavigate();
+
+  const [showComment, setShowComment] = useState(false);
 
   // Selector
   const { currentUser } = useSelector((state: UserObjState) => state.user);
@@ -195,7 +198,10 @@ function HomeComponent() {
                           </button>
                         </div>
                         <div className="w-1/4 flex justify-center">
-                          <button className="px-4! justify-center flex flex-1 py-2! border rounded text-sm font-medium">
+                          <button
+                            onClick={() => setShowComment(!showComment)}
+                            className="px-4! justify-center flex flex-1 py-2! border rounded text-sm font-medium"
+                          >
                             Comment
                           </button>
                         </div>
@@ -204,6 +210,9 @@ function HomeComponent() {
                             Impression
                           </button>
                         </div>
+                      </div>
+                      <div className={`${showComment ? "block" : "hidden"}`}>
+                        {<CommentComponent />}
                       </div>
                     </div>
                   </div>
