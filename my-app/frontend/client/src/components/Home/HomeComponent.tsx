@@ -7,7 +7,8 @@ import { useMutation, useQuery } from "@apollo/client";
 import { FOLLOW_FRIEND, GET_POSTS } from "../../services/HomeService";
 import toast from "react-hot-toast";
 import type { postObj, postState } from "../../utils/postInterfaces";
-import CommentComponent from "../Comment/CommentComponent";
+// import CommentComponent from "../Comment/CommentComponent";
+import ShowComments from "../Comment/ShowComments";
 
 function HomeComponent() {
   // States
@@ -15,7 +16,7 @@ function HomeComponent() {
   // Navigator
   const navigate = useNavigate();
 
-  const [showComment, setShowComment] = useState(false);
+  const [showComment, setShowComment] = useState<string | null>(null);
 
   // Selector
   const { currentUser } = useSelector((state: UserObjState) => state.user);
@@ -68,6 +69,10 @@ function HomeComponent() {
         receiverId: authorId,
       },
     });
+  };
+
+  const toggleComments = (postId: string) => {
+    setShowComment(showComment === postId ? null : postId);
   };
 
   return (
@@ -129,7 +134,6 @@ function HomeComponent() {
           </div>
           <hr className="text-gray-400" />
           <div className="w-full">
-            {/* <h1 className="font-bold text-2xl">Posts</h1> */}
             {postData && postData.length > 0 ? (
               postData.map((post: postObj) => (
                 <div
@@ -155,7 +159,7 @@ function HomeComponent() {
                       </p>
                       <span className="text-[10px]">
                         <span>
-                          <span className="text-gray-500">2h</span> &#8226;{" "}
+                          <span className="text-gray-500">2h</span> •{" "}
                         </span>
                         <span className="text-gray-500">Public</span>
                       </span>
@@ -176,50 +180,48 @@ function HomeComponent() {
                         <p className="text-[15px] text-gray-900">
                           {post.content}
                         </p>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 mb-3">
                           <span className="text-blue-600">#Hello</span>
                           <span className="text-blue-600">#gameOver</span>
                           <span className="text-blue-600">#MyNewPost</span>
                           <span className="text-blue-600">#TopTrends</span>
                         </div>
                       </div>
-                      <div className="w-full h-full overflow-hidden">
+                      <div className="w-full h-full overflow-hidden rounded-lg">
                         <img
                           src="https://images.unsplash.com/photo-1774268184985-f1af67b38179?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                          alt=""
-                          className="w-full h-full object-cover object-center rounded"
+                          alt="Post media"
+                          className="w-full h-full object-cover"
                         />
                       </div>
-                      <hr className="text-gray-400 my-5!" />
-                      <div className="flex w-full justify-between">
-                        <div className="w-1/4 flex justify-start">
-                          <button className="px-4! justify-center flex flex-1 py-2! border rounded text-sm font-medium">
-                            Like
-                          </button>
-                        </div>
-                        <div className="w-1/4 flex justify-center">
-                          <button
-                            onClick={() => setShowComment(!showComment)}
-                            className="px-4! justify-center flex flex-1 py-2! border rounded text-sm font-medium"
-                          >
-                            Comment
-                          </button>
-                        </div>
-                        <div className="w-1/4 flex justify-end-safe">
-                          <button className="px-4! justify-center flex flex-1 py-2! border rounded text-sm font-medium">
-                            Impression
-                          </button>
-                        </div>
+                      <hr className="text-gray-200 my-3" />
+                      <div className="flex justify-between items-center px-2">
+                        <button className="text-sm font-medium text-gray-600 hover:text-blue-600">
+                          Like
+                        </button>
+                        <button
+                          onClick={() => toggleComments(post.id)}
+                          className="text-sm font-medium text-gray-600 hover:text-blue-600"
+                        >
+                          Comment
+                        </button>
+                        <button className="text-sm font-medium text-gray-600 hover:text-blue-600">
+                          Share
+                        </button>
                       </div>
-                      <div className={`${showComment ? "block" : "hidden"}`}>
-                        {<CommentComponent />}
-                      </div>
+                      {showComment === post.id && (
+                        <div className="mt-4 border-t pt-3">
+                          <ShowComments />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
               ))
             ) : (
-              <div>No post yet!</div>
+              <div className="w-full text-center py-10 text-gray-500">
+                {loading ? "Loading items..." : "No posts available."}
+              </div>
             )}
           </div>
         </div>
