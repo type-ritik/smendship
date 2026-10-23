@@ -3,16 +3,15 @@ import {
   useSelector,
 } from "react-redux";
 import type { UserObjState } from "../utils/userInterfaces";
-import {
-  // useEffect
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 // import { useMutation } from "@apollo/client";
 // import { ALTER_PROFILE_DATA } from "../services/AuthService";
 // import toast from "react-hot-toast";
 import { FiEdit } from "react-icons/fi";
 import EditProfile from "../components/helperComponent/Card/EditProfile";
 import { useNavigate } from "react-router-dom";
+import { useGetPost } from "../services/PostService";
+import type { postState } from "../utils/postInterfaces";
 
 const CURRENT_STATE = {
   MY_POST: "MY_POST",
@@ -28,11 +27,29 @@ function ProfilePage() {
     CURRENT_STATE.MY_POST,
   );
 
+  const [postData, setPostData] = useState<postState>();
+
   const navigate = useNavigate();
 
   const countTo = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 
   const { currentUser } = useSelector((state: UserObjState) => state.user);
+
+  const { loading, error, data } = useGetPost();
+
+  useEffect(() => {
+    if (loading) {
+      console.log("Loading...");
+    }
+
+    if (error) {
+      console.log(error.message);
+    }
+
+    if (data) {
+      setPostData(data);
+    }
+  }, [loading, error, data]);
 
   return (
     <>
@@ -116,29 +133,23 @@ function ProfilePage() {
             <div className=" w-full flex justify-center items-center relative h-full overflow-y-scroll">
               <div className="gap-3 w-full flex flex-col absolute top-0">
                 {currentComponent === "MY_POST"
-                  ? countTo.map((item) => (
+                  ? postData?.getPosts?.map((item) => (
                       <div
-                        key={item}
+                        key={item.id}
                         className="w-full h-full border rounded p-5! bg-white shadow-xs shadow-black gap-2 flex flex-col"
                       >
                         <div className="w-full flex flex-col border-b">
                           <h1 className="font-semibold text-base">
-                            Lorem ipsum dolar ist consectetur elit.
+                            {item.title}
                           </h1>
                           <span className="text-[10px]">
-                            Posted on:{" "}
-                            <span className="text-blue-600">12/12/2023</span>
+                            Posted by:{" "}
+                            <span className="text-blue-600">
+                              {item.author.name}
+                            </span>
                           </span>
                         </div>
-                        <p className="font-normal text-sm">
-                          Lorem ipsum dolor sit amet consectetur adipisicing
-                          elit. Quis voluptatibus, quod, quia, quos voluptates
-                          quibusdam voluptatum quidem quas quibusdam? Quisquam,
-                          quae. Quisquam, Lorem ipsum dolor sit amet consectetur
-                          adipisicing elit. Quis voluptatibus, quod, quia, quos
-                          voluptates quibusdam voluptatum quidem quas quibusdam?
-                          Quisquam, quae. Quisquam,
-                        </p>
+                        <p className="font-normal text-sm">{item.content}</p>
                         <div className="w-full flex justify-between border-t pt-1!">
                           <p className="cursor-pointer">
                             Likes: <span>20</span>
