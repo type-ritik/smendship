@@ -44,11 +44,7 @@ function HomeComponent() {
       // console.log("Posts fetched successfully:", data);
       setPostData(data.getPosts ?? []);
     }
-
-    if (loading) {
-      console.log("Fetching posts...");
-    }
-  }, [error, data, loading]);
+  }, [error, data]);
 
   useEffect(() => {
     if (followFriendError) {
@@ -187,26 +183,16 @@ function HomeComponent() {
                           <span className="text-blue-600">#TopTrends</span>
                         </div>
                       </div>
-                      <div className="w-full h-full overflow-hidden rounded-lg">
-                        <img
-                          src="https://images.unsplash.com/photo-1774268184985-f1af67b38179?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                          alt="Post media"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
                       <hr className="text-gray-200 my-3" />
-                      <div className="flex justify-between items-center px-2">
-                        <button className="text-sm font-medium text-gray-600 hover:text-blue-600">
+                      <div className="flex justify-between items-center w-full">
+                        <button className="text-sm font-medium w-30!  text-gray-600 hover:text-blue-600">
                           Like
                         </button>
                         <button
                           onClick={() => toggleComments(post.id)}
-                          className="text-sm font-medium text-gray-600 hover:text-blue-600"
+                          className="text-sm font-medium w-30! text-gray-600 hover:text-blue-600"
                         >
                           Comment
-                        </button>
-                        <button className="text-sm font-medium text-gray-600 hover:text-blue-600">
-                          Share
                         </button>
                       </div>
                       {showComment === post.id && (
