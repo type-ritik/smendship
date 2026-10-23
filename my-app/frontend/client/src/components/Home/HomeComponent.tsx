@@ -3,12 +3,13 @@ import EditorComponent from "../Editor/EditorComponent";
 import { useSelector } from "react-redux";
 import type { UserObjState } from "../../utils/userInterfaces";
 import { useEffect, useState } from "react";
-import { useMutation, useQuery } from "@apollo/client";
-import { FOLLOW_FRIEND, GET_POSTS } from "../../services/HomeService";
+import { useMutation } from "@apollo/client";
+import { FOLLOW_FRIEND } from "../../services/HomeService";
 import toast from "react-hot-toast";
-import type { postObj, postState } from "../../utils/postInterfaces";
+import type { postObj } from "../../utils/postInterfaces";
 // import CommentComponent from "../Comment/CommentComponent";
 import ShowComments from "../Comment/ShowComments";
+import { useGetPost } from "../../services/PostService";
 
 function HomeComponent() {
   // States
@@ -32,7 +33,7 @@ function HomeComponent() {
   ] = useMutation(FOLLOW_FRIEND);
 
   // Query
-  const { loading, error, data } = useQuery<postState>(GET_POSTS);
+  const { loading, error, data } = useGetPost();
 
   useEffect(() => {
     if (error) {
