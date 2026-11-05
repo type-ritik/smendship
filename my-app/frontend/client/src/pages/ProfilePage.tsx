@@ -12,6 +12,8 @@ import EditProfile from "../components/helperComponent/Card/EditProfile";
 import { useNavigate } from "react-router-dom";
 import { useGetPost } from "../services/PostService";
 import type { postState } from "../utils/postInterfaces";
+import { useQuery } from "@apollo/client";
+import { FOLLOWERS_COUNT, FOLLOWINGS_COUNT } from "../services/FriendService";
 
 const CURRENT_STATE = {
   MY_POST: "MY_POST",
@@ -26,8 +28,20 @@ function ProfilePage() {
   const [currentComponent, setCurrentComponent] = useState<CurrentState>(
     CURRENT_STATE.MY_POST,
   );
+  const [frCountData, setFrCountData] = useState(0);
+  const [fgCountData, setfgCountData] = useState(0);
 
   const [postData, setPostData] = useState<postState>();
+  const {
+    data: frData,
+    loading: frLoading,
+    error: frError,
+  } = useQuery(FOLLOWERS_COUNT);
+  const {
+    data: fgData,
+    loading: fgLoading,
+    error: fgError,
+  } = useQuery(FOLLOWINGS_COUNT);
 
   const navigate = useNavigate();
 
@@ -36,6 +50,28 @@ function ProfilePage() {
   const { currentUser } = useSelector((state: UserObjState) => state.user);
 
   const { loading, error, data } = useGetPost();
+
+  useEffect(() => {
+    if (frLoading || fgLoading) {
+      console.log("Loading followers or followings count...");
+    }
+
+    if (frError) {
+      console.log("Error fetching followers count:", frError.message);
+    }
+
+    if (fgError) {
+      console.log("Error fetching followings count:", fgError.message);
+    }
+
+    if (fgData) {
+      setfgCountData(fgData.followingsCount.count);
+    }
+
+    if (frData) {
+      setFrCountData(frData.followersCount.count);
+    }
+  }, [frData, fgData, frError, fgError, fgLoading, frLoading]);
 
   useEffect(() => {
     if (loading) {
@@ -90,7 +126,7 @@ function ProfilePage() {
                 onClick={() => navigate("/network/manage/follower")}
               >
                 <h1>
-                  Follower: <span className="text-blue-600">80</span>
+                  Follower: <span className="text-blue-600">{frCountData}</span>
                 </h1>
               </div>
               <div
@@ -98,7 +134,8 @@ function ProfilePage() {
                 onClick={() => navigate("/network/manage/following")}
               >
                 <h1>
-                  Following: <span className="text-blue-600">100</span>
+                  Following:{" "}
+                  <span className="text-blue-600">{fgCountData}</span>
                 </h1>
               </div>
             </div>

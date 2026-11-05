@@ -40,3 +40,17 @@ export const FRIEND_SEND_REQUEST = gql`
     }
   }
 `;
+
+export const FOLLOWERS_COUNT = gql`
+query FollowersCount {
+  followersCount {
+    count
+  }
+}`;
+
+export const FOLLOWINGS_COUNT = gql`
+query FollowingCount {
+  followingsCount {
+    count
+  }
+}`;
