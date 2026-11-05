@@ -49,8 +49,32 @@ const myFollowings = async (userId) => {
   }
 };
 
+const myFollowersCount = async (userId) => {
+  try {
+    const payload = await retriveFollowersByUserId(userId);
+
+    return payload.length;
+  } catch (error) {
+    console.log(`Followers Count Service Error: ${error.message}`);
+    throw new Error(error.message);
+  }
+};
+
+const myFollowingCount = async (userId) => {
+  try {
+    const payload = await retriveFollowingsByUserId(userId);
+
+    return payload.length;
+  } catch (error) {
+    console.log(`Followings Count Service Error: ${error.message}`);
+    throw new Error(error.message);
+  }
+};
+
 module.exports = {
   findFriendChatList,
   myFollowers,
   myFollowings,
+  myFollowersCount,
+  myFollowingCount,
 };

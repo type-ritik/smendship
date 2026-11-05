@@ -55,6 +55,8 @@ const {
   findFriendChatList,
   myFollowers,
   myFollowings,
+  myFollowersCount,
+  myFollowingCount,
 } = require("../services/ExploreFriendServices");
 const { userEventSubs } = require("../services/SubscriptionService");
 const { GraphQLScalarType, Kind } = require("graphql");
@@ -205,6 +207,28 @@ const resolvers = {
         return payload;
       } catch (error) {
         console.log(`[Error retrive sent friend request: ${error.message}]`);
+        throw new Error(error.message);
+      }
+    },
+    followersCount: async (_, parent, context) => {
+      const userId = context.user.id;
+      if (!userId) throw new Error("Unauthorized");
+
+      try {
+        const payload = await myFollowersCount(userId);
+        return { count: payload };
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    },
+    followingsCount: async (_, parent, context) => {
+      const userId = context.user.id;
+      if (!userId) throw new Error("Unauthorized");
+
+      try {
+        const payload = await myFollowingCount(userId);
+        return { count: payload };
+      } catch (error) {
         throw new Error(error.message);
       }
     },

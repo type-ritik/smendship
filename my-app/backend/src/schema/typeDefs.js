@@ -119,6 +119,10 @@ const typeDefs = gql`
     user2: User!
   }
 
+  type Counts {
+    count: Int!
+  }
+
   type DeactivateUserPayload {
     status: String!
     message: String!
@@ -178,6 +182,8 @@ const typeDefs = gql`
     listOfFollowers: [FriendsPayload]
     listOfFollowings: [FriendsPayload]
     getRoomMemberProfile(chatRoomId: String!): Participant
+    followersCount: Counts
+    followingsCount: Counts
   }
 
   type Mutation {
