@@ -66,14 +66,6 @@ const updateUserProfile = async (inputData, id) => {
       throw new Error("User not found");
     }
 
-    if (!user.is_activated) {
-      throw new Error("User account is deactivated");
-    }
-
-    if (user.status === "SUSPENDED") {
-      throw new Error("User account is suspended");
-    }
-
     const data = {};
 
     if (inputData.name) {
