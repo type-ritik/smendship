@@ -1,11 +1,9 @@
 import "./App.css";
 import LoginComponent from "./components/Auth/LoginComponent";
-import { Navigate, Outlet, Route, Routes, useNavigate } from "react-router-dom";
+import { Navigate, Outlet, Route, Routes, useNavigate, useLocation } from "react-router-dom"; // 1. Added useLocation
 import SignupComponent from "./components/Auth/SignupComponent";
 import IndexPage from "./pages/IndexPage";
 import ChatBoxComponent from "./components/Chat/ChatBoxComponent";
-// import UsersChatList from "./components/Chat/UsersChatList";
-// import { useState } from "react";
 import NetworkPage from "./pages/NetworkPage";
 import NetworkInvitationRequests from "./components/Network/NetworkInvitationRequests";
 import { useSelector } from "react-redux";
@@ -15,10 +13,10 @@ import ManageMyNetwork from "./pages/ManageMyNetwork";
 import Notification from "./pages/Notification";
 import ProfilePage from "./pages/ProfilePage";
 import { ChatProvider } from "./context/ChatProvider";
-// import ChatFriends from "./components/Chat/ChatFriends";
 
 function App() {
   const navigate = useNavigate();
+  const location = useLocation(); // 2. Initialize location instance
   const { currentUser } = useSelector((state: UserObjState) => state.user);
 
   const ChatLayout = () => {
@@ -30,10 +28,14 @@ function App() {
   };
 
   useEffect(() => {
-    if (!currentUser) {
+    // 3. Define explicit public authentication routes
+    const publicAuthPaths = ["/auth/login", "/auth/signup"];
+
+    // 4. Only redirect to login if there's no user AND they aren't already on a public auth page
+    if (!currentUser && !publicAuthPaths.includes(location.pathname)) {
       navigate("/auth/login", { replace: true });
     }
-  }, [navigate, currentUser]);
+  }, [navigate, currentUser, location.pathname]); // 5. Added location.pathname to the dependency array
 
   return (
     <>
