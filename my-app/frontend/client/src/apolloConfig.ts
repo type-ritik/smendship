@@ -6,7 +6,7 @@ import { createClient } from "graphql-ws";
 
 // Http link for queries and mutation
 const httpLink = new HttpLink({
-  uri: "http://localhost:4000/graphql",
+  uri: import.meta.env.VITE_API_URL,
   headers: {
     authorization: window.localStorage.getItem("token") || "",
   },
@@ -16,7 +16,7 @@ const retryLink = new RetryLink();
 
 const wsLnk = new GraphQLWsLink(
   createClient({
-    url: "ws://localhost:4000/graphql",
+    url: import.meta.env.VITE_API_URL_WS,
     connectionParams: () => ({
       authorization: window.localStorage.getItem("token") || "",
     }),
