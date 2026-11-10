@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2022" /* Specify ECMAScript target version */,
+    "module": "nodenext" /* Standard for Node.js backend */,
+    "moduleResolution": "nodenext" /* Resolve modules like Node does */,
+    "allowJs": true /* Crucial: Allows JS and TS files to coexist */,
+    "outDir": "./dist" /* Where compiled JS files will go */,
+    "rootDir": "./src" /* Where your TS source code lives */,
+    "strict": false /* Turn false initially, flip to true later */,
+    "esModuleInterop": true /* Emits additional JavaScript to ease imports */,
+    "skipLibCheck": true /* Skip type checking of declaration files */,
+    "forceConsistentCasingInFileNames": true /* Ensure exact file name matching */,
+    "ignoreDeprecations": "6.0"
+  },
+  "include": ["src/**/*"] /* Tells compiler to look inside src */
+}
