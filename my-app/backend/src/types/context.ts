@@ -1,6 +1,5 @@
 import { Request } from "express";
-import { UserService } from "../services/UserService";
-import { PostService } from "../services/PostService";
+import { appServices } from "../config/container";
 
 export interface GraphQLContext {
   user: {
@@ -8,9 +7,5 @@ export interface GraphQLContext {
     admin: boolean;
   };
   req: Request;
-  services: {
-    user: UserService;
-    post: PostService;
-    // Add new services here down the row
-  };
+  services: typeof appServices
 }

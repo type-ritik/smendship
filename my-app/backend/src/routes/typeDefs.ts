@@ -169,7 +169,11 @@ export const typeDefs = gql`
   #   email: String!
   #   password: String!
   # }
-
+  enum REQUEST_TYPE {
+    FRIEND_REQUEST_ACCEPTED
+    FRIEND_REQUEST_REJECTED
+    FRIEND_REQUEST_SENT
+  }
 
   # User Inputs
   input SignupInput {
@@ -183,18 +187,6 @@ export const typeDefs = gql`
     email: String!
     # Other profile properties
   }
-
-
-  # Post Inputs
-  input PostInput {
-    title: String
-    content: String
-    category: String
-  }
-
-
-
-
 
   # User Types
   type User {
@@ -218,6 +210,12 @@ export const typeDefs = gql`
     email: String
   }
 
+  # Post Inputs
+  input PostInput {
+    title: String
+    content: String
+    category: String
+  }
 
   # Post Types
   type Post {
@@ -229,12 +227,41 @@ export const typeDefs = gql`
     author: User
   }
 
+  # Friend_request Input
+  input FriendRequestInput {
+    senderId: String!
+    receiverId: String!
+    type: REQUEST_TYPE
+  }
 
+  # Friend_request Types
+  type FriendRequestPayload {
+    id: String!
+    senderId: String!
+    receiverId: String!
+    isAccepted: Boolean
+    requestedAt: DateTime
+  }
 
+  type FriendPayload {
+    response: String
+  }
 
+  # Friendship Input
 
+  # Friendship Types
+  type FriendshipPayload {
+    id: String!
+    followers: User
+    followings: User
+    follower: String
+    following: String
+    createdAt: DateTime
+  }
 
-
+  type FriendshipCount {
+    count: Int!
+  }
 
   type Query {
     # hello: String!
@@ -255,10 +282,6 @@ export const typeDefs = gql`
     # followersCount: Counts
     # followingsCount: Counts
 
-
-
-
-
     # User Query
     loginUpUser(email: String!, password: String!): UserAuthPayload
 
@@ -266,13 +289,26 @@ export const typeDefs = gql`
 
     getAllUserData: User
 
-
     # Post Query
     getPostsByUserId(userId: String!): [Post]
 
     getPostByPostId(postId: String!): Post
 
     searchPost(text: String!): Post
+
+    # Friend_request Query
+    getFriendRequestsListOfUser: [FriendRequestPayload]
+
+    searchFriendRequestByName(name: String!): [FriendRequestPayload]
+
+    # Friendship Query
+    getListOfFollowers: [FriendshipPayload]
+
+    getListOfFollowings: [FriendshipPayload]
+
+    getFollowersCount: FriendshipCount
+
+    getFollowingsCount: FriendshipCount
   }
 
   type Mutation {
@@ -285,17 +321,15 @@ export const typeDefs = gql`
 
     updateProfile(input: ProfileInput): ProfilePayload
 
-
     # Post Mutation
     createPost(input: PostInput): Post
 
     editPost(input: PostInput): Post
 
+    # Friend_request Mutation
+    sendFriendRequest(input: FriendRequestInput): FriendRequestPayload
 
-
-
-
-
+    resolveFriendRequest(requestId: String, response: Boolean): FriendPayload
     # googleAuthExchangeToken(token: String!): AuthPayload
     # githubAuthExchangeToken(token: String!): AuthPayload
 

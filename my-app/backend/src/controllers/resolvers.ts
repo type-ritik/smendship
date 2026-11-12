@@ -203,6 +203,66 @@ export const resolvers = {
 
       return services.post.searchPost(text);
     },
+
+    // FRIEND_REQUEST Query
+    getFriendRequestsListOfUser: async (
+      parent: null,
+      inputs: null,
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.friendRequest.fetchFriendRequestsById(user.id);
+    },
+
+    searchFriendRequestByName: async (
+      parent: null,
+      { name },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+      return services.friendRequest.fetchFriendRequestByName(name);
+    },
+
+    // FRIENDSHIP Query
+    getListOfFollowers: async (
+      parent: null,
+      input: null,
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+      return services.friendship.fetchUserFollowers(user.id);
+    },
+
+    getListOfFollowings: async (
+      parent: null,
+      input: null,
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.friendship.fetchUserFollowings(user.id);
+    },
+
+    getFollowersCount: async (
+      parent: null,
+      input: null,
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.friendship.fetchFollowersCount(user.id);
+    },
+
+    getFollowingsCount: async (
+      parent: null,
+      input: null,
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.friendship.fetchFollowingsCount(user.id);
+    },
   },
   //   // Query work like GET
   //   hello: () => "Hello World! 🌍",
@@ -565,6 +625,30 @@ export const resolvers = {
       if (!user.id) throw new Error("Unauthorized Entity");
 
       return services.post.updatePost(input);
+    },
+
+    // FRIEND_REQUEST Mutation
+    sendFriendRequest: async (
+      parent: null,
+      { input },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Enity");
+
+      return services.friendRequest.sendFriendRequest(input);
+    },
+
+    resolveFriendRequest: async (
+      parent: null,
+      { requestId, response },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.friendRequest.interpretFriendRequestResponse(
+        requestId,
+        response,
+      );
     },
 
     // createpost: async (_, { title, content, category }, context) => {
