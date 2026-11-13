@@ -12,12 +12,15 @@ export class FriendshipRepository implements IFriendshipRepository {
     data: CreateFriendshipDTO,
   ): Promise<{ response: string }> {
     try {
-      const payload = await this.prisma.friendship.create({
+      console.log("Hello world");
+      await this.prisma.friendship.create({
         data: {
           follower: data.follower,
           following: data.following,
         },
       });
+
+      console.log("frienship created");
 
       return {
         response: `Friendship created successfully.`,

@@ -1,11 +1,9 @@
 import { CreateRequestDTO, FriendResponseDTO } from "../models/FriendRequest";
 import { IFriendRequestRepository } from "../repositories/IFriendRequestRepository";
-import { IFriendshipRepository } from "../repositories/IFriendshipRepository";
 
 export class FriendRequestServices {
   constructor(
-    private friendRequestRepository: IFriendRequestRepository,
-    private friendshipRepository: IFriendshipRepository,
+    private friendRequestRepository: IFriendRequestRepository
   ) {}
 
   public async sendFriendRequest(
@@ -33,14 +31,19 @@ export class FriendRequestServices {
         response,
       );
 
-    if (payload.response) {
-      const friendRequest = await this.friendshipRepository.createFriendship({
-        follower: payload.user.senderId,
-        following: payload.user.receiverId,
-      });
 
-      return friendRequest;
-    }
+    return payload;
+
+    // if (payload.response) {
+    //   const friendRequest = await this.friendshipRepository.createFriendship({
+    //     follower: payload.user.senderId,
+    //     following: payload.user.receiverId,
+    //   });
+
+    //   console.log("request",friendRequest)
+
+    //   return friendRequest;
+    // }
 
     return {
       response: "Friend request rejected",
