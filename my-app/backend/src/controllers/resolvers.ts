@@ -263,6 +263,39 @@ export const resolvers = {
 
       return services.friendship.fetchFollowingsCount(user.id);
     },
+
+    // Message Query
+    retriveAllMessagesOfChatSpace: async (
+      parent: null,
+      { chatRoomId },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+      return services.message.fetchAllMessagesOfChatRoom(chatRoomId, user.id);
+    },
+
+    // ChatRoom Query
+
+
+    // Participant Query
+    retriveAllChatRoomsOfUser: async (
+      parent: null,
+      input: null,
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+      return services.participant.fetchParticipantsRoomOfUser(user.id);
+    },
+
+    searchUserRoom: async (
+      parent: null,
+      { name },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+      return services.participant.searchParticipant(name);
+    },
+
   },
   //   // Query work like GET
   //   hello: () => "Hello World! 🌍",
@@ -649,6 +682,35 @@ export const resolvers = {
         requestId,
         response,
       );
+    },
+
+    // Messages Mutation
+    sendMessage: async (
+      parent: null,
+      { content, chatRoomId },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+      return services.message.sendMessage(content, user.id, chatRoomId);
+    },
+
+    editMessage: async (
+      parent: null,
+      { id, content, chatRoomId },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+      return services.message.editMessage(id, content, user.id, chatRoomId);
+    },
+
+    // ChatRoom Mutation
+    createChatSpace: async (
+      parent: null,
+      { receiverId },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+      return services.chatRoom.createChatRoom(user.id, receiverId);
     },
 
     // createpost: async (_, { title, content, category }, context) => {

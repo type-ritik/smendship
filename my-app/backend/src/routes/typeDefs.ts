@@ -175,6 +175,12 @@ export const typeDefs = gql`
     FRIEND_REQUEST_SENT
   }
 
+  enum PARTICIPANT_ROLE {
+    member
+    creator
+    admin
+  }
+
   # User Inputs
   input SignupInput {
     name: String!
@@ -263,6 +269,41 @@ export const typeDefs = gql`
     count: Int!
   }
 
+  # Message Input
+
+  # Message Types
+  type MessagePayload {
+    id: String
+    content: String
+    chatRoomId: String
+    editedAt: DateTime
+    createdAt: DateTime
+  }
+
+  # ChatRoom Input
+
+  # ChatRoom Types
+  type ChatRoomPayload {
+    id: String
+    name: String
+    isGroup: Boolean
+    directkey: String
+    lastMessageAt: DateTime
+  }
+
+  # Participant Input
+
+  # Participant Types
+  type ParticipantPayload {
+    id: String
+    chatRoomId: String
+    role: PARTICIPANT_ROLE
+    lastReadMsgId: String
+    joinedAt: DateTime
+    leftAt: DateTime
+    lastReadAt: DateTime
+  }
+
   type Query {
     # hello: String!
     # getPosts: [Post]
@@ -309,6 +350,16 @@ export const typeDefs = gql`
     getFollowersCount: FriendshipCount
 
     getFollowingsCount: FriendshipCount
+
+    # Message Query
+    retriveAllMessagesOfChatSpace(chatRoomId: String!): [MessagePayload]
+
+    # ChatRoom Query
+
+    # Participant Query
+    retriveAllChatRoomsOfUser: [ParticipantPayload]
+
+    searchUserRoom(name: String!): [ParticipantPayload]
   }
 
   type Mutation {
@@ -330,6 +381,21 @@ export const typeDefs = gql`
     sendFriendRequest(input: FriendRequestInput): FriendRequestPayload
 
     resolveFriendRequest(requestId: String, response: Boolean): FriendPayload
+
+    # Message Mutation
+    sendMessage(content: String!, chatRoomId: String!): MessagePayload
+
+    editMessage(
+      id: String!
+      content: String!
+      chatRoomId: String!
+    ): MessagePayload
+
+    # ChatRoom Mutation
+    createChatSpace(receiverId: String!): ChatRoomPayload
+
+    # Participant Mutation
+
     # googleAuthExchangeToken(token: String!): AuthPayload
     # githubAuthExchangeToken(token: String!): AuthPayload
 
