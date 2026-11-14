@@ -60,9 +60,11 @@ async function main() {
     {
       schema,
       onConnect: async (ctx) => {
-        const token = ctx.connectionParams?.authorization;
-        if (typeof token !== "string" || !token)
-          throw new Error("Unauthorized");
+        const token =
+          (ctx.connectionParams?.Authorization as string) ||
+          (ctx.connectionParams?.authorization as string);
+
+        if (!token) throw new Error("Unauthorized");
 
         const jwtToken = new JwtToken();
         const user = jwtToken.verify(token);
@@ -72,11 +74,12 @@ async function main() {
 
         await presenceService.setUserOnline(user.id, socketId);
 
-        return {
+        Object.assign(ctx.extra, {
           user,
-          userId: user.id,
           socketId,
-        };
+        });
+
+        return true;
       },
       onSubscribe: (ctx) => {
         if (!ctx.extra?.user) throw new Error("Unauthorized");
@@ -84,12 +87,14 @@ async function main() {
       context: async (ctx) => {
         return {
           user: ctx.extra?.user,
+          socketId: ctx.extra?.socketId,
           services: appServices,
         };
       },
       onDisconnect: async (ctx) => {
-        const userId = ctx.extra?.userId;
-        const socketId = ctx.extra?.socketId;
+        const extra = ctx.extra as { user?: { id: string }; socketId?: string };
+        const userId = extra.user?.id;
+        const socketId = extra.socketId;
 
         if (userId && socketId) {
           // 3. Execute via the class instance

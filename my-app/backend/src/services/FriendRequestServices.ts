@@ -1,9 +1,11 @@
 import { CreateRequestDTO, FriendResponseDTO } from "../models/FriendRequest";
 import { IFriendRequestRepository } from "../repositories/IFriendRequestRepository";
+import { SubscriptionService } from "./SubscriptionService";
 
 export class FriendRequestServices {
   constructor(
-    private friendRequestRepository: IFriendRequestRepository
+    private friendRequestRepository: IFriendRequestRepository,
+    private subscriptionService: SubscriptionService,
   ) {}
 
   public async sendFriendRequest(
@@ -15,6 +17,8 @@ export class FriendRequestServices {
 
     const payload =
       await this.friendRequestRepository.createFriendRequest(request);
+
+    await this.subscriptionService.request(request.receiverId, payload);
 
     return payload;
   }
@@ -31,8 +35,13 @@ export class FriendRequestServices {
         response,
       );
 
+    await this.subscriptionService.request(payload.receiverId, payload);
 
-    return payload;
+    return {
+      response: payload.isAccepted
+        ? "Friendship is created successfully."
+        : "Friendship isn't created.",
+    };
 
     // if (payload.response) {
     //   const friendRequest = await this.friendshipRepository.createFriendship({

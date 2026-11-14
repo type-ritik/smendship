@@ -181,6 +181,8 @@ export const typeDefs = gql`
     admin
   }
 
+  union EventPayload = MessagePayload | FriendRequestPayload
+
   # User Inputs
   input SignupInput {
     name: String!
@@ -273,7 +275,7 @@ export const typeDefs = gql`
 
   # Message Types
   type MessagePayload {
-    id: String
+    id: String!
     content: String
     chatRoomId: String
     editedAt: DateTime
@@ -302,6 +304,13 @@ export const typeDefs = gql`
     joinedAt: DateTime
     leftAt: DateTime
     lastReadAt: DateTime
+  }
+
+  # Subscription type
+  type LiveEvent {
+    action: String!
+    createdAt: String!
+    data: EventPayload!
   }
 
   type Query {
@@ -424,7 +433,7 @@ export const typeDefs = gql`
     # iNotify(id: String!): Notification
   }
 
-  # type Subscription {
-  #   onUserEvent: LiveEvent!
-  # }
+  type Subscription {
+    onEvent: LiveEvent!
+  }
 `;

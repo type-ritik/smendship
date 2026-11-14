@@ -48,9 +48,9 @@ export class FriendRequestRepository implements IFriendRequestRepository {
   async updateFriendRequestResponseById(
     id: string,
     response: boolean,
-  ): Promise<{ response: string }> {
+  ): Promise<FriendResponseDTO> {
     try {
-      await this.prisma.friendRequest.update({
+      return await this.prisma.friendRequest.update({
         where: { id },
         data: {
           isAccepted: response,
@@ -60,10 +60,6 @@ export class FriendRequestRepository implements IFriendRequestRepository {
               : "FRIEND_REQUEST_REJECTED",
         },
       });
-
-      return {
-        response: `Friendship created successfully`,
-      };
     } catch (error) {
       console.log("Friend request response database error");
       throw new Error("❌ Database error");

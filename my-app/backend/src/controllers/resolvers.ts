@@ -1121,53 +1121,49 @@ export const resolvers = {
     //   }
     // },
   },
-  // Subscription: {
-  //   // Work on Subscription to subscribe self
-  //   onUserEvent: {
-  //     subscribe: (_, parent, context) => {
-  //       const userId = context.user.id;
+  Subscription: {
+    // Work on Subscription to subscribe self
+    onEvent: {
+      subscribe: (
+        root: null,
+        input: null,
+        { user, services }: GraphQLContext,
+      ) => {
+        const userId = user.id;
 
-  //       if (!userId) {
-  //         throw new Error("Unauthorized Access");
-  //       }
+        if (!userId) {
+          throw new Error("Unauthorized Entity");
+        }
 
-  //       try {
-  //         const payload = userEventSubs(userId);
+        try {
+          const payload = services.subscription.event(userId);
 
-  //         if (!payload) {
-  //           throw new Error(
-  //             "Failed to subscribe to friend request accept events.",
-  //           );
-  //         }
+          return payload;
+        } catch (error) {
+          console.log(`[Subscription Error]: ${error.message}`);
+          throw new Error(error.message);
+        }
+      },
+    },
+  },
+  EventPayload: {
+    __resolveType(obj) {
+      if (obj.__typename) {
+        return obj.__typename;
+      }
 
-  //         return payload;
-  //       } catch (error) {
-  //         console.log(`[Subscription Error]: ${error.message}`);
-  //         throw new Error(error.message);
-  //       }
-  //     },
-  //   },
-  // },
-  // EventPayload: {
-  //   __resolveType(obj, context, info) {
-  //     if (obj.content && obj.chatRoom) {
-  //       return "Message";
-  //     }
+      if (obj.content && obj.chatRoom) {
+        return "Message";
+      }
 
-  //     if (obj.isAccepted !== undefined) {
-  //       return "FriendRequest";
-  //     }
+      if (obj.isAccepted !== undefined) {
+        return "FriendRequest";
+      }
 
-  //     if (obj.isRead !== undefined) {
-  //       return "Notification";
-  //     }
-
-  //     // Option B: Or pass a clean explicit property from your publishers (Recommended)
-  //     if (obj.__typename) {
-  //       return obj.__typename;
-  //     }
-
-  //     return null;
-  //   },
-  // },
+      if (obj.isRead !== undefined) {
+        return "Notification";
+      }
+      return null;
+    },
+  },
 };

@@ -11,7 +11,7 @@ export class MessageRepository implements IMessageRepository {
 
   async create(data: CreateMessageDTO): Promise<MessageResponseDTO> {
     try {
-    const payload = await this.prisma.$transaction([
+      const payload = await this.prisma.$transaction([
         this.prisma.message.create({
           data: {
             content: data.content,
@@ -31,9 +31,9 @@ export class MessageRepository implements IMessageRepository {
           where: { id: data.chatRoomId },
           data: { lastMessageAt: new Date() },
         }),
-      ])
+      ]);
 
-      return payload[0]
+      return payload[0];
     } catch (error) {
       console.log("Message database error");
       throw new Error("❌ Database error");

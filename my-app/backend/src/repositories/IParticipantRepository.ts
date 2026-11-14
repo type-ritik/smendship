@@ -9,4 +9,5 @@ export interface IParticipantRepository {
     userId: string,
   ): Promise<ParticipantResponseDTO[]>;
   findParticipantByName(name: string): Promise<ParticipantResponseDTO[]>;
+  findAllParticipantByChatRoomId(chatRoomId: string):Promise<ParticipantResponseDTO[]>;
 }

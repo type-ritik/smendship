@@ -7,5 +7,5 @@ export interface IFriendRequestRepository {
   updateFriendRequestResponseById(
     id: string,
     response: boolean,
-  ): Promise<{ response: string }>;
+  ): Promise<FriendResponseDTO>;
 }

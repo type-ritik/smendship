@@ -53,4 +53,19 @@ export class ParticipantRepository implements IParticipantRepository {
       throw new Error("❌ Database Error");
     }
   }
+
+  async findAllParticipantByChatRoomId(
+    chatRoomId: string,
+  ): Promise<ParticipantResponseDTO[]> {
+    try {
+      return await this.prisma.participant.findMany({
+        where: {
+          chatRoomId,
+        },
+      });
+    } catch (error) {
+      console.log("Participant database error", error);
+      throw new Error("❌ Database error");
+    }
+  }
 }
