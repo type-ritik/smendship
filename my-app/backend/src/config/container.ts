@@ -16,6 +16,8 @@ import { ParticipantService } from "../services/ParticipantServices";
 import { ChatRoomService } from "../services/ChatRoomServices";
 import { SubscriptionService } from "../services/SubscriptionService";
 import { pubsub } from "./pubsub";
+import { NotificationRepository } from "../repositories/NotificationRepository";
+import { NotificationService } from "../services/NotificationServices";
 
 // Repository & Configs
 // User Repo
@@ -41,6 +43,9 @@ const chatRoomRepository = new ChatRoomRepository(prisma);
 
 // Password Encoder config
 const passwordEncoder = new PasswordEncoder();
+
+// Notification Repository
+const notificationRepository = new NotificationRepository(prisma);
 
 // Services
 
@@ -75,6 +80,12 @@ const participantService = new ParticipantService(participantRepository);
 // ChatRoom Service
 const chatRoomService = new ChatRoomService(chatRoomRepository, userRepository);
 
+// Notification Service
+const notificationService = new NotificationService(
+  notificationRepository,
+  subscriptionService,
+);
+
 export const appServices = {
   user: userService,
   post: postService,
@@ -84,4 +95,5 @@ export const appServices = {
   participant: participantService,
   chatRoom: chatRoomService,
   subscription: subscriptionService,
+  notification: notificationService,
 };

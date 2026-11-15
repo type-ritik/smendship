@@ -276,7 +276,6 @@ export const resolvers = {
 
     // ChatRoom Query
 
-
     // Participant Query
     retriveAllChatRoomsOfUser: async (
       parent: null,
@@ -296,6 +295,26 @@ export const resolvers = {
       return services.participant.searchParticipant(name);
     },
 
+    // Notification Query
+    retriveUserNotifications: async (
+      parent: null,
+      input: null,
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.notification.getAllNotificationOfUser(user.id);
+    },
+
+    searchNotification: async (
+      parent: null,
+      { type },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.notification.searchNotification(type);
+    },
   },
   //   // Query work like GET
   //   hello: () => "Hello World! 🌍",
@@ -711,6 +730,17 @@ export const resolvers = {
     ) => {
       if (!user.id) throw new Error("Unauthorized Entity");
       return services.chatRoom.createChatRoom(user.id, receiverId);
+    },
+
+    // Notification Mutation
+    deleteNotification: async (
+      parent: null,
+      { id },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.notification.deleteNotification(id);
     },
 
     // createpost: async (_, { title, content, category }, context) => {

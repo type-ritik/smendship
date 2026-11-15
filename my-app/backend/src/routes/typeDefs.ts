@@ -251,10 +251,6 @@ export const typeDefs = gql`
     requestedAt: DateTime
   }
 
-  type FriendPayload {
-    response: String
-  }
-
   # Friendship Input
 
   # Friendship Types
@@ -306,11 +302,34 @@ export const typeDefs = gql`
     lastReadAt: DateTime
   }
 
-  # Subscription type
+  # Subscription Types
   type LiveEvent {
     action: String!
     createdAt: String!
     data: EventPayload!
+  }
+
+  # Notification Input
+
+  # Notification Types
+  type NotificationPayload {
+    id: String!
+    fromUserId: String!
+    isRead: Boolean
+    postId: String
+    toUserId: String!
+    type: String!
+    user1: User
+    user2: User
+    notifiedAt: String!
+    post: Post
+  }
+
+  # Global Input
+
+  # Global Types
+  type GlobalPayload {
+    response: String
   }
 
   type Query {
@@ -369,6 +388,11 @@ export const typeDefs = gql`
     retriveAllChatRoomsOfUser: [ParticipantPayload]
 
     searchUserRoom(name: String!): [ParticipantPayload]
+
+    # Notification Query
+    searchNotification(type: String!): [NotificationPayload]
+
+    retriveUserNotifications: [NotificationPayload]
   }
 
   type Mutation {
@@ -389,7 +413,7 @@ export const typeDefs = gql`
     # Friend_request Mutation
     sendFriendRequest(input: FriendRequestInput): FriendRequestPayload
 
-    resolveFriendRequest(requestId: String, response: Boolean): FriendPayload
+    resolveFriendRequest(requestId: String, response: Boolean): GlobalPayload
 
     # Message Mutation
     sendMessage(content: String!, chatRoomId: String!): MessagePayload
@@ -404,6 +428,9 @@ export const typeDefs = gql`
     createChatSpace(receiverId: String!): ChatRoomPayload
 
     # Participant Mutation
+
+    # Notification Mutation
+    deleteNotification(id: String!): GlobalPayload
 
     # googleAuthExchangeToken(token: String!): AuthPayload
     # githubAuthExchangeToken(token: String!): AuthPayload

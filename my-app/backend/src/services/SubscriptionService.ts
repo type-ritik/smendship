@@ -1,6 +1,7 @@
 import { RedisPubSub } from "graphql-redis-subscriptions";
 import { MessageResponseDTO } from "../models/Message";
 import { FriendResponseDTO } from "../models/FriendRequest";
+import { NotificationPostResponseDTO } from "../models/Notification";
 
 // 1. PubSub Interface matching graphql-redis-subscriptions
 export interface IPubSubEngine {
@@ -21,6 +22,9 @@ export interface MessageSubscriptionData
 export interface FriendSubscriptionData
   extends FriendResponseDTO, SubscriptionData {}
 
+export interface NotificationSubscriptionData
+  extends NotificationPostResponseDTO, SubscriptionData {}
+
 interface SubscriptionBasePayload {
   createdAt: string;
 }
@@ -35,8 +39,16 @@ export interface FriendEventPayload extends SubscriptionBasePayload {
   data: FriendSubscriptionData;
 }
 
+export interface NotificationEventPayload extends SubscriptionBasePayload {
+  action: "NOTIFICATION_RECEIVED";
+  data: NotificationSubscriptionData;
+}
+
 // Discriminated union for all events on the USER_${userId} channel
-export type UserEventPayload = MessageEventPayload | FriendEventPayload;
+export type UserEventPayload =
+  | MessageEventPayload
+  | FriendEventPayload
+  | NotificationEventPayload;
 
 // Wrapper matching your GraphQL subscription resolver field ("onEvent")
 export interface GraphQLUserEventWrapper {
@@ -105,6 +117,28 @@ export class SubscriptionService {
       return payload;
     } catch (error) {
       console.error("Subscription error:", error);
+      throw new Error("❌ Server error");
+    }
+  }
+
+  public async notify(userId: string, data: NotificationPostResponseDTO) {
+    try {
+      const payload: NotificationEventPayload = {
+        action: "NOTIFICATION_RECEIVED",
+        createdAt: new Date().toISOString(),
+        data: {
+          ...data,
+          __typename: "NotificationPayload",
+        },
+      };
+
+      await this.pubsub.publish<GraphQLUserEventWrapper>(`USER_${userId}`, {
+        onEvent: payload,
+      });
+
+      return payload;
+    } catch (error) {
+      console.log("Subscription error:", error);
       throw new Error("❌ Server error");
     }
   }
