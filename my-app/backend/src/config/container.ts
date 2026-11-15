@@ -104,5 +104,5 @@ export const appServices = {
   chatRoom: chatRoomService,
   subscription: subscriptionService,
   notification: notificationService,
-  comment: commentService
+  comment: commentService,
 };
