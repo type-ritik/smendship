@@ -325,6 +325,19 @@ export const typeDefs = gql`
     post: Post
   }
 
+  # Comment Inputs
+
+  # Comment Types
+  type CommentPayload {
+    id: String!
+    comment: String!
+    authorId: String!
+    postId: String!
+    author: User
+    post: Post
+    createdAt: String!
+  }
+
   # Global Input
 
   # Global Types
@@ -393,6 +406,11 @@ export const typeDefs = gql`
     searchNotification(type: String!): [NotificationPayload]
 
     retriveUserNotifications: [NotificationPayload]
+
+    # Comment Query
+    retriveCommentsOfPost(postId: String!): [CommentPayload]
+
+    retriveCommentOf(id: String!): CommentPayload
   }
 
   type Mutation {
@@ -431,6 +449,13 @@ export const typeDefs = gql`
 
     # Notification Mutation
     deleteNotification(id: String!): GlobalPayload
+
+    # Comment Mutation
+    createComment(comment: String!, postId: String!): CommentPayload
+
+    editComment(id: String!, comment: String!): CommentPayload
+
+    deleteComment(id: String!): GlobalPayload
 
     # googleAuthExchangeToken(token: String!): AuthPayload
     # githubAuthExchangeToken(token: String!): AuthPayload

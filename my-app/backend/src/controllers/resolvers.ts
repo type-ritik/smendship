@@ -315,6 +315,27 @@ export const resolvers = {
 
       return services.notification.searchNotification(type);
     },
+
+    // Comment Query
+    retriveCommentOf: async (
+      parent: null,
+      { id },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.comment.fetchCommentOf(id);
+    },
+
+    retriveCommentsOfPost: async (
+      parent: null,
+      { postId },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.comment.fetchCommentsOfPost(postId);
+    },
   },
   //   // Query work like GET
   //   hello: () => "Hello World! 🌍",
@@ -741,6 +762,41 @@ export const resolvers = {
       if (!user.id) throw new Error("Unauthorized Entity");
 
       return services.notification.deleteNotification(id);
+    },
+
+    // Comment Mutation
+    createComment: async (
+      parent: null,
+      { postId, comment },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.comment.createComment({
+        postId,
+        comment,
+        authorId: user.id,
+      });
+    },
+
+    editComment: async (
+      parent: null,
+      { id, comment },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.comment.editComment({ id, comment });
+    },
+
+    deleteComment: async (
+      parent: null,
+      { id },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.comment.deleteComment(id);
     },
 
     // createpost: async (_, { title, content, category }, context) => {
