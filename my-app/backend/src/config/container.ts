@@ -20,6 +20,8 @@ import { NotificationRepository } from "../repositories/NotificationRepository";
 import { NotificationService } from "../services/NotificationServices";
 import { CommentRepository } from "../repositories/CommentRepository";
 import { CommentService } from "../services/CommentServices";
+import { LikePostRepository } from "../repositories/LikePostRepository";
+import { LikePostService } from "../services/LikePostServices";
 
 // Repository & Configs
 // User Repo
@@ -51,6 +53,9 @@ const notificationRepository = new NotificationRepository(prisma);
 
 // Comment Repo
 const commentRepository = new CommentRepository(prisma);
+
+// LikePost Repo
+const likePostRepository = new LikePostRepository(prisma);
 
 // Services
 
@@ -94,6 +99,9 @@ const notificationService = new NotificationService(
 // Comment Service
 const commentService = new CommentService(commentRepository);
 
+// LikePost Service
+const likePostService = new LikePostService(likePostRepository);
+
 export const appServices = {
   user: userService,
   post: postService,
@@ -105,4 +113,5 @@ export const appServices = {
   subscription: subscriptionService,
   notification: notificationService,
   comment: commentService,
+  likePost: likePostService,
 };

@@ -336,6 +336,37 @@ export const resolvers = {
 
       return services.comment.fetchCommentsOfPost(postId);
     },
+
+    // LikePost Query
+    retriveLikesOfPost: async (
+      parent: null,
+      { postId },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.likePost.fetchAllLikesOfPost(postId);
+    },
+
+    retriveLikePostsByUser: async (
+      parent: null,
+      input: null,
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.likePost.fetchAllLikeByUser(user.id);
+    },
+
+    retriveLikesCountOnPost: async (
+      parent: null,
+      { postId },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.likePost.fetchPostLikesCount(postId);
+    },
   },
   //   // Query work like GET
   //   hello: () => "Hello World! 🌍",
@@ -797,6 +828,37 @@ export const resolvers = {
       if (!user.id) throw new Error("Unauthorized Entity");
 
       return services.comment.deleteComment(id);
+    },
+
+    // Like Post Mutation
+    likePost: async (
+      parent: null,
+      { postId, isLiked },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.likePost.likeIt({ userId: user.id, isLiked, postId });
+    },
+
+    unLikePost: async (
+      parent: null,
+      { id, isLiked },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.likePost.alterLike({ id, isLiked });
+    },
+
+    removeLikePost: async (
+      parent: null,
+      { id },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.likePost.removeLike(id);
     },
 
     // createpost: async (_, { title, content, category }, context) => {

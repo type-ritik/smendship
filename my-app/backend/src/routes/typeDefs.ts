@@ -263,10 +263,6 @@ export const typeDefs = gql`
     createdAt: DateTime
   }
 
-  type FriendshipCount {
-    count: Int!
-  }
-
   # Message Input
 
   # Message Types
@@ -338,11 +334,28 @@ export const typeDefs = gql`
     createdAt: String!
   }
 
+  # LikePost Input
+
+  # LikePost Types
+  type LikePostPayload {
+    id: String!
+    userId: String!
+    postId: String!
+    isLiked: Boolean!
+    user: User
+    post: Post
+    createdAt: String!
+  }
+
   # Global Input
 
   # Global Types
   type GlobalPayload {
     response: String
+  }
+
+  type GlobalCount {
+    count: Int!
   }
 
   type Query {
@@ -388,9 +401,9 @@ export const typeDefs = gql`
 
     getListOfFollowings: [FriendshipPayload]
 
-    getFollowersCount: FriendshipCount
+    getFollowersCount: GlobalCount
 
-    getFollowingsCount: FriendshipCount
+    getFollowingsCount: GlobalCount
 
     # Message Query
     retriveAllMessagesOfChatSpace(chatRoomId: String!): [MessagePayload]
@@ -411,6 +424,13 @@ export const typeDefs = gql`
     retriveCommentsOfPost(postId: String!): [CommentPayload]
 
     retriveCommentOf(id: String!): CommentPayload
+
+    # LikePost Query
+    retriveLikePostsByUser: [LikePostPayload]
+
+    retriveLikesOfPost(postId: String!): [LikePostPayload]
+
+    retriveLikesCountOnPost(postId: String!): GlobalCount
   }
 
   type Mutation {
@@ -456,6 +476,13 @@ export const typeDefs = gql`
     editComment(id: String!, comment: String!): CommentPayload
 
     deleteComment(id: String!): GlobalPayload
+
+    # LikePost Mutation
+    likePost(postId: String!, isLiked: Boolean): LikePostPayload
+
+    unLikePost(id: String!, isLiked: Boolean!): LikePostPayload
+
+    removeLikePost(id: String!): GlobalPayload
 
     # googleAuthExchangeToken(token: String!): AuthPayload
     # githubAuthExchangeToken(token: String!): AuthPayload
