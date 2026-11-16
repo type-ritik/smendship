@@ -384,6 +384,8 @@ export const typeDefs = gql`
 
     getAllUserData: User
 
+    searchUser(name: String!): User
+
     # Post Query
     getPostsByUserId(userId: String!): [Post]
 

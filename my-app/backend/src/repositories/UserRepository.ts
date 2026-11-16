@@ -168,6 +168,17 @@ export class UserRepository implements IUserRepository {
 
     return payload;
   }
+
+  async findByName(name: string): Promise<UserResponseDTO[]> {
+    return this.prisma.user.findMany({
+      where: {
+        name: {
+          contains: name,
+          mode: "insensitive"
+        }
+      }
+    })
+  }
 }
 
 // async function createAuthAccount(name, email, auth_method, auth_id) {

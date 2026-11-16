@@ -20,5 +20,5 @@ export interface IUserRepository {
   confirmOTP(email: string): Promise<UserResponseDTO>;
   resetPassword(userId: string, password: string): Promise<boolean>;
   extractData(userId: string): Promise<UserProfileResponseDTO>;
-
+  findByName(name: string): Promise<UserResponseDTO[]>;
 }

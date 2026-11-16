@@ -173,6 +173,15 @@ export const resolvers = {
       return services.user.retriveProfile(user.id);
     },
 
+    searchUser: async (
+      parent: null,
+      { name },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+      return services.user.search(name);
+    },
+
     // Post Query
     getPostsByUserId: async (
       parent: null,

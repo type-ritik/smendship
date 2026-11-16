@@ -11,6 +11,7 @@ import {
   UpdateUserDTO,
   UpdateUserResponseDTO,
   UserProfileResponseDTO,
+  UserResponseDTO,
 } from "../models/User";
 import { IUserRepository } from "../repositories/IUserRepository";
 import { JwtToken } from "../utils/JwtToken";
@@ -289,6 +290,15 @@ export class UserService {
     } catch (error) {
       console.log("[Google Auth Error]:", error.message);
       throw new Error(error.message);
+    }
+  }
+
+  public async search(name: string): Promise<UserResponseDTO[]> {
+    try {
+      return await this.userRepository.findByName(name);
+    } catch (error) {
+      console.log("User Service error", error);
+      throw new Error("❌ Database error");
     }
   }
 }

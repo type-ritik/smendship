@@ -42,21 +42,6 @@ export class FriendRequestServices {
         ? "Friendship is created successfully."
         : "Friendship isn't created.",
     };
-
-    // if (payload.response) {
-    //   const friendRequest = await this.friendshipRepository.createFriendship({
-    //     follower: payload.user.senderId,
-    //     following: payload.user.receiverId,
-    //   });
-
-    //   console.log("request",friendRequest)
-
-    //   return friendRequest;
-    // }
-
-    return {
-      response: "Friend request rejected",
-    };
   }
 
   public async fetchFriendRequestsById(
