@@ -174,10 +174,10 @@ export class UserRepository implements IUserRepository {
       where: {
         name: {
           contains: name,
-          mode: "insensitive"
-        }
-      }
-    })
+          mode: "insensitive",
+        },
+      },
+    });
   }
 }
 

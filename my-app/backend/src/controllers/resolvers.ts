@@ -683,7 +683,7 @@ export const resolvers = {
     //   }
     // },
 
-    // User Resolvers
+    // User Mutation
     signUpUser: async (
       parent: null,
       { input },
@@ -691,6 +691,22 @@ export const resolvers = {
     ) => {
       const { name, email, password } = input;
       return services.user.registerUser(name, email, password);
+    },
+
+    githubAuth: async (
+      parent: null,
+      { gitToken },
+      { user, services }: GraphQLContext,
+    ) => {
+      return services.user.github(gitToken);
+    },
+
+    googleAuth: async (
+      parent: null,
+      { googleToken },
+      { user, services }: GraphQLContext,
+    ) => {
+      return services.user.google(googleToken);
     },
 
     updateProfile: async (

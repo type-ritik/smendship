@@ -439,6 +439,10 @@ export const typeDefs = gql`
     # User Mutation
     signUpUser(input: SignupInput): UserOTPPayload
 
+    githubAuth(gitToken: String!): UserAuthPayload
+
+    googleAuth(googleToken: String!): UserAuthPayload
+
     codeVerification(email: String!, OTP: String!): UserAuthPayload
 
     resetPassword(userId: String, password: String!): UserOTPPayload
