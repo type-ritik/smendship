@@ -1,4 +1,7 @@
-import { ChatRoomResponseDTO } from "../models/ChatRoom";
+import {
+  ChatRoomParticipantResponseDTO,
+  ChatRoomResponseDTO,
+} from "../models/ChatRoom";
 import { IChatRoomRepository } from "../repositories/IChatRoomRepository";
 import { IUserRepository } from "../repositories/IUserRepository";
 
@@ -23,6 +26,17 @@ export class ChatRoomService {
       senderId: userId,
       data: { directKey, isGroup: false, name: "" },
     });
+  }
+
+  public async fetchUserChatRoomParticipants(
+    userId: string,
+  ): Promise<ChatRoomParticipantResponseDTO[]> {
+    const participants =
+      await this.chatRoomRepository.findAllChatRoomParticipantAreNotUserId(
+        userId,
+      );
+
+    return participants;
   }
 
   private generateDirectKey(userId: string, receiverId: string): string {

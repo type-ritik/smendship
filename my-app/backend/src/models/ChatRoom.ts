@@ -24,3 +24,8 @@ export type CreateChatRoomRequestDTO = {
 
 // ChatRoom Response DTO
 export type ChatRoomResponseDTO = Omit<IChatRoom, "messages" | "participants">;
+
+export type ChatRoomParticipantResponseDTO = Omit<
+  IChatRoom,
+  "name" | "isGroup"
+>;
