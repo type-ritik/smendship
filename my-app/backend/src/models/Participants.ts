@@ -27,3 +27,5 @@ export type CreateParticipantDTO = Omit<
 
 // Participant Response DTO
 export type ParticipantResponseDTO = Omit<IParticipant, "chatRoom" | "user">;
+
+export type ParticipantUserResponseDTO = Omit<IParticipant, "chatRoom">;

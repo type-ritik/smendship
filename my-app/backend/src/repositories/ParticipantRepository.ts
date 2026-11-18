@@ -3,6 +3,7 @@ import { IParticipantRepository } from "./IParticipantRepository";
 import {
   CreateParticipantDTO,
   ParticipantResponseDTO,
+  ParticipantUserResponseDTO,
 } from "../models/Participants";
 
 export class ParticipantRepository implements IParticipantRepository {
@@ -50,6 +51,28 @@ export class ParticipantRepository implements IParticipantRepository {
       });
     } catch (error) {
       console.log("Participant database error");
+      throw new Error("❌ Database Error");
+    }
+  }
+
+  async getParticipantDataByChatRoomId(
+    chatRoomId: string,
+    userId: string,
+  ): Promise<ParticipantUserResponseDTO> {
+    try {
+      return this.prisma.participant.findFirst({
+        where: {
+          chatRoomId,
+          userId: {
+            not: userId,
+          },
+        },
+        include: {
+          user: true,
+        },
+      });
+    } catch (error) {
+      console.log("Participant database error", error);
       throw new Error("❌ Database Error");
     }
   }
