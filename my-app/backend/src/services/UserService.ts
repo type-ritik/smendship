@@ -153,6 +153,8 @@ export class UserService {
       throw new Error("Failed to reset password. Please try again.");
     }
 
+    await this.mailer.sendResetPasswordSuccessMessage(user.name, user.email);
+
     return {
       status: "Password reset successful.",
     };
@@ -196,18 +198,28 @@ export class UserService {
       throw new Error("Unauthorized user.");
     }
 
-    if (!data.name && !data.email) {
-      throw new Error(
-        "Invalid input data. Please provide at least one field to update.",
-      );
-    }
+    if (data.email && data.name) {
+      if (!isValidName(data.name)) {
+        throw new Error("Invalid Name.");
+      }
 
-    if (!isValidName(data.name)) {
-      throw new Error("Invalid Name! Please provide a valid name.");
-    }
+      if (!isValidEmail(data.email)) {
+        throw new Error("Invalid Email.");
+      }
 
-    if (!isValidEmail(data.email)) {
-      throw new Error("Invalid Email! Please provide a valid email address.");
+      return this.userRepository.update(data);
+    } else if (data.name) {
+      if (!isValidName(data.name)) {
+        throw new Error("Invalid Name.");
+      }
+
+      return this.userRepository.update(data);
+    } else {
+      if (!isValidEmail(data.email)) {
+        throw new Error("Invalid Email.");
+      }
+
+      return this.userRepository.update(data);
     }
 
     return this.userRepository.update(data);
@@ -295,7 +307,9 @@ export class UserService {
 
   public async search(name: string): Promise<UserResponseDTO[]> {
     try {
-      return await this.userRepository.findByName(name);
+      const payload = await this.userRepository.findByName(name);
+      console.log(payload);
+      return payload;
     } catch (error) {
       console.log("User Service error", error);
       throw new Error("❌ Database error");

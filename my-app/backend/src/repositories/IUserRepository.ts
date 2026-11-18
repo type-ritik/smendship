@@ -18,7 +18,7 @@ export interface IUserRepository {
   update(data: UpdateUserDTO): Promise<UpdateUserResponseDTO>;
   createViaThirdParty(data: ThirdPartyDTO): Promise<UserResponseDTO>;
   confirmOTP(email: string): Promise<UserResponseDTO>;
-  resetPassword(userId: string, password: string): Promise<boolean>;
+  resetPassword(userId: string, password: string): Promise<UserResponseDTO>;
   extractData(userId: string): Promise<UserProfileResponseDTO>;
   findByName(name: string): Promise<UserResponseDTO[]>;
 }
