@@ -23,3 +23,13 @@ export type FriendResponseDTO = Omit<
   IFriendRequest,
   "acceptedAt" | "sender" | "receiver" | "type"
 >;
+
+export type FriendRequestUserDTO = Omit<
+  IFriendRequest,
+  "acceptedAt" | "type" | "receiver"
+>;
+
+export type FriendRequestSenderDTO = Omit<
+  IFriendRequest,
+  "acceptedAt" | "sender" | "type"
+>;

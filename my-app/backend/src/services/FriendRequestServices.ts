@@ -1,4 +1,9 @@
-import { CreateRequestDTO, FriendResponseDTO } from "../models/FriendRequest";
+import {
+  CreateRequestDTO,
+  FriendRequestSenderDTO,
+  FriendRequestUserDTO,
+  FriendResponseDTO,
+} from "../models/FriendRequest";
 import { IFriendRequestRepository } from "../repositories/IFriendRequestRepository";
 import { SubscriptionService } from "./SubscriptionService";
 
@@ -10,7 +15,7 @@ export class FriendRequestServices {
 
   public async sendFriendRequest(
     request: CreateRequestDTO,
-  ): Promise<FriendResponseDTO> {
+  ): Promise<{ response: string }> {
     if (!request.receiverId) throw new Error("Invalid receiver");
 
     if (!request.senderId) throw new Error("Invalid sender");
@@ -20,7 +25,7 @@ export class FriendRequestServices {
 
     await this.subscriptionService.request(request.receiverId, payload);
 
-    return payload;
+    return { response: "Friend request sent successfully" };
   }
 
   public async interpretFriendRequestResponse(
@@ -46,10 +51,18 @@ export class FriendRequestServices {
 
   public async fetchFriendRequestsById(
     userId: string,
-  ): Promise<FriendResponseDTO[] | null> {
+  ): Promise<FriendRequestUserDTO[] | null> {
     const payload =
       await this.friendRequestRepository.getFriendRequestsById(userId);
 
+    return payload;
+  }
+
+  public async fetchSentFriendRequestById(
+    userId: string,
+  ): Promise<FriendRequestSenderDTO[] | null> {
+    const payload =
+      await this.friendRequestRepository.getFriendRequestsSentByUser(userId);
     return payload;
   }
 

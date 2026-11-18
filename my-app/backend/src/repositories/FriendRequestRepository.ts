@@ -1,5 +1,10 @@
 import { PrismaClient } from "@prisma/client";
-import { CreateRequestDTO, FriendResponseDTO } from "../models/FriendRequest";
+import {
+  CreateRequestDTO,
+  FriendRequestSenderDTO,
+  FriendRequestUserDTO,
+  FriendResponseDTO,
+} from "../models/FriendRequest";
 import { IFriendRequestRepository } from "./IFriendRequestRepository";
 
 export class FriendRequestRepository implements IFriendRequestRepository {
@@ -102,17 +107,42 @@ export class FriendRequestRepository implements IFriendRequestRepository {
 
   async getFriendRequestsById(
     userId: string,
-  ): Promise<FriendResponseDTO[] | null> {
+  ): Promise<FriendRequestUserDTO[] | null> {
     try {
       const payload = await this.prisma.friendRequest.findMany({
         where: {
-          OR: [{ senderId: userId }, { receiverId: userId }],
+          receiverId: userId,
+          isAccepted: null,
+        },
+        include: {
+          sender: true,
         },
       });
 
       return payload;
     } catch (error) {
       console.log("Friend request by id database error");
+      throw new Error("❌ Database error");
+    }
+  }
+
+  async getFriendRequestsSentByUser(
+    userId: string,
+  ): Promise<FriendRequestSenderDTO[] | null> {
+    try {
+      const payload = await this.prisma.friendRequest.findMany({
+        where: {
+          senderId: userId,
+          isAccepted: null,
+        },
+        include: {
+          receiver: true,
+        },
+      });
+
+      return payload;
+    } catch (error) {
+      console.log("Friend request by sender database error");
       throw new Error("❌ Database error");
     }
   }
