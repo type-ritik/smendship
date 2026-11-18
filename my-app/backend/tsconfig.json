@@ -10,7 +10,6 @@
     "esModuleInterop": true /* Emits additional JavaScript to ease imports */,
     "skipLibCheck": true /* Skip type checking of declaration files */,
     "forceConsistentCasingInFileNames": true /* Ensure exact file name matching */,
-    "ignoreDeprecations": "6.0"
   },
   "include": ["src/**/*"] /* Tells compiler to look inside src */
 }
