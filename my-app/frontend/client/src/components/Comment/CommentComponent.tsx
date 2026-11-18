@@ -1,57 +1,51 @@
-function CommentComponent() {
-  const count = [1, 2, 3];
-  return (
-    <div className="w-full pt-5 flex self-center">
-      <div className="flex flex-col gap-2 flex-1 justify-center">
-        <div className="">Most recent</div>
-        <div className="w-full bg-gray-700 h-0.5" />
-        <div className="flex flex-col flex-1 gap-3">
-          {count.map((item) => (
-            <div
-              key={item}
-              className="w-full flex flex-col gap-2 pt-2 relative"
-            >
-              <div className="absolute h-15 w-6 border-gray-300 border-l-2 border-b-2 top-12 left-4 rounded-bl-2xl" />
-              <div className="profile flex gap-5 items-center justify-between flex-1">
-                <div className="flex flex-1 justify-center items-center gap-3">
-                  <div className="w-9 h-9 overflow-hidden flex rounded-full">
-                    <img
-                      src="https://images.unsplash.com/photo-1774268184985-f1af67b38179?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                      alt=""
-                      className="w-full object-cover"
-                    />
-                  </div>
-                  <div className="flex flex-col flex-1">
-                    <h4 className="flex text-sm font-semibold">
-                      Kiriton Micky
-                    </h4>
-                    <span className="text-xs line-clamp-1 w-1/2 text-gray-500">
-                      My name is ritik | self taught developer
-                      adfjalsdfjlsadjflasdjflkasdjflkasdjfklajsdlfkjasdlkfjasdklfjlasdkjf
-                      alsdjalsdjfowjefoiwjeoijweoijrioejasdofjasdoifjasdojfoasdjfio
-                    </span>
-                  </div>
-                </div>
-                <div className="flex gap-5 items-center justify-center">
-                  <span className="text-xs ">2hr</span>
+import { useState } from "react";
+import { FiSend } from "react-icons/fi";
 
-                  <span className="text-sm text-blue-600 font-bold">
-                    Follow
-                  </span>
-                </div>
-              </div>
-              <div className="flex flex-1 pl-12 text-sm">
-                Hello world my name is anomonly and I like to talk about shit.
-                Lorem ipsum means nothing in modern English or coherent Latin.
-                It is scrambled, altered placeholder text used in design and
-                publishing to show how a page layout or font looks without real
-                words distracting the reader.
-              </div>
-            </div>
-          ))}
-        </div>
+const AVATAR =
+  "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
+
+// onSubmit is optional until the comment mutation is wired up.
+function CommentComponent({
+  onSubmit,
+}: {
+  onSubmit?: (text: string) => void | Promise<void>;
+}) {
+  const [text, setText] = useState("");
+  const canPost = text.trim().length > 0;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canPost) return;
+    await onSubmit?.(text.trim());
+    setText("");
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="flex w-full items-start gap-3">
+      <img
+        src={AVATAR}
+        alt=""
+        className="h-9 w-9 shrink-0 rounded-full object-cover"
+      />
+      <div className="flex flex-1 items-end gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 transition focus-within:border-teal-500 focus-within:bg-white focus-within:ring-4 focus-within:ring-teal-100">
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={1}
+          aria-label="Add a comment"
+          placeholder="Add a comment"
+          className="max-h-32 w-full resize-none bg-transparent py-1 text-sm outline-none placeholder:text-slate-400"
+        />
+        <button
+          type="submit"
+          disabled={!canPost}
+          aria-label="Post comment"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-teal-600 text-white transition hover:bg-teal-700 active:scale-90 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+        >
+          <FiSend size={14} />
+        </button>
       </div>
-    </div>
+    </form>
   );
 }
 

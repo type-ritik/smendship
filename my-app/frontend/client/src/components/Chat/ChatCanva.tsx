@@ -8,7 +8,7 @@ import { useParams } from "react-router-dom";
 interface ChatCanvaProps {
   messagesEndRef: React.RefObject<HTMLDivElement>;
   messages: Message[];
-  setMessages: React.Dispatch<React.SetStateAction<Message[] | []>>;
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }
 
 function ChatCanva({ messagesEndRef, messages, setMessages }: ChatCanvaProps) {
@@ -17,11 +17,10 @@ function ChatCanva({ messagesEndRef, messages, setMessages }: ChatCanvaProps) {
   const { id: roomId } = useParams();
 
   useEffect(() => {
-    if (!roomId) {
+    if (!roomId || roomId === "list") {
       setMessages([]);
       return;
     }
-
     loadChatList({ variables: { chatRoomId: roomId } });
   }, [roomId, loadChatList, setMessages]);
 
@@ -30,32 +29,54 @@ function ChatCanva({ messagesEndRef, messages, setMessages }: ChatCanvaProps) {
   }, [messagesEndRef, messages]);
 
   useEffect(() => {
-    if (error) {
-      console.error("Error loading chat messages:", error);
+    if (error) console.error("Error loading chat messages:", error);
+    if (data?.retriveAllMessagesOfChatSpace) {
+      const history: Message[] = data.retriveAllMessagesOfChatSpace.filter(
+        (m: Message) => m.chatRoomId === roomId,
+      );
+      setMessages((prev) => {
+        const ids = new Set(history.map((m) => m.id));
+        const live = prev.filter(
+          (m) => m.chatRoomId === roomId && !ids.has(m.id),
+        );
+        return [...history, ...live];
+      });
     }
-
-    if (data?.chatRoomChatList) {
-      setMessages(data.chatRoomChatList);
-    }
-  }, [setMessages, error, data]);
+  }, [setMessages, error, data, roomId]);
 
   return (
-    <div className="flex-1 overflow-y-auto px-4! flex flex-col gap-3 no-scrollbar">
-      {messages.map((msg) => (
-        <div
-          key={msg.id}
-          className={`flex flex-col max-w-[75%] rounded-2xl px-3.5! py-2! text-sm shadow-sm relative group transition-all ${msg.sender.id === currentUser?.user.id ? "bg-emerald-600 text-white rounded-tr-none self-end" : "bg-white text-gray-800 rounded-tl-none self-start border border-gray-100"}`}
-        >
-          <p className="whitespace-pre-wrap wrap-break-words leading-relaxed pr-8!">
-            {msg.content}
-          </p>
-          <span
-            className={`text-[10px] absolute bottom-1 right-2 select-none ${msg.sender.id === currentUser?.user.id ? "text-emerald-100" : "text-gray-400"}`}
+    <div className="no-scrollbar flex flex-1 flex-col gap-2 overflow-y-auto px-3 py-4 sm:px-5">
+      {messages.length === 0 && (
+        <p className="m-auto text-center text-sm text-slate-500">
+          No messages yet. Say hello!
+        </p>
+      )}
+
+      {messages.map((msg) => {
+        const mine = msg.sender.id === currentUser?.user.id;
+        return (
+          <div
+            key={msg.id}
+            className={`anim-pop flex max-w-[85%] flex-col sm:max-w-[70%] ${
+              mine ? "items-end self-end" : "items-start self-start"
+            }`}
           >
-            {msg.sender.name.split(" ")[0].toLowerCase()}
-          </span>
-        </div>
-      ))}
+            <span className="mb-0.5 ml-1 text-[11px] text-slate-500">
+              By {!mine ? msg.sender.name.toLocaleLowerCase() : "you"}
+            </span>
+
+            <p
+              className={`whitespace-pre-wrap wrap-break-word rounded-2xl px-3.5 py-2 text-sm leading-relaxed shadow-sm ${
+                mine
+                  ? "rounded-br-md bg-teal-600 text-white"
+                  : "rounded-bl-md border border-teal-100 bg-white text-slate-800"
+              }`}
+            >
+              {msg.content}
+            </p>
+          </div>
+        );
+      })}
       <div ref={messagesEndRef} />
     </div>
   );

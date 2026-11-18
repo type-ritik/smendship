@@ -1,46 +1,44 @@
 import { useNavigate } from "react-router-dom";
 import RequestCard from "../helperComponent/Card/RequestCard";
 import type { InvitationRequestInterface } from "../../utils/userInterfaces";
-import type { ComponentType } from "react";
-
-const RequestCardComponent = RequestCard as unknown as ComponentType<{
-  isReceivedActive: number | boolean;
-  invitationRequest: InvitationRequestInterface[];
-}>;
 
 type InvitationComponentProps = {
   listOfReceivedFriendRequest: InvitationRequestInterface[];
 };
 
+const PREVIEW_COUNT = 3;
+
 function InvitationComponent({
   listOfReceivedFriendRequest,
 }: InvitationComponentProps) {
   const navigate = useNavigate();
+  const total = listOfReceivedFriendRequest.length;
+
   return (
-    <>
-      <div className="w-full flex flex-col gap-5! border p-5!">
-        <div className="p-5! border rounded">
-          <h2 className="text-xl font-medium">Invitation</h2>
-        </div>
-        <RequestCardComponent
-          isReceivedActive={true}
-          invitationRequest={listOfReceivedFriendRequest}
-        />
-        <div>
-          <button
-            className="border py-3! px-6! bg-gray-200! text-gray-700! rounded justify-center flex text-sm font-medium uppercase hover:bg-gray-700! hover:text-gray-200!
-              transition-colors
-              shadow-sm hover:shadow-black shadow-gray-700
-              "
-            onClick={() => {
-              navigate("/network/invitation/requests");
-            }}
-          >
-            See all invitations
-          </button>
-        </div>
+    <div className="flex w-full flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-slate-900">Invitations</h2>
+        {total > 0 && (
+          <span className="rounded-full bg-teal-100 px-2.5 py-0.5 text-xs font-medium text-teal-800">
+            {total}
+          </span>
+        )}
       </div>
-    </>
+
+      {/* The card needs responseCall (the old code passed an unused prop,
+          so every invitation showed the wrong buttons). */}
+      <RequestCard
+        responseCall="RECEIVE"
+        invitationRequest={listOfReceivedFriendRequest.slice(0, PREVIEW_COUNT)}
+      />
+
+        <button
+          onClick={() => navigate("/network/invitation/requests")}
+          className="self-start rounded-lg border border-teal-600 px-4 py-2 text-sm font-medium text-teal-700 transition hover:bg-teal-600 hover:text-white active:scale-95"
+        >
+          See all invitations
+        </button>
+    </div>
   );
 }
 

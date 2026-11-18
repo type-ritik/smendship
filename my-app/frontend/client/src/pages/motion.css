@@ -1,0 +1,62 @@
+/* Import once, e.g. in main.tsx or index.css:  @import "./motion.css"; */
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes shimmer {
+  to { background-position: -200% 0; }
+}
+@keyframes pop {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes ring-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Stagger: <div className="anim-rise" style={{ "--i": index }} /> */
+.anim-rise {
+  animation: rise 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+.anim-pop {
+  animation: pop 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #dff1f1 25%, #f2fbfb 50%, #dff1f1 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* Avatar ring used on the profile page */
+.avatar-ring {
+  background: conic-gradient(from 0deg, #0d9488, #34d399, #38bdf8, #0d9488);
+}
+.avatar-ring.spin-once {
+  animation: ring-spin 1.2s cubic-bezier(0.2, 0.7, 0.2, 1) 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-rise, .anim-pop, .skeleton, .avatar-ring.spin-once {
+    animation: none !important;
+  }
+  * { transition-duration: 0.01ms !important; }
+}
+
+/* ---- Auth screens: slow drifting background orbs ---- */
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(40px, -30px) scale(1.12); }
+}
+.auth-orb {
+  animation: drift 14s ease-in-out infinite;
+  filter: blur(60px);
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { animation: spin 0.7s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-orb, .spinner { animation: none !important; }
+}

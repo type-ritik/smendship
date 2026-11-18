@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { FiArrowLeft, FiX } from "react-icons/fi";
 import type { RoomMember } from "../../utils/ChatInterface";
 
 interface ChatHeaderProp {
@@ -7,33 +8,51 @@ interface ChatHeaderProp {
 
 function ChatHeader({ roomData }: ChatHeaderProp) {
   const navigate = useNavigate();
+  const user = roomData?.user;
+  const online = user?.status === "online";
 
   return (
-    <div className="flex items-center justify-between px-4! py-3! bg-white border-b border-gray-200 z-10 shadow-sm">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-inner">
-          {roomData?.user.profile_image
-            ? roomData.user.profile_image
-            : roomData?.user.name[0].toUpperCase()}
-        </div>
-        <div>
-          <h3 className="font-semibold text-gray-800 text-sm leading-tight">
-            {roomData?.user.name}
-          </h3>
-          <span className="text-xs text-emerald-600 font-medium">
-            {roomData?.user.status}
-          </span>
-        </div>
-      </div>
+    <header className="z-10 flex items-center gap-3 border-b border-teal-100 bg-white px-3 py-3 sm:px-4">
+      {/* Back arrow on phones, close icon on larger screens */}
       <button
-        onClick={() => {
-          navigate("/chatroom/user/list");
-        }}
-        className="text-gray-500! hover:text-gray-700! px-2! py-2! rounded-full! hover:bg-gray-100! transition-colors"
+        onClick={() => navigate("/chatroom/user/list")}
+        aria-label="Back to chats"
+        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 md:order-last md:ml-auto"
       >
-        ✕
+        <FiArrowLeft className="md:hidden" size={20} />
+        <FiX className="hidden md:block" size={20} />
       </button>
-    </div>
+
+      <div className="relative">
+        {user?.profile_image ? (
+          <img
+            src={user.profile_image}
+            alt=""
+            className="h-10 w-10 rounded-full object-cover"
+          />
+        ) : (
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-teal-600 text-sm font-bold text-white">
+            {user?.name[0].toUpperCase()}
+          </div>
+        )}
+        <span
+          className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white ${
+            online ? "bg-emerald-500" : "bg-slate-300"
+          }`}
+        />
+      </div>
+
+      <div className="min-w-0">
+        <h2 className="truncate text-sm font-semibold leading-tight text-slate-900">
+          {user?.name}
+        </h2>
+        <p
+          className={`text-xs font-medium ${online ? "text-emerald-600" : "text-slate-400"}`}
+        >
+          {user?.status}
+        </p>
+      </div>
+    </header>
   );
 }
 

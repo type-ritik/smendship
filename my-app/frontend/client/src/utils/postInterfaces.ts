@@ -1,12 +1,15 @@
-import type { userObj } from "./userInterfaces";
-
 export interface postObj {
   id: string;
-  content: string;
   title: string;
-  author: userObj;
+  content: string;
+  createdAt: Date;
+  author: {
+    id: string;
+    name: string;
+  } | null;
 }
 
+// Shape of the data returned by the GET_POSTS query (getPostsByUserId).
 export interface postState {
-  getPosts: postObj[] | null;
+  getPostsByUserId: postObj[] | null;
 }

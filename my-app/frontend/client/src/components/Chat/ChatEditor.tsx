@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
+import { FiSend } from "react-icons/fi";
 import { useSendTextMessage } from "../../services/ChatRoomService";
 import type { Message } from "../../utils/ChatInterface";
 
 interface ChatEditorProp {
   chatRoomId: string | undefined;
-  setMessages: React.Dispatch<React.SetStateAction<Message[] | []>>;
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }
 
 export default function ChatEditor({
@@ -13,56 +14,45 @@ export default function ChatEditor({
 }: ChatEditorProp) {
   const [text, setText] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { loading, data, error, sendTextMessage } = useSendTextMessage();
+  const { data, error, sendTextMessage } = useSendTextMessage();
+
+  const canSend = text.trim().length > 0;
 
   const handleSend = async () => {
-    const el = textareaRef.current;
-    if (el && el.value.trimStart().length > 0) {
-      el.focus();
+    if (!canSend) return;
+    const content = text.trim();
+    setText(""); // clear right away so the UI feels instant
+    textareaRef.current?.focus();
 
-      await sendTextMessage({
-        variables: {
-          chatRoomId,
-          content: text,
-        },
-      });
-      // const newMessage: Message = {
-      //   id: Date.now().toString(),
-      //   text: text.trim(),
-      //   sender: "me",
-      //   time: currentTime,
-      // };
-
-      // setMessages((prev) => [...prev, newMessage]);
-      // console.log("Sending value: ", el.value);
-      setText("");
-      textareaRef.current?.focus();
+    try {
+      await sendTextMessage({ variables: { chatRoomId, content } });
+    } catch (err) {
+      console.error("Error sending message:", err);
+      setText(content); // give the text back if sending failed
     }
   };
 
   useEffect(() => {
-    if (loading) {
-      console.log("Loading...");
-    }
-
-    if (error) {
-      console.error("Error sending message:", error);
-    }
+    if (error) console.error("Error sending message:", error);
 
     if (data) {
-      console.log("Message sent successfully:", data);
       const newMessage: Message = {
-        id: data.textMessage.id,
-        content: data.textMessage.content,
+        id: data.sendMessage.id,
+        chatRoomId: data.sendMessage.chatRoomId,
+        content: data.sendMessage.content,
+        senderId: data.sendMessage.sender.id,
         sender: {
-          id: data.textMessage.sender.id,
-          name: data.textMessage.sender.name,
+          id: data.sendMessage.sender.id,
+          name: data.sendMessage.sender.name,
         },
       };
-      setMessages((prev) => [...prev, newMessage]);
+      setMessages((prev) =>
+        prev.some((m) => m.id === newMessage.id) ? prev : [...prev, newMessage],
+      );
     }
-  }, [loading, data, error, setMessages]);
+  }, [data, error, setMessages]);
 
+  // Auto-grow the textarea
   useEffect(() => {
     const el = textareaRef.current;
     if (el) {
@@ -72,20 +62,15 @@ export default function ChatEditor({
   }, [text]);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    const el = textareaRef.current;
-
-    if (event.ctrlKey && event.key === "Enter") {
+    if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
       event.preventDefault();
-      if (el && el.value.trimStart().length > 0) {
-        el.focus();
-        handleSend();
-      }
+      handleSend();
     }
   };
 
   return (
-    <div className="bg-white border-t border-gray-100 flex p-3! items-end gap-2.5 shadow[0_-4px_12px_rgba(0,0,0,0.02)]">
-      <div className="flex-1 bg-gray-50 rounded-xl border border-gray-200 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all flex items-end px-2! py-1.5!">
+    <div className="border-t border-teal-100 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      <div className="flex items-end gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 transition focus-within:border-teal-500 focus-within:bg-white focus-within:ring-4 focus-within:ring-teal-100">
         <textarea
           ref={textareaRef}
           name="chat_editor"
@@ -94,26 +79,24 @@ export default function ChatEditor({
           onKeyDown={handleKeyDown}
           onChange={(e) => setText(e.target.value)}
           rows={1}
-          className="w-full bg-transparent px-2! text-base leading-5 text-gray-800 placeholder-gray-400 focus:outline-none resize-none overflow-y-auto max-h-35 no-scrollbar"
-          placeholder="Type here..."
+          aria-label="Message"
+          className="no-scrollbar max-h-36 w-full resize-none bg-transparent py-1 text-base leading-5 text-slate-800 outline-none placeholder:text-slate-400"
+          placeholder="Type a message (Ctrl+Enter to send)"
         />
         <button
           type="button"
           onClick={handleSend}
-          disabled={!text.trim()}
-          className={`p-2.5! rounded-xl flex items-center justify-center transition-all ${
-            text.trim()
-              ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md active:scale-95"
-              : "bg-gray-100 text-gray-400 cursor-not-allowed"
+          disabled={!canSend}
+          aria-label="Send message"
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition ${
+            canSend
+              ? "bg-teal-600 text-white shadow-md hover:bg-teal-700 active:scale-90"
+              : "cursor-not-allowed bg-slate-200 text-slate-400"
           }`}
         >
-          <svg
-            className="w-5 h-5 transform rotate"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path d="M2 21l21-9L2 3v7l15 2-15 2v7z" />
-          </svg>
+          <FiSend
+            className={`transition-transform ${canSend ? "translate-x-px -translate-y-px" : ""}`}
+          />
         </button>
       </div>
     </div>
