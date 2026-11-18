@@ -21,7 +21,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const { data } = useSubscription(ON_USER_EVENT, { skip: !currentUser });
 
   useEffect(() => {
-    console.log("Subscription:", data);
     if (data?.onUserEvent?.action === "NEW_MESSAGE") {
       const newMessage: Message = {
         id: data.onUserEvent.data.id,
