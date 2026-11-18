@@ -24,6 +24,7 @@ const userSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
+    // loginX are identical to signInX; kept so existing imports don't break.
     loginStart: (state) => {
       state.error = "";
       state.loading = true;
@@ -42,16 +43,17 @@ const userSlice = createSlice({
       state.error = "";
       state.loading = false;
     },
-    profileUpdate: (state, action: PayloadAction<userObj>) => {
+    // Backend updateProfile returns ProfilePayload { name, email } (no user/token),
+    // so the payload type is that, not a whole userObj.
+    profileUpdate: (
+      state,
+      action: PayloadAction<{ name?: string | null; email?: string | null }>,
+    ) => {
       if (state.currentUser) {
-        state.currentUser = {
-          ...state.currentUser,
-          user: {
-            ...state.currentUser.user,
-            name: action.payload.user.name || state.currentUser.user.name,
-            email: action.payload.user.email || state.currentUser.user.email,
-          },
-        };
+        state.currentUser.user.name =
+          action.payload.name || state.currentUser.user.name;
+        state.currentUser.user.email =
+          action.payload.email || state.currentUser.user.email;
       }
       state.loading = false;
       state.error = "";
