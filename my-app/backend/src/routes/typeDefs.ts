@@ -78,6 +78,11 @@ export const typeDefs = gql`
     author: User
   }
 
+  type InfinitePostPayload {
+    posts: [Post]
+    nextCursor: String
+  }
+
   # Friend_request Input
 
   # Friend_request Types
@@ -218,6 +223,8 @@ export const typeDefs = gql`
     getPostByPostId(postId: String!): Post
 
     searchPost(text: String!): Post
+
+    fetchMePosts(lastPostId: String): InfinitePostPayload
 
     # Friend_request Query
     getFriendRequestsListOfUser: [FriendRequestPayload]

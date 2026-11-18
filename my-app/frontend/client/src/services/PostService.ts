@@ -55,6 +55,24 @@ export const SEARCH_POST = gql`
   }
 `;
 
+export const FETCH_ME_POST = gql`
+  query FetchMePosts($lastPostId: String) {
+    fetchMePosts(lastPostId: $lastPostId) {
+      posts {
+        id
+        title
+        content
+        createdAt
+        author {
+          id
+          name
+        }
+      }
+      nextCursor
+    }
+  }
+`;
+
 /** Usage: createPost({ variables: { input: { title, content, category } } }) */
 export const useCreatePost = () => {
   const [createPost, { loading, data, error }] = useMutation(CREATE_POST);
@@ -77,4 +95,10 @@ export const useGetPostById = () => {
 export const useSearchPost = () => {
   const [searchPost, { loading, data, error }] = useLazyQuery(SEARCH_POST);
   return { searchPost, loading, data, error };
+};
+
+export const useEntirePost = () => {
+  const [loadEntirePost, { loading, data, error }] =
+    useLazyQuery(FETCH_ME_POST);
+  return { loadEntirePost, loading, data, error };
 };

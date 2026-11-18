@@ -74,4 +74,13 @@ export class PostService {
 
     return payload;
   }
+
+  public async retriveEntirePosts(
+    lastPostId: string,
+  ): Promise<{ posts: PostResponseDTO[]; nextCursor: string }> {
+    const payload =
+      await this.postRepository.fetchAllCursorBasePosts(lastPostId);
+
+    return payload;
+  }
 }

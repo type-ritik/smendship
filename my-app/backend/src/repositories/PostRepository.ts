@@ -7,6 +7,7 @@ import {
 
 export class PostRepository {
   private prisma: PrismaClient;
+  private pageSize: number = 10;
 
   constructor(dbPrisma: PrismaClient) {
     this.prisma = dbPrisma;
@@ -120,6 +121,34 @@ export class PostRepository {
       throw new Error(`❌ Database query crashed`);
     }
   }
-}
 
-// ❌
+  public async fetchAllCursorBasePosts(
+    lastPostId: string,
+  ): Promise<{ posts: PostResponseDTO[]; nextCursor: string }> {
+    try {
+      const posts = await this.prisma.post.findMany({
+        take: this.pageSize,
+        ...(lastPostId && {
+          skip: 1,
+          cursor: {
+            id: lastPostId,
+          },
+        }),
+        orderBy: {
+          id: "desc",
+        },
+        include: {
+          author: true,
+        },
+      });
+
+      const nextCursor =
+        posts.length === this.pageSize ? posts[posts.length - 1].id : null;
+
+      return { posts, nextCursor };
+    } catch (error) {
+      console.log("Post error", error.message);
+      throw new Error("❌ Database query crashed");
+    }
+  }
+}
