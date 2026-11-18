@@ -1,62 +1,61 @@
 import CommentComponent from "./CommentComponent";
 
+const AVATAR =
+  "https://images.unsplash.com/photo-1774268184985-f1af67b38179?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+
+// Placeholder comments; replace with real data when the query exists.
+const PLACEHOLDER_COMMENTS = [1, 2, 3];
+
 function ShowComments() {
-  const count = [1, 2, 3];
   return (
-    <div className="w-full pt-5 flex flex-col self-center">
-      <div className="flex flex-1">
-        <CommentComponent />
-      </div>
-      <div className="flex flex-col gap-2 flex-1 justify-center">
-        <div className="">Most recent</div>
-        <div className="w-full bg-gray-700 h-0.5" />
-        <div className="flex flex-col flex-1 gap-3">
-          {count.map((item) => (
-            <div
+    <section className="flex w-full flex-col gap-5 pt-5">
+      <CommentComponent />
+
+      <div className="flex flex-col gap-4">
+        <h3 className="border-b border-slate-200 pb-2 text-sm font-semibold text-slate-700">
+          Most recent
+        </h3>
+
+        <ul className="flex flex-col gap-5">
+          {PLACEHOLDER_COMMENTS.map((item, i) => (
+            <li
               key={item}
-              className="w-full flex flex-col gap-2 pt-2 relative"
+              className="anim-rise flex gap-3"
+              style={{ "--i": i } as React.CSSProperties}
             >
-              <div className="absolute h-15 w-6 border-gray-300 border-l-2 border-b-2 top-12 left-4 rounded-bl-2xl" />
-              <div className="profile flex gap-5 items-center justify-between flex-1">
-                <div className="flex flex-1 justify-center items-center gap-3">
-                  <div className="w-9 h-9 overflow-hidden flex rounded-full">
-                    <img
-                      src="https://images.unsplash.com/photo-1774268184985-f1af67b38179?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                      alt=""
-                      className="w-full object-cover"
-                    />
-                  </div>
-                  <div className="flex flex-col flex-1">
-                    <h4 className="flex text-sm font-semibold">
+              <img
+                src={AVATAR}
+                alt=""
+                className="h-9 w-9 shrink-0 rounded-full object-cover"
+              />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h4 className="truncate text-sm font-semibold text-slate-900">
                       Kiriton Micky
                     </h4>
-                    <span className="text-xs line-clamp-1 w-1/2 text-gray-500">
-                      My name is ritik | self taught developer
-                      adfjalsdfjlsadjflasdjflkasdjflkasdjfklajsdlfkjasdlkfjasdklfjlasdkjf
-                      alsdjalsdjfowjefoiwjeoijweoijrioejasdofjasdoifjasdojfoasdjfio
-                    </span>
+                    <p className="truncate text-xs text-slate-500">
+                      Self-taught developer
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3 text-xs">
+                    <span className="text-slate-400">2h</span>
+                    <button className="font-semibold text-teal-700 hover:underline">
+                      Follow
+                    </button>
                   </div>
                 </div>
-                <div className="flex gap-5 items-center justify-center">
-                  <span className="text-xs ">2hr</span>
-
-                  <span className="text-sm text-blue-600 font-bold">
-                    Follow
-                  </span>
-                </div>
+                <p className="mt-2 rounded-2xl rounded-tl-md bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                  Lorem ipsum is scrambled placeholder text used in design to
+                  show how a layout or font looks without real words
+                  distracting the reader.
+                </p>
               </div>
-              <div className="flex flex-1 pl-12 text-sm">
-                Hello world my name is anomonly and I like to talk about shit.
-                Lorem ipsum means nothing in modern English or coherent Latin.
-                It is scrambled, altered placeholder text used in design and
-                publishing to show how a page layout or font looks without real
-                words distracting the reader.
-              </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
-    </div>
+    </section>
   );
 }
 
