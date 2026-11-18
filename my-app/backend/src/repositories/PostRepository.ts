@@ -21,6 +21,9 @@ export class PostRepository {
           authorId: data.authorId,
           category: data.category,
         },
+        include: {
+          author: true,
+        },
       });
 
       return payload;
@@ -41,6 +44,9 @@ export class PostRepository {
           content: data.content,
           category: data.category,
         },
+        include: {
+          author: true,
+        },
       });
 
       return payload;
@@ -54,6 +60,9 @@ export class PostRepository {
     try {
       const payload = await this.prisma.post.findUnique({
         where: { id: postId },
+        include: {
+          author: true,
+        },
       });
 
       return payload;
@@ -68,6 +77,9 @@ export class PostRepository {
       const payload = await this.prisma.post.findMany({
         where: {
           authorId,
+        },
+        include: {
+          author: true,
         },
       });
 
@@ -96,6 +108,9 @@ export class PostRepository {
               },
             },
           ],
+        },
+        include: {
+          author: true,
         },
       });
 

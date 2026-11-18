@@ -24,7 +24,7 @@ export class PostService {
     if (data.content.length < 10)
       throw new Error("Content must be 15 letters long");
 
-    if (data.category.length < 1) throw new Error("Category can't be empty");
+    // if (data.category.length < 1) throw new Error("Category can't be empty");
 
     const post = await this.postRepository.create(data);
     return post;

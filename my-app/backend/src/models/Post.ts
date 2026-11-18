@@ -25,4 +25,9 @@ export type EditPostRequestDTO = Omit<
 >;
 
 // ResponseDTO
-export type PostResponseDTO = Omit<IPost, "is_revoked" | "author">;
+export type PostResponseDTO = Omit<IPost, "is_revoked" | "authorId">;
+
+export type PostAuthorResponseDTO = Omit<
+  IPost,
+  "is_revoked" | "authorId" | "likeCount"
+>;
