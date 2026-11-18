@@ -1,6 +1,5 @@
-import { Link } from "react-router-dom";
 import RequestCard from "../helperComponent/Card/RequestCard";
-import { useEffect, useState, type ComponentType } from "react";
+import { useEffect, useState } from "react";
 import {
   useFetchListOfReceivedFriendRequest,
   useFetchListOfSentFriendRequest,
@@ -8,118 +7,102 @@ import {
 import type { InvitationRequestInterface } from "../../utils/userInterfaces";
 import toast from "react-hot-toast";
 
-const RequestCardComponent = RequestCard as unknown as ComponentType<{
-  responseCall: string;
-  invitationRequest: InvitationRequestInterface[];
-}>;
+function ListSkeleton() {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="skeleton h-20 rounded-xl" />
+      <div className="skeleton h-20 rounded-xl" />
+    </div>
+  );
+}
 
 function NetworkInvitationRequests() {
-  const [listOfReceivedFriendRequest, setListOfReceivedFriendRequest] =
-    useState<InvitationRequestInterface[]>([]);
-  const [listOfSentFriendRequest, setListOfSentFriendRequest] = useState<
-    InvitationRequestInterface[]
-  >([]);
+  const [isReceivedActive, setIsReceivedActive] = useState(true);
 
   const { data, loading, error } = useFetchListOfReceivedFriendRequest();
   const {
-    data: sentRequestData,
-    loading: sentRequestLoading,
-    error: sentRequestError,
+    data: sentData,
+    loading: sentLoading,
+    error: sentError,
   } = useFetchListOfSentFriendRequest();
 
-  // List of sent friend request
+  const received: InvitationRequestInterface[] =
+    data?.getFriendRequestsListOfUser ?? [];
+  const sent: InvitationRequestInterface[] =
+    sentData?.getSentFriendRequestListOfUser ?? [];
+
   useEffect(() => {
-    if (sentRequestLoading) {
-      toast.loading("Loading...");
-    }
-
-    if (sentRequestError) {
-      toast.error("Error fetching sent friend requests");
-      toast.dismiss();
-    }
-
-    if (sentRequestData) {
-      toast.dismiss();
-      const requests = sentRequestData?.listOfSentFriendRequest;
-      if (!requests || requests.length === 0) {
-        toast("You have no friend requests yet. Start connecting!");
-      } else {
-        setListOfSentFriendRequest(requests);
-      }
-    }
-  }, [sentRequestData, sentRequestError, sentRequestLoading]);
-
-  // List of received friend request
+    if (error) toast.error("Couldn't load received requests.");
+  }, [error]);
   useEffect(() => {
-    if (loading) {
-      toast.loading("Loading...");
-    }
+    if (sentError) toast.error("Couldn't load sent requests.");
+  }, [sentError]);
 
-    if (error) {
-      toast.error("Error fetching received friend requests");
-      toast.dismiss();
-    }
+  const tabs = [
+    { label: "Received", active: true, count: received.length },
+    { label: "Sent", active: false, count: sent.length },
+  ];
 
-    if (data) {
-      toast.dismiss();
-      const requests = data?.listOfReceivedFriendRequest;
-      if (!requests || requests.length === 0) {
-        toast("You have no friend requests yet. Start connecting!");
-      } else {
-        setListOfReceivedFriendRequest(requests);
-      }
-    }
-  }, [data, loading, error]);
-
-  const [isReceivedActive, setIsReceivedActive] = useState(true);
   return (
-    <div className="w-full h-full flex flex-col border rounded p-5! bg-white mt-30!">
-      <div className="w-full h-full justify-center items-center flex flex-col gap-5">
-        <div className="flex w-full gap-5 border p-4! rounded items-center bg-[#f0ffff] h-20">
-          <div
-            onClick={() => {
-              setIsReceivedActive(true);
-            }}
-            className={`w-35 px-6! py-2! flex justify-center items-center self-center rounded hover:bg-green-200 hover:text-black cursor-pointer  h-full ${isReceivedActive ? "bg-green-300" : ""}`}
-          >
-            <h3 className="w-full flex justify-center items-center">
-              <Link
-                to={"/network/invitation/requests"}
-                className={`w-full h-full flex justify-center items-center `}
-              >
-                Received
-              </Link>
-            </h3>
-          </div>
+    <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 pb-10 pt-28 sm:px-6">
+      <header className="anim-rise" style={{ "--i": 0 } as React.CSSProperties}>
+        <h1 className="text-2xl font-semibold text-slate-900 sm:text-3xl">
+          Invitations
+        </h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Requests you've received and the ones you've sent.
+        </p>
+      </header>
 
-          <span>|</span>
-          <div
-            className={`w-35 rounded px-6! py-2! flex justify-center items-center self-center hover:bg-green-200 hover:text-black cursor-pointer ${!isReceivedActive ? "bg-green-300" : ""}`}
-            onClick={() => {
-              setIsReceivedActive(false);
-            }}
-          >
-            <h3 className="w-full flex justify-center items-center">
-              <Link to={"/network/invitation/requests"} className={``}>
-                Sent
-              </Link>
-            </h3>
-          </div>
+      <section
+        className="anim-rise flex flex-col gap-4 rounded-2xl border border-teal-100 bg-white p-4 shadow-sm sm:p-6"
+        style={{ "--i": 1 } as React.CSSProperties}
+      >
+        <div
+          role="tablist"
+          className="relative grid grid-cols-2 rounded-xl bg-teal-50 p-1 sm:max-w-sm"
+        >
+          <span
+            aria-hidden
+            className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-lg bg-white shadow transition-transform duration-300 ease-out ${
+              isReceivedActive ? "translate-x-0" : "translate-x-full"
+            }`}
+          />
+          {tabs.map(({ label, active, count }) => (
+            <button
+              key={label}
+              role="tab"
+              aria-selected={isReceivedActive === active}
+              onClick={() => setIsReceivedActive(active)}
+              className={`relative z-10 flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                isReceivedActive === active
+                  ? "text-teal-700"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              {label}
+              <span className="rounded-full bg-teal-100 px-2 text-xs text-teal-700">
+                {count}
+              </span>
+            </button>
+          ))}
         </div>
-        <div className="w-full h-170 bg-[#f0ffff] border px-5! rounded relative flex flex-col items-center overflow-y-scroll">
-          <div className="absolute  w-full flex-col gap-5 flex justify-center items-center p-5!">
-            <RequestCardComponent
+
+        <div
+          key={String(isReceivedActive)}
+          className="anim-pop max-h-[65vh] min-h-48 overflow-y-auto rounded-xl border border-teal-100 bg-teal-50/60 p-3 sm:p-4"
+        >
+          {(isReceivedActive ? loading : sentLoading) ? (
+            <ListSkeleton />
+          ) : (
+            <RequestCard
               responseCall={isReceivedActive ? "RECEIVE" : "SENT"}
-              invitationRequest={
-                isReceivedActive
-                  ? listOfReceivedFriendRequest
-                  : listOfSentFriendRequest
-              }
+              invitationRequest={isReceivedActive ? received : sent}
             />
-          </div>
+          )}
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
 

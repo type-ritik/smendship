@@ -1,74 +1,88 @@
-import { useEffect } from "react";
+import { useState } from "react";
+import toast from "react-hot-toast";
 import type { InvitationRequestInterface } from "../../utils/userInterfaces";
 import { useSendFriendRequest } from "../../services/FriendService";
 
+type Person = InvitationRequestInterface["user"];
+
 interface FriendCanvaProps {
-  friendsList: [InvitationRequestInterface["user"]] | [];
+  friendsList: Person[];
+  loading?: boolean;
 }
 
-export default function FriendCanva({ friendsList }: FriendCanvaProps) {
-  const { loadRequest, loading, error, data } = useSendFriendRequest();
+const AVATAR =
+  "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
 
-  useEffect(() => {
-    if (loading) {
-      console.log("Sending friend request...");
-    }
-
-    if (error) {
-      console.error("Error sending friend request:", error);
-    }
-
-    if (data) {
-      console.log("Friend request response:", data.friendSendRequest);
-    }
-  }, [loading, error, data]);
+export default function FriendCanva({
+  friendsList,
+  loading,
+}: FriendCanvaProps) {
+  const { loadRequest } = useSendFriendRequest();
+  const [sentIds, setSentIds] = useState<Set<string>>(new Set());
+  const [pendingId, setPendingId] = useState<string | null>(null);
 
   const handleSendFriendRequest = async (receiverId: string) => {
-    await loadRequest({
-      variables: {
-        receiverId,
-      },
-    });
+    setPendingId(receiverId);
+    try {
+      await loadRequest({ variables: { receiverId } });
+      setSentIds((prev) => new Set(prev).add(receiverId));
+      toast.success("Request sent");
+    } catch (err) {
+      toast.error((err as Error).message || "Couldn't send the request.");
+    } finally {
+      setPendingId(null);
+    }
   };
 
   return (
-    <div className="absolute w-2xl top-15 left-60 bg-white rounded-sm border-blue-300 border">
-      <div className="w-full p-5! flex flex-col gap-5">
-        {friendsList.length > 0 ? (
-          friendsList.map((item, index) => (
-            <div
-              key={index}
-              id="u_profile"
-              className="flex w-full px-3! py-2! items-center gap-5 justify-between border border-blue-800 rounded-sm bg-blue-300"
-            >
-              <div className="w-12 h-12 rounded-full overflow-hidden shrink-0  object-center justify-start border border-blue-800">
-                <img
-                  src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
-                  alt=""
-                  className="w-full h-full object-cover object-center"
-                />
-              </div>
-
-              <div className="flex flex-col items-start justify-center flex-1">
-                <h1 className="text-base font-semibold">{item.name}</h1>
-                <span className="text-sm text-gray-500">
-                  {item.status || "online"}
-                </span>
-              </div>
-              <div
-                className="flex justify-end items-center px-6! py-1! rounded-sm bg-blue-50 hover:text-white text-blue-500 cursor-pointer hover:bg-blue-500 hover:border border border-transparent hover:border-blue-800 transition-all duration-300"
-                onClick={() => handleSendFriendRequest(item.id)}
+    <div className="anim-pop absolute left-0 right-0 top-full z-50 mt-2 max-h-80 overflow-y-auto rounded-xl border border-teal-100 bg-white p-2 shadow-xl sm:min-w-96">
+      {loading && friendsList.length === 0 ? (
+        <div className="flex flex-col gap-2 p-2">
+          <div className="skeleton h-10 rounded-lg" />
+          <div className="skeleton h-10 rounded-lg" />
+        </div>
+      ) : friendsList.length > 0 ? (
+        <ul className="flex flex-col">
+          {friendsList.map((item) => {
+            const sent = sentIds.has(item.id);
+            return (
+              <li
+                key={item.id}
+                className="flex items-center gap-3 rounded-lg p-2 transition hover:bg-teal-50"
               >
-                <span className="flex">Follow</span>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="text-sm font-semibold text-blue-700">
-            No result found!
-          </div>
-        )}
-      </div>
+                <img
+                  src={AVATAR}
+                  alt=""
+                  className="h-10 w-10 shrink-0 rounded-full object-cover"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-slate-900">
+                    {item.name}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {item.status || "online"}
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleSendFriendRequest(item.id)}
+                  disabled={sent || pendingId === item.id}
+                  className="rounded-full border border-teal-600 px-4 py-1 text-xs font-semibold text-teal-700 transition hover:bg-teal-600 hover:text-white active:scale-95 disabled:cursor-default disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+                >
+                  {sent
+                    ? "Sent"
+                    : pendingId === item.id
+                      ? "Sending…"
+                      : "Follow"}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className="p-4 text-center text-sm text-slate-500">
+          No one found. Try a different name.
+        </p>
+      )}
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import type { InvitationRequestInterface } from "../../../utils/userInterfaces";
 import { useUpdateFriendRequestResponse } from "../../../services/InvitationService";
 import toast from "react-hot-toast";
-import { useEffect } from "react";
-import { useChatroomCreation } from "../../../services/ChatRoomService";
+import { useEffect, useState } from "react";
+import { useChatRoomCreation } from "../../../services/ChatRoomService";
 import { useNavigate } from "react-router-dom";
 
 type RequestCardProps = {
@@ -10,192 +10,187 @@ type RequestCardProps = {
   invitationRequest: InvitationRequestInterface[] | [];
 };
 
+type Action = { label: string; code: string };
+
+const EMPTY_TEXT: Record<string, string> = {
+  RECEIVE: "No received invitations yet.",
+  SENT: "No sent invitations yet.",
+  FOLLOWER: "No followers yet.",
+  FOLLOWING: "You're not following anyone yet.",
+};
+
+// Which buttons each list shows. "secondary" is the quieter/negative action.
+function actionsFor(responseCall: string): {
+  secondary: Action;
+  primary?: Action;
+} {
+  switch (responseCall) {
+    case "RECEIVE":
+      return {
+        secondary: { label: "Reject", code: "REJECT" },
+        primary: { label: "Accept", code: "ACCEPT" },
+      };
+    case "SENT":
+      return { secondary: { label: "Cancel", code: "REVOKE" } };
+    case "FOLLOWING":
+      return {
+        secondary: { label: "Unfollow", code: "UNFOLLOW" },
+        primary: { label: "Chat", code: "CHAT" },
+      };
+    default:
+      return {
+        secondary: { label: "Remove", code: "REVOKE" },
+        primary: { label: "Chat", code: "CHAT" },
+      };
+  }
+}
+
 function RequestCard({ responseCall, invitationRequest }: RequestCardProps) {
   const navigate = useNavigate();
+  const [handledIds, setHandledIds] = useState<Set<string>>(new Set());
+
   const { friendRequestResponse, data, loading, error } =
     useUpdateFriendRequestResponse();
-
   const {
-    activateChatRoom,
+    createChatSpace,
     data: chatData,
     loading: chatLoading,
     error: chatError,
-  } = useChatroomCreation();
+  } = useChatRoomCreation();
 
   useEffect(() => {
-    if (chatLoading) {
-      console.log("Chat activation is loading...");
-    }
+    if (chatError) toast.error("Couldn't open the chat. Try again.");
+    if (chatData) navigate(`/chatroom/user/${chatData.createChatSpace.id}`);
+  }, [chatData, chatError, navigate]);
 
-    if (chatError) {
-      console.log("Error activating chat room", chatError.message);
-    }
-
-    if (chatData) {
-      navigate(`/chatroom/user/${chatData.activateChatRoom.id}`);
-    }
-  }, [chatData, chatLoading, chatError, navigate]);
-
+  // One toast id, so loading -> success/error replaces itself.
   useEffect(() => {
-    if (loading) {
-      toast.loading("Loading...");
-    }
-
-    if (data) {
-      toast.success(data.friendRequestResponse.message);
-      toast.dismiss();
-    }
-
-    if (error) {
-      toast.error("Error responding to friend request");
-    }
+    if (loading) toast.loading("Working…", { id: "request-response" });
+    else if (error)
+      toast.error("Couldn't respond to that request.", {
+        id: "request-response",
+      });
+    else if (data)
+      toast.success(data.resolveFriendRequest.response, {
+        id: "request-response",
+      });
   }, [data, loading, error]);
 
   const handleRequestResponse = async (
-    requestId: number,
-    responseCode: string,
+    item: InvitationRequestInterface,
+    code: string,
   ) => {
-    switch (responseCode) {
-      case "ACCEPT":
-        await friendRequestResponse({
-          variables: {
-            requestId: requestId,
-            responseCode: responseCode,
-          },
-        });
-        break;
-      case "REJECT":
-        await friendRequestResponse({
-          variables: {
-            requestId: requestId,
-            responseCode: responseCode,
-          },
-        });
-        break;
-      case "CHAT":
-        await activateChatRoom({
-          variables: {
-            targetUserId: requestId,
-          },
-        });
-        break;
-      default:
-        toast.error("Something went wrong. Please try again later.");
-        break;
+    try {
+      switch (code) {
+        case "ACCEPT":
+        case "REJECT":
+          await friendRequestResponse({
+            variables: {
+              requestId: item.id,
+              response: code === "ACCEPT" ? true : false,
+            },
+          });
+          // Hide the card once answered
+          setHandledIds((prev) => new Set(prev).add(item.id));
+          break;
+        case "CHAT":
+          await createChatSpace({
+            variables: {
+              receiverId: item.followers?.id
+                ? item.followers?.id
+                : item.followings?.id,
+            },
+          });
+          break;
+        default:
+          // UNFOLLOW / REVOKE have no mutation wired up yet (same as before)
+          toast.error("That action isn't available yet.");
+      }
+    } catch {
+      /* errors are surfaced by the effects above */
     }
   };
 
+  const visible = (invitationRequest as InvitationRequestInterface[]).filter(
+    (item) => !handledIds.has(item.id),
+  );
+  const { secondary, primary } = actionsFor(responseCall);
+  const busy = loading || chatLoading;
+
+  if (visible.length === 0) {
+    return (
+      <p className="w-full py-8 text-center text-sm text-slate-500">
+        {EMPTY_TEXT[responseCall] ?? "Nothing here yet."}
+      </p>
+    );
+  }
+
   return (
-    <>
-      <div className="w-full flex flex-col gap-3 justify-center items-center">
-        {invitationRequest === undefined ? (
-          <div className="text-center text-gray-500">
-            No{" "}
-            {responseCall === "RECEIVE"
-              ? "received invitation"
-              : responseCall === "SENT"
-                ? "sent invitation"
-                : responseCall === "FOLLOWER"
-                  ? "follower friends"
-                  : "following friends"}{" "}
-            yet.
-          </div>
-        ) : (
-          invitationRequest.map((item) => (
-            <div
-              key={item.id}
-              className="flex justify-center  bg-sky-200
-          items-center gap-2 w-full h-25 border border-gray-400 rounded-sm p-5! hover:shadow shadow-2xs shadow-black not-md:w-150"
-            >
-              <div className="w-20 cursor-pointer">
-                <div
-                  className="w-14 h-14 overflow-hidden rounded-full
-              border
-              "
-                >
-                  <img
-                    src="https://media.istockphoto.com/id/1413735503/photo/social-media-social-media-marketing-thailand-social-media-engagement-post-structure.jpg?s=2048x2048&w=is&k=20&c=i6oJR_ptHv1Yf6NeZ6ncHpS-OX04GUotOhB2Mug20n4="
-                    alt="Profile-Picture"
-                    className="w-full h-full object-cover object-center rounded"
-                  />
+    <ul className="flex w-full flex-col gap-3">
+      {visible.map((item, i) => {
+        const user = item.sender
+          ? item.sender
+          : item.receiver
+            ? item.receiver
+            : item.followers
+              ? item.followers
+              : item.followings;
+        const online = user?.status === "online";
+        return (
+          <li
+            key={user?.id}
+            className="anim-rise flex flex-col gap-3 rounded-xl border border-teal-100 bg-white p-4 shadow-sm transition hover:shadow-md sm:flex-row sm:items-center"
+            style={{ "--i": i } as React.CSSProperties}
+          >
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <div className="relative shrink-0">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-teal-600 font-semibold uppercase text-white">
+                  {user?.name}
                 </div>
-              </div>
-              <div className="flex flex-col w-1/2 cursor-pointer">
-                <h3 className="text-lg font-semibold text-gray-800">
-                  {item.user.name}
-                </h3>
-                <p className="text-[14px] text-gray-600">{item.user.id}</p>
-                <span className="time text-[12px]">
+                {user?.status && (
                   <span
-                    className={`${item.user.status === "online" ? "text-green-400" : "text-gray-400"}`}
-                  >
-                    {item.user.status}
-                  </span>{" "}
-                </span>
+                    className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white ${
+                      online ? "bg-emerald-500" : "bg-slate-300"
+                    }`}
+                  />
+                )}
               </div>
-              <div className="flex gap-5 w-1/2 justify-end-safe">
-                {responseCall !== "SENT" ? (
-                  <div className="flex gap-5 w-full justify-end-safe">
-                    <button
-                      onClick={() =>
-                        handleRequestResponse(
-                          item.id,
-                          responseCall === "RECEIVE"
-                            ? "REJECT"
-                            : responseCall === "FOLLOWING"
-                              ? "UNFOLLOW"
-                              : "REVOKE",
-                        )
-                      }
-                      className="border py-3! px-6! bg-gray-200! text-red-700!  rounded justify-center flex flex-1 text-sm font-medium uppercase hover:bg-red-700! hover:text-gray-200!
-              transition-colors
-              shadow-sm hover:shadow-black shadow-red-700
-              "
-                    >
-                      {responseCall === "RECEIVE"
-                        ? "Reject"
-                        : responseCall === "FOLLOWING"
-                          ? "Unfollow"
-                          : "Revoked"}
-                    </button>
-                    <button
-                      onClick={() =>
-                        handleRequestResponse(
-                          responseCall === "RECEIVE" ||
-                            responseCall === "ACCEPT"
-                            ? item.id
-                            : item.user.id,
-                          responseCall === "RECEIVE" ? "ACCEPT" : "CHAT",
-                        )
-                      }
-                      className="border py-3! px-6! rounded bg-gray-200! text-green-700! justify-center flex flex-1 text-sm font-medium uppercase
-              hover:bg-green-700! hover:text-gray-200!
-              transition-colors
-              shadow-sm hover:shadow-black shadow-green-700
-              "
-                    >
-                      {responseCall === "RECEIVE" ? "Accept" : "Chat"}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex w-1/2">
-                    <button
-                      onClick={() => handleRequestResponse(item.id, "REVOKE")}
-                      className="border py-3! px-6! bg-gray-200! text-red-700!  rounded justify-center flex flex-1 text-sm font-medium uppercase hover:bg-red-700! hover:text-gray-200!
-              transition-colors
-              shadow-sm hover:shadow-black shadow-red-700
-              "
-                    >
-                      Cancel
-                    </button>
-                  </div>
+              <div className="min-w-0">
+                <h3 className="truncate text-base font-semibold text-slate-900">
+                  {user?.name}
+                </h3>
+                {user?.status && (
+                  <p
+                    className={`text-xs ${online ? "text-emerald-600" : "text-slate-400"}`}
+                  >
+                    {user?.status}
+                  </p>
                 )}
               </div>
             </div>
-          ))
-        )}
-      </div>
-    </>
+
+            <div className="flex gap-2 sm:shrink-0">
+              <button
+                disabled={busy}
+                onClick={() => handleRequestResponse(item, secondary.code)}
+                className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-red-300 hover:bg-red-50 hover:text-red-700 active:scale-95 disabled:opacity-60 sm:flex-none"
+              >
+                {secondary.label}
+              </button>
+              {primary && (
+                <button
+                  disabled={busy}
+                  onClick={() => handleRequestResponse(item, primary.code)}
+                  className="flex-1 rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700 active:scale-95 disabled:opacity-60 sm:flex-none"
+                >
+                  {primary.label}
+                </button>
+              )}
+            </div>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
