@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useCreatePost } from "../../services/PostService";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { ImExit } from "react-icons/im";
+import { IoClose } from "react-icons/io5";
+import { SubmitButton } from "../Auth/AuthUI";
 
 interface CreatePostInterface {
   isEditorOpen: boolean;
@@ -11,87 +12,111 @@ interface CreatePostInterface {
 
 function CreatePost({ isEditorOpen, setIsEditorOpen }: CreatePostInterface) {
   const [title, setTitle] = useState("");
-  // const [images, setImages] = useState("");
   const [content, setContent] = useState("");
-  const { createpost, data, error, loading } = useCreatePost();
+  const { createPost, loading } = useCreatePost();
   const navigate = useNavigate();
 
-  const handleSubmit = async () => {
-    await createpost({
-      variables: {
-        title,
-        content,
-        category: "GAMES",
-      },
-    });
-  };
+  const canPost = title.trim().length > 0 && content.trim().length > 0;
+  const close = () => setIsEditorOpen(false);
 
   useEffect(() => {
-    if (loading) {
-      toast.loading("Creating post...", { id: "createPost" });
-    }
+    if (!isEditorOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditorOpen]);
 
-    if (data) {
-      toast.success("Post created successfully!", data.createPost?.message);
-      toast.dismissAll();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!canPost) return;
+
+    try {
+      const { data } = await createPost({
+        variables: {
+          input: {
+            title: title.trim(),
+            content: content.trim(),
+            category: "GAMES",
+          },
+        },
+      });
+
+      toast.success(data?.createpost?.message ?? "Post published");
+      close();
       navigate("/");
-      setIsEditorOpen(false);
+    } catch (err) {
+      toast.error((err as Error).message || "Couldn't publish your post.");
     }
+  };
 
-    if (error) {
-      toast.error(error.message);
-    }
-  }, [error, data, loading, navigate, setIsEditorOpen]);
+  if (!isEditorOpen) return null;
 
   return (
-    <>
-      {isEditorOpen && (
-        <>
-          <div
-            className={`fixed inset-0 bg-white/30 backdrop-blur-md top-20 left-0 z-10 w-full h-full flex justify-center items-center`}
+    <div
+      className="fixed inset-0 z-50 top-90 flex items-end justify-center p-0 backdrop-blur-sm sm:items-center sm:p-4"
+      onClick={close}
+      role="presentation"
+    >
+      <form
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-post-title"
+        onSubmit={handleSubmit}
+        onClick={(e) => e.stopPropagation()}
+        className="anim-pop flex max-h-[90dvh] w-full max-w-xl flex-col gap-4 rounded-t-2xl border border-teal-100 bg-white p-5 shadow-2xl sm:rounded-2xl sm:p-6"
+      >
+        <div className="flex items-center justify-between">
+          <h2 id="create-post-title" className="text-lg font-semibold">
+            Create post
+          </h2>
+          <button
+            type="button"
+            onClick={close}
+            aria-label="Close"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:rotate-90 hover:bg-slate-100"
           >
-            <div
-              className="absolute top-5 right-0 p-2 cursor-pointer"
-              onClick={() => setIsEditorOpen(false)}
-            >
-              <ImExit />
-            </div>
-            <div className="flex flex-col w-[40%] h-[80%] bg-blue-200 p-5 rounded-md gap-3">
-              <div className="w-full flex">
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Write the title of the post"
-                  className="flex-1 outline-none border-none"
-                />
-              </div>
-              <div className="w-full flex h-full">
-                <textarea
-                  name="post"
-                  id="post"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder="Write what's on your mind."
-                  className="flex-1 h-full resize-none border border-[#CCCCCC] px-2 py-1 rounded-sm outline-none"
-                />
-              </div>
-              <div className="w-full flex justify-between">
-                <span className="cursor-pointer bg-blue-300 text-blue-800 px-3 py-1 rounded-sm hover:text-blue-300 hover:bg-blue-800 transition-all duration-300">
-                  images
-                </span>
-                <span
-                  onClick={() => handleSubmit()}
-                  className="cursor-pointer bg-green-400 px-4 py-1 rounded-sm text-black text-sm hover:bg-green-800 hover:text-green-300 transition-all duration-300"
-                >
-                  Post
-                </span>
-              </div>
-            </div>
+            <IoClose size={20} />
+          </button>
+        </div>
+
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Title"
+          aria-label="Post title"
+          autoFocus
+          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-base font-medium outline-none transition placeholder:text-slate-400 focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
+        />
+        <textarea
+          id="post"
+          name="post"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="What's on your mind?"
+          aria-label="Post content"
+          className="min-h-40 w-full flex-1 resize-none rounded-lg border border-slate-300 px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
+        />
+
+        <div className="flex items-center justify-between gap-3">
+          <button
+            type="button"
+            disabled
+            title="Image uploads aren't available yet"
+            className="rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-400"
+          >
+            Add image
+          </button>
+          <div className="w-32">
+            <SubmitButton type="submit" loading={loading} disabled={!canPost}>
+              {loading ? "Posting…" : "Post"}
+            </SubmitButton>
           </div>
-        </>
-      )}
-    </>
+        </div>
+      </form>
+    </div>
   );
 }
 
