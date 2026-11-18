@@ -26,8 +26,8 @@ export const typeDefs = gql`
   }
 
   input ProfileInput {
-    name: String!
-    email: String!
+    name: String
+    email: String
     # Other profile properties
   }
 
@@ -37,6 +37,7 @@ export const typeDefs = gql`
     name: String
     email: String
     createdAt: String
+    status: String
   }
 
   type UserAuthPayload {
@@ -60,30 +61,34 @@ export const typeDefs = gql`
     category: String
   }
 
+  input EditPostInput {
+    id: String
+    title: String
+    content: String
+    category: String
+  }
+
   # Post Types
   type Post {
     id: String
     title: String
     content: String
     authorId: String
-    createdAt: String
+    createdAt: DateTime
     author: User
   }
 
   # Friend_request Input
-  input FriendRequestInput {
-    senderId: String!
-    receiverId: String!
-    type: REQUEST_TYPE
-  }
 
   # Friend_request Types
   type FriendRequestPayload {
     id: String!
-    senderId: String!
-    receiverId: String!
+    senderId: String
+    receiverId: String
     isAccepted: Boolean
     requestedAt: DateTime
+    sender: User
+    receiver: User
   }
 
   # Friendship Input
@@ -107,6 +112,7 @@ export const typeDefs = gql`
     chatRoomId: String
     editedAt: DateTime
     createdAt: DateTime
+    sender: User
   }
 
   # ChatRoom Input
@@ -116,8 +122,10 @@ export const typeDefs = gql`
     id: String
     name: String
     isGroup: Boolean
-    directkey: String
-    lastMessageAt: DateTime
+    directKey: String
+    lastMessageAt: String
+    messages: [MessagePayload]
+    participants: [ParticipantPayload]
   }
 
   # Participant Input
@@ -126,10 +134,12 @@ export const typeDefs = gql`
   type ParticipantPayload {
     id: String
     chatRoomId: String
+    userId: String
     role: PARTICIPANT_ROLE
     lastReadMsgId: String
-    joinedAt: DateTime
-    leftAt: DateTime
+    joinedAt: String
+    leftAt: String
+    user: User
     lastReadAt: DateTime
   }
 
@@ -195,13 +205,12 @@ export const typeDefs = gql`
 
   type Query {
     # User Query
-    loginUpUser(email: String!, password: String!): UserAuthPayload
 
     requestForPasswordReset: UserOTPPayload
 
     getAllUserData: User
 
-    searchUser(name: String!): User
+    searchUser(name: String!): [User]
 
     # Post Query
     getPostsByUserId(userId: String!): [Post]
@@ -212,6 +221,8 @@ export const typeDefs = gql`
 
     # Friend_request Query
     getFriendRequestsListOfUser: [FriendRequestPayload]
+
+    getSentFriendRequestListOfUser: [FriendRequestPayload]
 
     searchFriendRequestByName(name: String!): [FriendRequestPayload]
 
@@ -228,9 +239,11 @@ export const typeDefs = gql`
     retriveAllMessagesOfChatSpace(chatRoomId: String!): [MessagePayload]
 
     # ChatRoom Query
+    retriveChatFriends: [ChatRoomPayload]
 
     # Participant Query
-    retriveAllChatRoomsOfUser: [ParticipantPayload]
+    retriveAllChatRoomsOfUser: [ParticipantPayload] # Duplicate of retriveChatFriends
+    retriveUserProfileOfRoom(chatRoomId: String!): ParticipantPayload
 
     searchUserRoom(name: String!): [ParticipantPayload]
 
@@ -254,6 +267,8 @@ export const typeDefs = gql`
 
   type Mutation {
     # User Mutation
+    loginUpUser(email: String!, password: String!): UserAuthPayload
+
     signUpUser(input: SignupInput): UserOTPPayload
 
     githubAuth(gitToken: String!): UserAuthPayload
@@ -267,14 +282,14 @@ export const typeDefs = gql`
     updateProfile(input: ProfileInput): ProfilePayload
 
     # Post Mutation
-    createPost(input: PostInput): Post
+    createPost(input: PostInput!): Post
 
-    editPost(input: PostInput): Post
+    editPost(input: EditPostInput!): Post
 
     # Friend_request Mutation
-    sendFriendRequest(input: FriendRequestInput): FriendRequestPayload
+    sendFriendRequest(receiverId: String!): GlobalPayload
 
-    resolveFriendRequest(requestId: String, response: Boolean): GlobalPayload
+    resolveFriendRequest(requestId: String, response: Boolean!): GlobalPayload
 
     # Message Mutation
     sendMessage(content: String!, chatRoomId: String!): MessagePayload

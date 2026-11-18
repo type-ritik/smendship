@@ -4,14 +4,6 @@ import { GraphQLContext } from "../types/context";
 export const resolvers = {
   Query: {
     // User Query
-    loginUpUser: async (
-      parent: null,
-      { email, password },
-      { services }: GraphQLContext,
-    ) => {
-      return services.user.validateUser(email, password);
-    },
-
     requestForPasswordReset: async (
       parent: null,
       inputs: null,
@@ -81,6 +73,16 @@ export const resolvers = {
       return services.friendRequest.fetchFriendRequestsById(user.id);
     },
 
+    getSentFriendRequestListOfUser: async (
+      parent: null,
+      inputs: null,
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.friendRequest.fetchSentFriendRequestById(user.id);
+    },
+
     searchFriendRequestByName: async (
       parent: null,
       { name },
@@ -137,10 +139,19 @@ export const resolvers = {
       { user, services }: GraphQLContext,
     ) => {
       if (!user.id) throw new Error("Unauthorized Entity");
-      return services.message.fetchAllMessagesOfChatRoom(chatRoomId, user.id);
+      return services.message.fetchAllMessagesOfChatRoom(chatRoomId);
     },
 
     // ChatRoom Query
+    retriveChatFriends: async (
+      parent: null,
+      input: null,
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.chatRoom.fetchUserChatRoomParticipants(user.id);
+    },
 
     // Participant Query
     retriveAllChatRoomsOfUser: async (
@@ -150,6 +161,15 @@ export const resolvers = {
     ) => {
       if (!user.id) throw new Error("Unauthorized Entity");
       return services.participant.fetchParticipantsRoomOfUser(user.id);
+    },
+
+    retriveUserProfileOfRoom: async (
+      parent: null,
+      { chatRoomId },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+      return services.participant.fetchParticipantData(chatRoomId, user.id);
     },
 
     searchUserRoom: async (
@@ -240,6 +260,14 @@ export const resolvers = {
     // And mutation work like POST
 
     // User Mutation
+    loginUpUser: async (
+      parent: null,
+      { email, password },
+      { services }: GraphQLContext,
+    ) => {
+      return services.user.validateUser(email, password);
+    },
+
     signUpUser: async (
       parent: null,
       { input },
@@ -299,7 +327,7 @@ export const resolvers = {
     ) => {
       if (!user.id) throw new Error("Unauthorized Entity");
 
-      return services.post.createPost({ ...input, authorId: user.id });
+      return await services.post.createPost({ ...input, authorId: user.id });
     },
 
     editPost: async (
@@ -315,12 +343,16 @@ export const resolvers = {
     // FRIEND_REQUEST Mutation
     sendFriendRequest: async (
       parent: null,
-      { input },
+      { receiverId },
       { user, services }: GraphQLContext,
     ) => {
       if (!user.id) throw new Error("Unauthorized Enity");
 
-      return services.friendRequest.sendFriendRequest(input);
+      return services.friendRequest.sendFriendRequest({
+        receiverId,
+        senderId: user.id,
+        type: "FRIEND_REQUEST_SENT",
+      });
     },
 
     resolveFriendRequest: async (
