@@ -1,50 +1,61 @@
+import { useState } from "react";
 import { MdCancel } from "react-icons/md";
 
-function RecommendCardComponent() {
+const IMAGE =
+  "https://images.unsplash.com/photo-1774268184985-f1af67b38179?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+
+// Name/role default to the old placeholder until real data is passed in.
+function RecommendCardComponent({
+  name = "John Doe",
+  role = "Software Engineer",
+  onConnect,
+}: {
+  name?: string;
+  role?: string;
+  onConnect?: () => void;
+}) {
+  const [dismissed, setDismissed] = useState(false);
+  const [requested, setRequested] = useState(false);
+
+  if (dismissed) return null;
+
   return (
-    <>
-      <div className="w-50 flex h-full border rounded-2xl overflow-hidden">
-        <div className="w-full h-full flex flex-col gap-10!">
-          <div className="w-full">
-            <div className="relative w-full h-16">
-              <img
-                src="https://images.unsplash.com/photo-1774268184985-f1af67b38179?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                alt="Profile background"
-                className="w-full h-full object-cover object-center"
-              />
-              <div className="absolute bottom-0 left-16 transform translate-y-1/2">
-                <div className="w-15 h-15  border-2 rounded-full overflow-hidden border-white">
-                  <img
-                    src="https://images.unsplash.com/photo-1774268184985-f1af67b38179?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                    alt="Profile photo"
-                    className="w-full h-full object-cover object-center"
-                  />
-                </div>
-              </div>
-                <div className="absolute top-3 right-3 ">
-                  <MdCancel size={'20px'} color="white" className="hover:text-gray-900 cursor-pointer" />
-                </div>
-            </div>
-          </div>
-          <div className="w-full flex flex-col gap-5!">
-            <div className="w-full flex flex-col justify-center items-center">
-              <h1 className="font-bold text-2xl">John Doe</h1>
-              <p className="text-gray-800 text-sm">Software Engineer</p>
-            </div>
-            <div className="w-full justify-center items-center flex mb-5!">
-              <button
-                className="py-3! px-9! bg-gray-700! text-blue-300! justify-center flex text-sm font-medium uppercase hover:bg-blue-300! hover:text-gray-700!
-              transition-colors
-              shadow-sm hover:shadow-black shadow-green-700
-              "
-              >
-                Connect
-              </button>
-            </div>
-          </div>
-        </div>
+    <article className="anim-pop flex flex-col overflow-hidden rounded-2xl border border-teal-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+      <div className="relative h-16">
+        <img src={IMAGE} alt="" className="h-full w-full object-cover" />
+        <button
+          onClick={() => setDismissed(true)}
+          aria-label={`Dismiss ${name}`}
+          className="absolute right-2 top-2 text-white/90 transition hover:scale-110 hover:text-white"
+        >
+          <MdCancel size={20} />
+        </button>
+        <img
+          src={IMAGE}
+          alt=""
+          className="absolute -bottom-7 left-1/2 h-14 w-14 -translate-x-1/2 rounded-full border-2 border-white object-cover"
+        />
       </div>
-    </>
+
+      <div className="flex flex-1 flex-col items-center gap-3 px-4 pb-4 pt-9 text-center">
+        <div className="min-w-0">
+          <h3 className="truncate text-base font-semibold text-slate-900">
+            {name}
+          </h3>
+          <p className="truncate text-sm text-slate-500">{role}</p>
+        </div>
+        <button
+          onClick={() => {
+            setRequested(true);
+            onConnect?.();
+          }}
+          disabled={requested}
+          className="mt-auto w-full rounded-full border border-teal-600 py-1.5 text-sm font-medium text-teal-700 transition hover:bg-teal-600 hover:text-white active:scale-95 disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+        >
+          {requested ? "Requested" : "Connect"}
+        </button>
+      </div>
+    </article>
   );
 }
 
