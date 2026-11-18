@@ -133,7 +133,7 @@ model ChatRoom {
   isGroup       Boolean       @default(false)
   // For DMs only: sorted "userA:userB". Unique => one DM per pair. NULL for groups.
   directKey     String?       @unique
-  lastMessageAt DateTime?     @db.Timestamptz(3)   // for sorting the chat list
+  lastMessageAt DateTime?     @db.Timestamptz(3) // for sorting the chat list
   createdAt     DateTime      @default(now()) @db.Timestamptz(3)
   messages      Message[]
   participants  Participant[]
@@ -142,16 +142,16 @@ model ChatRoom {
 }
 
 model Participant {
-  id              String            @id @default(uuid()) @db.Uuid
-  userId          String            @db.Uuid
-  chatRoomId      String            @db.Uuid
-  role            participant_role? @default(member)
-  joinedAt        DateTime          @default(now()) @db.Timestamptz(3)
-  leftAt          DateTime?         @db.Timestamptz(3)
-  lastReadAt      DateTime?         @db.Timestamptz(3)   // unread count = messages after this
-  lastReadMsgId   String?           @db.Uuid
-  chatRoom        ChatRoom          @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String            @id @default(uuid()) @db.Uuid
+  userId        String            @db.Uuid
+  chatRoomId    String            @db.Uuid
+  role          participant_role? @default(member)
+  joinedAt      DateTime          @default(now()) @db.Timestamptz(3)
+  leftAt        DateTime?         @db.Timestamptz(3)
+  lastReadAt    DateTime?         @db.Timestamptz(3) // unread count = messages after this
+  lastReadMsgId String?           @db.Uuid
+  chatRoom      ChatRoom          @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, chatRoomId])
   @@index([chatRoomId])
@@ -162,7 +162,7 @@ model Message {
   content    String
   senderId   String    @db.Uuid
   chatRoomId String    @db.Uuid
-  createdAt  DateTime  @default(now()) @db.Timestamptz(3)  // ms precision matches JS Date
+  createdAt  DateTime  @default(now()) @db.Timestamptz(3) // ms precision matches JS Date
   editedAt   DateTime? @db.Timestamptz(3)
   deletedAt  DateTime? @db.Timestamptz(3)
   chatRoom   ChatRoom  @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)

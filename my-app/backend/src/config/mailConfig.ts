@@ -43,21 +43,37 @@ export class Mailer {
 
     return await this.transporter.sendMail(mailOption);
   }
-    async sendResetPasswordLink(name: string, toEmail: string, link: string) {
-      const mailOption = {
-        from: `"Face-net" <noreply@example.com>`,
-        to: toEmail,
-        subject: "Password reset: Email",
-        html:`<p>Hello ${name},</p>
+  async sendResetPasswordLink(name: string, toEmail: string, link: string) {
+    const mailOption = {
+      from: `"Face-net" <noreply@example.com>`,
+      to: toEmail,
+      subject: "Password reset: Email",
+      html: `<p>Hello ${name},</p>
 
               <p>Please use the following link to reset your password. This link will be valid for only 15 minutes.</p>
 
               <p>Link: <a href="${link}">Reset Password Here</a></p>
 
               <p>Thank you,</p>`,
-      };
+    };
 
-      return await this.transporter.sendMail(mailOption)
-    }
+    return await this.transporter.sendMail(mailOption);
+  }
 
+  async sendResetPasswordSuccessMessage(name: string, toEmail: string) {
+    const mailOption = {
+      from: `"Face-net" <noreply@example.com>`,
+      to: toEmail,
+      subject: `${name}, your password was successfully RESET`,
+      html: `
+    <p>Hello ${name},</p>
+
+    <p>Your password has been <b style="color: #eab308;">RESET</b> successfully. Hope you have a great experience.</p>
+
+    <p>Thank you,</p>
+  `,
+    };
+
+    return await this.transporter.sendMail(mailOption);
+  }
 }
