@@ -1,11 +1,12 @@
+// Matches backend UserAuthPayload { user, token }.
+// `status` and `message` were removed: the backend never returns them.
 export interface userObj {
-  status: string;
-  message: string;
   token: string;
   user: {
     id: string;
     name: string;
     email: string;
+    createdAt?: string;
   };
 }
 
@@ -16,19 +17,35 @@ export interface UserState {
 }
 
 export interface UserObjState {
-  user: {
-    currentUser: userObj | null;
-  };
+  user: UserState;
 }
 
 export type user_status = "online" | "offline";
 
+// UI shape used by RequestCard / network pages. The invitation hooks map the
+// backend's FriendRequestPayload / FriendshipPayload into this.
+// `status` is optional: the backend User type has no online/offline field yet.
 export interface InvitationRequestInterface {
-  id: number;
-  user: {
-    id: number;
+  id: string;
+  sender: {
+    id: string;
     name: string;
-    status: user_status;
-  };
+    status?: user_status;
+  } | null;
+  receiver: {
+    id: string;
+    name: string;
+    status?: user_status;
+  } | null;
+  followers: {
+    id: string;
+    name: string;
+    status?: user_status;
+  } | null;
+  followings: {
+    id: string;
+    name: string;
+    status?: user_status;
+  } | null;
   createdAt: string;
 }

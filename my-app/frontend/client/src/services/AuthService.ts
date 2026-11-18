@@ -1,94 +1,110 @@
-import { gql } from "@apollo/client";
+import { gql, useLazyQuery } from "@apollo/client";
 
+const USER_FIELDS = `
+  id
+  name
+  email
+`;
+
+// Backend: Query.loginUpUser -> UserAuthPayload { user, token }
+// NOTE: it's a Query on the backend, so use useLazyQuery (not useMutation) on the frontend.
 export const LOGIN_NOW = gql`
-  mutation Login($email: String!, $password: String!) {
-    login(email: $email, password: $password) {
-      status
-      message
+  mutation LoginUpUser($email: String!, $password: String!) {
+    loginUpUser(email: $email, password: $password) {
       user {
-        id
-        name
-        email
+        ${USER_FIELDS}
       }
       token
     }
   }
 `;
 
+// Backend: Mutation.signUpUser(input: SignupInput) -> UserOTPPayload { status }
 export const SIGNUP_NOW = gql`
-  mutation Signup($name: String!, $email: String!, $password: String!) {
-    signup(name: $name, email: $email, password: $password) {
+  mutation SignUpUser($input: SignupInput!) {
+    signUpUser(input: $input) {
       status
-      message
     }
   }
 `;
 
+// Backend: Query.requestForPasswordReset -> UserOTPPayload { status }
+export const REQUEST_PASSWORD_RESET = gql`
+  query RequestForPasswordReset {
+    requestForPasswordReset {
+      status
+    }
+  }
+`;
+
+// Backend: Mutation.resetPassword(userId, password) -> UserOTPPayload { status }
 export const RESET_USER_PASSWORD = gql`
-  mutation ResetUserPassword($password: String!) {
-    resetUserPassword(password: $password) {
+  mutation ResetPassword($userId: String, $password: String!) {
+    resetPassword(userId: $userId, password: $password) {
       status
-      message
     }
   }
 `;
 
+// Backend: Mutation.codeVerification(email, OTP) -> UserAuthPayload
 export const OTP_VERIFICATION = gql`
-  mutation VerifyAccount($email: String!, $OTP: String!) {
-    verifyAccount(email: $email, OTP: $OTP) {
-      status
-      message
+  mutation CodeVerification($email: String!, $OTP: String!) {
+    codeVerification(email: $email, OTP: $OTP) {
       token
       user {
-        id
-        name
-        email
+        ${USER_FIELDS}
       }
     }
   }
 `;
 
+// Backend: Mutation.githubAuth(gitToken)
 export const GITHUB_AUTH_TOKEN_EXCHANGE = gql`
-  mutation GithubAuthExchangeToken($token: String!) {
-    githubAuthExchangeToken(token: $token) {
-      status
-      message
+  mutation GithubAuth($gitToken: String!) {
+    githubAuth(gitToken: $gitToken) {
       token
       user {
-        id
-        name
-        email
+        ${USER_FIELDS}
       }
     }
   }
 `;
 
+// Backend: Mutation.googleAuth(googleToken)
 export const GOOGLE_AUTH_TOKEN_EXCHANGE = gql`
-  mutation GoogleAuthExchangeToken($token: String!) {
-    googleAuthExchangeToken(token: $token) {
-      status
-      message
+  mutation GoogleAuth($googleToken: String!) {
+    googleAuth(googleToken: $googleToken) {
       token
       user {
-        id
-        name
-        email
+        ${USER_FIELDS}
       }
     }
   }
 `;
 
+// Backend: Mutation.updateProfile(input: ProfileInput) -> ProfilePayload { name, email }
 export const ALTER_PROFILE_DATA = gql`
-  mutation Updateprofile($input: UpdateUserInput) {
-    updateprofile(input: $input) {
-      message
-      status
-      user {
-        id
-        name
-        email
-      }
-      lastUpdated
+  mutation UpdateProfile($input: ProfileInput) {
+    updateProfile(input: $input) {
+      name
+      email
     }
   }
 `;
+
+// Backend: Query.getAllUserData -> User
+export const GET_ALL_USER_DATA = gql`
+  query GetAllUserData {
+    getAllUserData {
+      ${USER_FIELDS}
+      createdAt
+    }
+  }
+`;
+
+export const usePasswordResetRequest = () => {
+  const [requestPasswordReset, { loading, error }] = useLazyQuery(
+    REQUEST_PASSWORD_RESET,
+  );
+  return { requestPasswordReset, loading, error };
+};

@@ -1,18 +1,13 @@
-import {
-  // useDispatch
-  useSelector,
-} from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { logOut } from "../redux/user/userSlice";
 import type { UserObjState } from "../utils/userInterfaces";
-import { useEffect, useState } from "react";
-// import { useMutation } from "@apollo/client";
-// import { ALTER_PROFILE_DATA } from "../services/AuthService";
-// import toast from "react-hot-toast";
+import { useState } from "react";
 import { FiEdit } from "react-icons/fi";
 import EditProfile from "../components/helperComponent/Card/EditProfile";
 import { useNavigate } from "react-router-dom";
 import { useGetPost } from "../services/PostService";
 import type { postState } from "../utils/postInterfaces";
-import { useQuery } from "@apollo/client";
+import { useApolloClient, useQuery } from "@apollo/client";
 import { FOLLOWERS_COUNT, FOLLOWINGS_COUNT } from "../services/FriendService";
 
 const CURRENT_STATE = {
@@ -23,283 +18,267 @@ const CURRENT_STATE = {
 
 type CurrentState = (typeof CURRENT_STATE)[keyof typeof CURRENT_STATE];
 
+const TABS: { key: CurrentState; label: string }[] = [
+  { key: CURRENT_STATE.MY_POST, label: "My posts" },
+  { key: CURRENT_STATE.LIKED_POST, label: "Liked" },
+  { key: CURRENT_STATE.COMMENT_POST, label: "Commented" },
+];
+
+const AVATAR =
+  "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
+
+const delay = (i: number) => ({ "--i": i }) as React.CSSProperties;
+
+// Placeholder rows for the Liked / Commented tabs (replace with real queries later)
+const PLACEHOLDERS = [1, 2, 3, 4, 5];
+
+function StatButton({
+  label,
+  value,
+  onClick,
+}: {
+  label: string;
+  value: number;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="group flex flex-1 flex-col items-center rounded-xl px-4 py-2 transition hover:bg-teal-50 focus-visible:outline-2 focus-visible:outline-teal-600"
+    >
+      <span className="text-xl font-semibold text-slate-900 transition-transform group-hover:scale-110">
+        {value}
+      </span>
+      <span className="text-xs text-slate-500">{label}</span>
+    </button>
+  );
+}
+
+function PostSkeleton() {
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-teal-100 bg-white p-4">
+      <div className="skeleton h-4 w-2/5 rounded" />
+      <div className="skeleton h-3 w-full rounded" />
+      <div className="skeleton h-3 w-4/5 rounded" />
+    </div>
+  );
+}
+
+function PlaceholderPost({ withBody }: { withBody?: boolean }) {
+  return (
+    <article className="flex flex-col gap-3 rounded-xl border border-teal-100 bg-white p-4 transition hover:-translate-y-0.5 hover:shadow-md">
+      <div className="flex items-center gap-3">
+        <img
+          src={AVATAR}
+          alt=""
+          className="h-10 w-10 shrink-0 rounded-full object-cover"
+        />
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate text-sm font-semibold text-slate-900">
+            Lorem ipsum dolor sit consectetur elit.
+          </h3>
+          <p className="text-xs text-slate-500">
+            Posted by <span className="text-teal-700">Milo Kibo</span> · 12 July
+            2023
+          </p>
+        </div>
+        <button className="text-sm font-semibold text-teal-700 hover:underline">
+          Follow
+        </button>
+      </div>
+      {withBody && (
+        <p className="text-sm text-slate-700">
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Quis
+          voluptatibus, quod, quia, quos voluptates quibusdam.
+        </p>
+      )}
+      <footer className="flex justify-between border-t border-teal-50 pt-2 text-xs text-slate-500">
+        <span>Likes: 20</span>
+        {withBody && <span>Views: 50</span>}
+      </footer>
+    </article>
+  );
+}
+
 function ProfilePage() {
-  const [isAlterProfileEnable, setIsAlterProfileEnable] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [currentComponent, setCurrentComponent] = useState<CurrentState>(
     CURRENT_STATE.MY_POST,
   );
-  const [frCountData, setFrCountData] = useState(0);
-  const [fgCountData, setfgCountData] = useState(0);
-
-  const [postData, setPostData] = useState<postState>();
-  const {
-    data: frData,
-    loading: frLoading,
-    error: frError,
-  } = useQuery(FOLLOWERS_COUNT);
-  const {
-    data: fgData,
-    loading: fgLoading,
-    error: fgError,
-  } = useQuery(FOLLOWINGS_COUNT);
 
   const navigate = useNavigate();
-
-  const countTo = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
-
+  const dispatch = useDispatch();
+  const apollo = useApolloClient();
   const { currentUser } = useSelector((state: UserObjState) => state.user);
+  const userId = currentUser?.user?.id ?? "";
 
-  const { loading, error, data } = useGetPost();
+  const { data: frData, error: frError } = useQuery(FOLLOWERS_COUNT);
+  const { data: fgData, error: fgError } = useQuery(FOLLOWINGS_COUNT);
 
-  useEffect(() => {
-    if (frLoading || fgLoading) {
-      console.log("Loading followers or followings count...");
-    }
+  const { loading, error, data } = useGetPost(userId);
 
-    if (frError) {
-      console.log("Error fetching followers count:", frError.message);
-    }
+  // Derived straight from query results; no mirrored state needed.
+  const followers: number = frData?.getFollowersCount?.count ?? 0;
+  const followings: number = fgData?.getFollowingsCount?.count ?? 0;
+  const postData = data as postState | undefined;
 
-    if (fgError) {
-      console.log("Error fetching followings count:", fgError.message);
-    }
+  // getPosts returns every post, so keep only the ones this user wrote
+  const myPosts = (postData?.getPostsByUserId ?? []).filter(
+    (p) => p.author?.id === userId,
+  );
 
-    if (fgData) {
-      setfgCountData(fgData.followingsCount.count);
-    }
+  const handleLogout = async () => {
+    window.localStorage.removeItem("token");
+    window.localStorage.removeItem("email");
+    dispatch(logOut());
+    await apollo.clearStore();
+  };
 
-    if (frData) {
-      setFrCountData(frData.followersCount.count);
-    }
-  }, [frData, fgData, frError, fgError, fgLoading, frLoading]);
+  if (frError) console.log("Error fetching followers count:", frError.message);
+  if (fgError) console.log("Error fetching followings count:", fgError.message);
+  if (error) console.log(error.message);
 
-  useEffect(() => {
-    if (loading) {
-      console.log("Loading...");
-    }
-
-    if (error) {
-      console.log(error.message);
-    }
-
-    if (data) {
-      setPostData(data);
-    }
-  }, [loading, error, data]);
+  const activeIndex = TABS.findIndex((t) => t.key === currentComponent);
 
   return (
-    <>
-      <div
-        className={`w-full relative h-screen flex justify-center items-center`}
+    <main className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-4 pb-10 pt-28 sm:px-6">
+      {/* Profile header */}
+      <section
+        className="anim-rise relative flex flex-col items-center gap-5 rounded-2xl border border-teal-100 bg-white p-5 shadow-sm sm:flex-row sm:p-6"
+        style={delay(0)}
       >
-        <div className="flex w-150 gap-5 not-md:w-100 flex-col absolute bottom-0 shadow-xs shadow-black rounded h-[90%] p-5! ">
-          <div
-            id="top"
-            className="w-full rounded shadow shadow-black p-5! h-30 flex relative justify-evenly items-center"
+        <button
+          aria-label="Edit profile"
+          onClick={() => setIsEditOpen(true)}
+          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:rotate-12 hover:bg-teal-50 hover:text-teal-700 focus-visible:outline-2 focus-visible:outline-teal-600"
+        >
+          <FiEdit />
+        </button>
+
+        <div className="avatar-ring spin-once shrink-0 rounded-full p-1">
+          <img
+            src={AVATAR}
+            alt="Your profile"
+            className="h-24 w-24 rounded-full border-4 border-white bg-white object-cover"
+          />
+        </div>
+
+        <div className="flex min-w-0 flex-1 flex-col items-center gap-4 sm:items-start">
+          <div className="min-w-0 text-center sm:text-left">
+            <h1 className="truncate text-xl font-semibold text-slate-900">
+              {currentUser?.user.name}
+            </h1>
+            <p className="truncate text-sm text-slate-500">
+              {currentUser?.user.email}
+            </p>
+          </div>
+          <div className="flex w-full max-w-xs divide-x divide-teal-100 rounded-xl border border-teal-100">
+            <StatButton
+              label="Followers"
+              value={followers}
+              onClick={() => navigate("/network/manage/follower")}
+            />
+            <StatButton
+              label="Following"
+              value={followings}
+              onClick={() => navigate("/network/manage/following")}
+            />
+          </div>
+          <button
+            onClick={handleLogout}
+            className="text-sm font-medium text-slate-500 transition hover:text-red-600"
           >
-            <div className="absolute top-0 right-0 w-6 h-6 bg-white rounded flex justify-center items-center cursor-pointer">
-              <FiEdit
-                className=""
-                onClick={() => setIsAlterProfileEnable(true)}
-              />
-            </div>
-            <div className="head flex w-full h-full items-center justify-between">
-              <div className="w-20 h-20 justify-start flex rounded-full overflow-hidden shadow-xs  shadow-black cursor-pointer">
-                <img
-                  src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
-                  alt="profile"
-                  className="w-full h-full object-cover object-center"
+            Log out
+          </button>
+        </div>
+      </section>
+
+      {isEditOpen && (
+        <EditProfile
+          isAlterProfileEnable={isEditOpen}
+          setIsAlterProfileEnable={setIsEditOpen}
+        />
+      )}
+
+      {/* Content tabs */}
+      <section
+        className="anim-rise flex flex-col gap-4 rounded-2xl border border-teal-100 bg-white p-4 shadow-sm sm:p-6"
+        style={delay(1)}
+      >
+        <div
+          role="tablist"
+          className="relative grid grid-cols-3 rounded-xl bg-teal-50 p-1"
+        >
+          <span
+            aria-hidden
+            className="absolute inset-y-1 left-1 w-[calc((100%-0.5rem)/3)] rounded-lg bg-white shadow transition-transform duration-300 ease-out"
+            style={{ transform: `translateX(${activeIndex * 100}%)` }}
+          />
+          {TABS.map(({ key, label }) => (
+            <button
+              key={key}
+              role="tab"
+              aria-selected={currentComponent === key}
+              onClick={() => setCurrentComponent(key)}
+              className={`relative z-10 rounded-lg px-2 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-teal-600 ${
+                currentComponent === key
+                  ? "text-teal-700"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* key restarts the stagger whenever the tab changes */}
+        <div key={currentComponent} className="flex flex-col gap-3">
+          {currentComponent === CURRENT_STATE.MY_POST ? (
+            loading ? (
+              <>
+                <PostSkeleton />
+                <PostSkeleton />
+              </>
+            ) : myPosts.length ? (
+              myPosts.map((item, i) => (
+                <article
+                  key={item.id}
+                  className="anim-rise flex flex-col gap-3 rounded-xl border border-teal-100 bg-white p-4 transition hover:-translate-y-0.5 hover:shadow-md"
+                  style={delay(i)}
+                >
+                  <header className="border-b border-teal-50 pb-2">
+                    <h2 className="text-base font-semibold text-slate-900">
+                      {item.title}
+                    </h2>
+                    <p className="text-xs text-slate-500">
+                      Posted by{" "}
+                      <span className="text-teal-700">{item.author?.name}</span>
+                    </p>
+                  </header>
+                  <p className="text-sm text-slate-700">{item.content}</p>
+                  <footer className="flex justify-between border-t border-teal-50 pt-2 text-xs text-slate-500">
+                    <span>Likes: 20</span>
+                    <span>Comments: 30</span>
+                  </footer>
+                </article>
+              ))
+            ) : (
+              <p className="py-10 text-center text-sm text-slate-500">
+                You haven't posted yet. Share your first post to see it here.
+              </p>
+            )
+          ) : (
+            PLACEHOLDERS.map((n, i) => (
+              <div key={n} className="anim-rise" style={delay(i)}>
+                <PlaceholderPost
+                  withBody={currentComponent === CURRENT_STATE.COMMENT_POST}
                 />
               </div>
-              <div className="detail w-3/5 justify-center flex flex-col gap-2 h-full">
-                <div className="name flex-1 w-full h-1/4 px-5! flex items-center  bg-white ">
-                  <h1>{currentUser?.user.name}</h1>
-                </div>
-                <div className="bio flex-1 w-full h-2/4 bg-white  flex items-center px-5!">
-                  <p>{currentUser?.user.email}</p>
-                </div>
-              </div>
-            </div>
-            <div className="tail flex flex-col justify-between gap-5 w-2/5 ">
-              <div
-                className="w-full flex justify-start items-center px-5! cursor-pointer"
-                onClick={() => navigate("/network/manage/follower")}
-              >
-                <h1>
-                  Follower: <span className="text-blue-600">{frCountData}</span>
-                </h1>
-              </div>
-              <div
-                className="w-full flex justify-start items-center cursor-pointer px-5!"
-                onClick={() => navigate("/network/manage/following")}
-              >
-                <h1>
-                  Following:{" "}
-                  <span className="text-blue-600">{fgCountData}</span>
-                </h1>
-              </div>
-            </div>
-          </div>
-          <div
-            id="bottom"
-            className="w-full shadow-xs relative shadow-black rounded p-5! h-full gap-5! flex flex-col"
-          >
-            {isAlterProfileEnable && (
-              <EditProfile
-                isAlterProfileEnable={isAlterProfileEnable}
-                setIsAlterProfileEnable={setIsAlterProfileEnable}
-              />
-            )}
-            <div className="w-full bg-white p-2! border rounded flex">
-              <select
-                name="postit"
-                id="postit"
-                className="flex-1 cursor-pointer rounded"
-                onChange={(e) =>
-                  setCurrentComponent(e.target.value as CurrentState)
-                }
-              >
-                <option value={CURRENT_STATE.MY_POST}>My Posts</option>
-                <option value={CURRENT_STATE.LIKED_POST}>Liked Posts</option>
-                <option value={CURRENT_STATE.COMMENT_POST}>
-                  Comment Posts
-                </option>
-              </select>
-            </div>
-            <div className="shadow-xs shadow-black h-1 w-full rounded-full"></div>
-            <div className=" w-full flex justify-center items-center relative h-full overflow-y-scroll">
-              <div className="gap-3 w-full flex flex-col absolute top-0">
-                {currentComponent === "MY_POST"
-                  ? postData?.getPosts?.map((item) => (
-                      <div
-                        key={item.id}
-                        className="w-full h-full border rounded p-5! bg-white shadow-xs shadow-black gap-2 flex flex-col"
-                      >
-                        <div className="w-full flex flex-col border-b">
-                          <h1 className="font-semibold text-base">
-                            {item.title}
-                          </h1>
-                          <span className="text-[10px]">
-                            Posted by:{" "}
-                            <span className="text-blue-600">
-                              {item.author.name}
-                            </span>
-                          </span>
-                        </div>
-                        <p className="font-normal text-sm">{item.content}</p>
-                        <div className="w-full flex justify-between border-t pt-1!">
-                          <p className="cursor-pointer">
-                            Likes: <span>20</span>
-                          </p>
-                          <p className="cursor-pointer">
-                            Comments: <span>30</span>
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  : currentComponent === "LIKED_POST"
-                    ? countTo.map((item) => (
-                        <div
-                          key={item}
-                          className="w-full h-full border rounded p-5! bg-white shadow-xs shadow-black gap-2 flex flex-col"
-                        >
-                          <div className="w-full h-full flex border-b justify-evenly items-center py-1!">
-                            <div className="w-1/9 h-full flex justify-start items-center">
-                              <div className="w-10 h-10 justify-start flex rounded-full overflow-hidden shadow-xs  shadow-black cursor-pointer">
-                                <img
-                                  src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
-                                  alt="profile"
-                                  className="w-full h-full object-cover object-center"
-                                />
-                              </div>
-                            </div>
-                            <div className="w-7/9 flex flex-col  overflow-x-hidden">
-                              <h1 className="font-semibold text-base cursor-pointer">
-                                Lorem ipsum dolar ist consectetur elit.
-                              </h1>
-                              <span className="text-[10px]">
-                                Posted by:{" "}
-                                <span className="text-blue-600 cursor-pointer">
-                                  Milo kibo
-                                </span>
-                              </span>
-                            </div>
-                            <div className="w-1/9 flex justify-end">
-                              <span className="text-blue-600 font-semibold text-sm cursor-pointer">
-                                Follow
-                              </span>
-                            </div>
-                          </div>
-                          <div className="w-full flex justify-between">
-                            <p className="text-blue-400 cursor-pointer">
-                              Likes: <span>20</span>
-                            </p>
-                            <span className="text-[10px] flex justify-end text-gray-500 gap-1 font-semibold">
-                              -{""}
-                              <span>12 July 2023</span>
-                            </span>
-                          </div>
-                        </div>
-                      ))
-                    : countTo.map((item) => (
-                        <div
-                          key={item}
-                          className="w-full h-full border rounded p-5! bg-white shadow-xs shadow-black gap-2 flex flex-col"
-                        >
-                          <div className="w-full h-full flex border-b justify-evenly items-center py-1!">
-                            <div className="w-1/9 h-full flex justify-start items-center">
-                              <div className="w-10 h-10 justify-start flex rounded-full overflow-hidden shadow-xs  shadow-black cursor-pointer">
-                                <img
-                                  src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
-                                  alt="profile"
-                                  className="w-full h-full object-cover object-center"
-                                />
-                              </div>
-                            </div>
-                            <div className="w-7/9 flex flex-col  overflow-x-hidden">
-                              <h1 className="font-semibold text-base cursor-pointer">
-                                Lorem ipsum dolar ist consectetur elit.
-                              </h1>
-                              <span className="text-[10px]">
-                                Posted by:{" "}
-                                <span className="text-blue-600 cursor-pointer">
-                                  Milo kibo
-                                </span>
-                              </span>
-                            </div>
-                            <div className="w-1/9 flex justify-end">
-                              <span className="text-blue-600 font-semibold text-sm cursor-pointer">
-                                Follow
-                              </span>
-                            </div>
-                          </div>
-                          <div>
-                            <p className="font-normal text-sm">
-                              Lorem ipsum dolor sit amet consectetur adipisicing
-                              elit. Quis voluptatibus, quod, quia, quos
-                              voluptates quibusdam
-                            </p>
-                            <span className="text-[9px] flex w-full justify-end text-gray-500 gap-1 font-semibold">
-                              -{""}
-                              <span>12 July 2023</span>
-                            </span>
-                          </div>
-                          <div className="w-full flex justify-between border-t  pt-1!">
-                            <p className="cursor-pointer">
-                              Likes: <span>20</span>
-                            </p>
-                            <p>
-                              Views: <span>50</span>
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-              </div>
-            </div>
-          </div>
+            ))
+          )}
         </div>
-      </div>
-    </>
+      </section>
+    </main>
   );
 }
 

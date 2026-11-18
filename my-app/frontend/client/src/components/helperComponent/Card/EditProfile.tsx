@@ -1,12 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { UserObjState } from "../../../utils/userInterfaces";
-import { IoExitOutline } from "react-icons/io5";
+import { IoClose } from "react-icons/io5";
 import { useMutation } from "@apollo/client";
-import { ALTER_PROFILE_DATA } from "../../../services/AuthService";
+import {
+  ALTER_PROFILE_DATA,
+  usePasswordResetRequest,
+} from "../../../services/AuthService";
 import toast from "react-hot-toast";
 import { profileUpdate } from "../../../redux/user/userSlice";
-import ResetPassword from "../../Auth/ResetPassword";
+import { Field, SubmitButton } from "../../Auth/AuthUI";
+
+const AVATAR =
+  "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
 
 function EditProfile({
   isAlterProfileEnable,
@@ -20,155 +26,155 @@ function EditProfile({
   const [bio, setBio] = useState("");
   const [isResetpassword, setIsResetPassword] = useState(false);
   const { currentUser } = useSelector((state: UserObjState) => state.user);
+  const { requestPasswordReset } = usePasswordResetRequest();
   const dispatch = useDispatch();
 
-  const [updateprofile, { data, error, loading }] =
-    useMutation(ALTER_PROFILE_DATA);
+  const [updateprofile, { loading }] = useMutation(ALTER_PROFILE_DATA);
 
+  const close = () => setIsAlterProfileEnable(false);
+
+  // Escape closes this dialog (unless the reset-password dialog is on top)
   useEffect(() => {
-    if (data) {
-      dispatch(profileUpdate(data.updateprofile));
-      console.log(data);
+    if (isAlterProfileEnable && isResetpassword) {
+      void requestPasswordReset()
+        .then(({ data }) => {
+          if (data?.requestForPasswordReset) {
+            toast.success(data.requestForPasswordReset.status);
+          }
+        })
+        .catch((err: Error) => {
+          toast.error("Couldn't request a password reset: " + err.message);
+        });
     }
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAlterProfileEnable, isResetpassword]);
 
-    if (error) {
-      toast.error("Error updating user data.");
-    }
-  }, [error, data, dispatch]);
-
-  const handleProfileAltering = async (
-    e: React.MouseEvent<HTMLButtonElement>,
-  ) => {
-    // Implement the logic to handle profile altering here
+  const handleProfileAltering = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const inputPayload: Record<string, string> = {};
-
-    if (email.length > 7) {
-      inputPayload.email = email;
-    }
-
-    if (name.length > 3) {
-      inputPayload.name = name;
-    }
+    if (email.trim().length > 0) inputPayload.email = email.trim();
+    if (name.trim().length >= 2) inputPayload.name = name.trim();
 
     if (Object.keys(inputPayload).length === 0) {
-      toast.error("No valid fields provided to update.");
+      toast.error("Enter a new name (2+ characters) or email to save.");
       return;
     }
 
     try {
-      await updateprofile({
-        variables: {
-          input: inputPayload,
-        },
+      const { data } = await updateprofile({
+        variables: { input: inputPayload },
       });
-    } catch (err: unknown) {
-      const error = err as Error;
-      toast.error("Mutation execution failed: " + (error?.message || ""));
+      const user = data?.updateProfile;
+      dispatch(profileUpdate({ email: user.email, name: user.name }));
+      toast.success("Profile updated");
+      close();
+    } catch (err) {
+      toast.error(
+        "Couldn't update your profile: " + ((err as Error)?.message || ""),
+      );
     }
   };
 
+  if (!isAlterProfileEnable) return null;
+
   return (
     <>
-      {isAlterProfileEnable && (
-        <>
-          <div
-            className={`fixed inset-0 bg-white/30 backdrop-blur-md top-0 left-0 z-10 w-full h-full flex justify-center items-center`}
+      <div
+        className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 backdrop-blur-sm sm:items-center sm:p-4"
+        onClick={close}
+        role="presentation"
+      >
+        <form
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="edit-profile-title"
+          onSubmit={handleProfileAltering}
+          onClick={(e) => e.stopPropagation()}
+          className="anim-pop relative flex max-h-[92dvh] w-full max-w-md flex-col gap-5 overflow-y-auto rounded-t-2xl border border-teal-100 bg-white p-6 shadow-2xl sm:rounded-2xl"
+        >
+          <button
+            type="button"
+            onClick={close}
+            aria-label="Close"
+            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:rotate-90 hover:bg-slate-100"
           >
-            <div className="w-3/4 h-[80%] md:w-1/3 absolute rounded bg-white p-5! shadow-xs shadow-black justify-evenly items-center gap-2 flex-col flex ">
-              <div
-                className="absolute top-0 right-0 p-2! cursor-pointer"
-                onClick={() => setIsAlterProfileEnable(false)}
-              >
-                <IoExitOutline />
-              </div>
-              <div className="w-full flex justify-center items-center">
-                <h1 className="w-full text-sm font-semibold flex justify-center items-center">
-                  Profile Edits
-                </h1>
-              </div>
-              <div className="w-full flex justify-between items-center">
-                <div className="w-25 h-25 justify-start flex rounded-full overflow-hidden shadow-xs  shadow-black cursor-pointer">
-                  <img
-                    src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
-                    alt="profile"
-                    className="w-full h-full object-cover object-center"
-                  />
-                </div>
-                <div
-                  className="w-1/2 flex justify-end cursor-pointer"
-                  onClick={() => setIsResetPassword(true)}
-                >
-                  <span className="text-sm text-blue-600 cursor-pointer">
-                    Click to reset to password!
-                  </span>
-                </div>
-              </div>
-              {isResetpassword && <ResetPassword setIsResetPassword={setIsResetPassword} />}
-              <div className="w-full border rounded justify-between flex flex-col gap-5 p-5! bg-[#f0ffff] items-center shadow-xs shadow-black">
-                <div className="bg-white p-5! rounded  w-full flex justify-evenly flex-col gap-2">
-                  <div className="border rounded flex w-full p-3! bg-[#f0ffff] ">
-                    <input
-                      type="text"
-                      id="name"
-                      placeholder={currentUser?.user.name}
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="border rounded text-sm text-gray-700 outline-none  p-3! w-full bg-white"
-                    />
-                  </div>
-                  <div className="border rounded w-full flex p-3! bg-[#f0ffff] ">
-                    <input
-                      type="email"
-                      id="email"
-                      placeholder={currentUser?.user.email}
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="border rounded p-3! text-sm text-gray-700 w-full bg-white outline-none "
-                    />
-                  </div>
+            <IoClose size={20} />
+          </button>
 
-                  <div className="border rounded p-3! bg-[#f0ffff]  w-full">
-                    <textarea
-                      maxLength={200}
-                      rows={3}
-                      id="bio"
-                      // placeholder={"bio"}
-                      defaultValue={"Tell about yourself!"}
-                      value={bio}
-                      onChange={(e) => setBio(e.target.value)}
-                      className="border rounded p-3! min-h-20 w-full max-h-20 bg-white outline-none text-sm text-gray-700"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="w-full">
-                <div className="w-full flex flex-col">
-                  <div className="flex justify-center items-center w-full mt-5!">
-                    <button
-                      onClick={(e) => handleProfileAltering(e)}
-                      className="flex-1 w-full flex justify-center items-center bg-[#bdf7bd]! shadow-sm shadow-green-950 focus:bg-green-400!"
-                      disabled={loading}
-                    >
-                      <h1 className="text-black text-sm">
-                        {" "}
-                        {loading ? "Saving..." : "Save Profile"}
-                      </h1>
-                    </button>
-                  </div>
+          <h2 id="edit-profile-title" className="text-lg font-semibold">
+            Edit profile
+          </h2>
 
-                  <div>
-                    <button className="flex-1 w-full flex justify-center items-center bg-[#ffbdbd]! shadow-sm shadow-red-950 mt-5!">
-                      <h1 className="text-black text-sm">Delete Account</h1>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="flex items-center gap-4">
+            <img
+              src={AVATAR}
+              alt="Your profile"
+              className="h-20 w-20 rounded-full border-4 border-teal-100 object-cover"
+            />
+            <button
+              type="button"
+              onClick={() => setIsResetPassword(true)}
+              className="text-sm font-medium text-teal-700 hover:underline"
+            >
+              Reset password
+            </button>
           </div>
-        </>
-      )}
+
+          <Field
+            id="name"
+            label="Name"
+            value={name}
+            onChange={setName}
+            placeholder={currentUser?.user.name}
+            autoComplete="name"
+            required={false}
+          />
+          <Field
+            id="email"
+            label="Email"
+            type="email"
+            value={email}
+            onChange={setEmail}
+            placeholder={currentUser?.user.email}
+            autoComplete="email"
+            required={false}
+          />
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="bio" className="text-sm font-medium text-slate-700">
+              Bio
+            </label>
+            <textarea
+              id="bio"
+              maxLength={200}
+              rows={3}
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Tell people about yourself"
+              className="w-full resize-none rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
+            />
+            <span className="self-end text-xs text-slate-400">
+              {bio.length}/200
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <SubmitButton type="submit" loading={loading}>
+              {loading ? "Saving…" : "Save profile"}
+            </SubmitButton>
+            <button
+              type="button"
+              onClick={() => toast("Account deletion isn't available yet.")}
+              className="w-full rounded-lg border border-red-200 px-4 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-50 active:scale-[0.98]"
+            >
+              Delete account
+            </button>
+          </div>
+        </form>
+      </div>
     </>
   );
 }
