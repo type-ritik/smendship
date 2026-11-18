@@ -10,6 +10,7 @@ import {
   signInStart,
   signInSuccess,
 } from "../../redux/user/userSlice";
+import { socialButtonClass } from "./AuthUI";
 
 function GoogleAuthComponent() {
   const [googleAuthExchangeToken, { data, loading, error }] = useMutation(
@@ -22,42 +23,32 @@ function GoogleAuthComponent() {
     flow: "auth-code",
     onSuccess: async (codeResponse) => {
       await googleAuthExchangeToken({
-        variables: {
-          token: codeResponse.code,
-        },
+        variables: { token: codeResponse.code },
       });
     },
   });
 
   useEffect(() => {
-    if (error) {
-      dispatch(signInFailure(error.message));
-    }
-
-    if (loading) {
-      dispatch(signInStart());
-    }
+    if (error) dispatch(signInFailure(error.message));
+    if (loading) dispatch(signInStart());
 
     if (data) {
       dispatch(signInSuccess(data.googleAuthExchangeToken));
-      window.localStorage.setItem("token", data.googleAuthExchangeToken.token)
+      window.localStorage.setItem("token", data.googleAuthExchangeToken.token);
       navigate("/?auth=success");
     }
   }, [data, loading, error, dispatch, navigate]);
 
   return (
-    <>
-      <>
-        <div
-          id="github-signup"
-          onClick={() => googleLogin()}
-          className="min-w-2/5 flex-1 rounded-sm flex items-center gap-2 justify-center text-sm bg-white text-gray-700 border border-gray-300 cursor-pointer"
-        >
-          <FcGoogle size={20} />
-          Sign in with Google
-        </div>
-      </>
-    </>
+    <button
+      type="button"
+      onClick={() => googleLogin()}
+      disabled={loading}
+      className={`${socialButtonClass} disabled:opacity-60`}
+    >
+      <FcGoogle size={20} />
+      Google
+    </button>
   );
 }
 

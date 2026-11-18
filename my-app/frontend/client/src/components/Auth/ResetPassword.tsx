@@ -2,92 +2,99 @@ import { useMutation } from "@apollo/client";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { RESET_USER_PASSWORD } from "../../services/AuthService";
-import { useNavigate } from "react-router-dom";
-import { IoExitOutline } from "react-icons/io5";
+import { useNavigate, useParams } from "react-router-dom";
+import { IoClose } from "react-icons/io5";
+import { Field, SubmitButton } from "./AuthUI";
 
-export default function ResetPassword({
-  setIsResetPassword,
-}: {
-  setIsResetPassword: React.Dispatch<React.SetStateAction<boolean>>;
-}) {
+export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [resetUserPassword, { data, error, loading }] =
-    useMutation(RESET_USER_PASSWORD);
+  const [resetUserPassword, { loading }] = useMutation(RESET_USER_PASSWORD);
   const navigate = useNavigate();
+  const params = useParams();
+  const { userId } = params;
 
+  // Close on Escape
   useEffect(() => {
-    if (error) {
-      toast.error(error.message);
-    }
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
-    if (data) {
-      toast.success(data.resetUserPassword.message);
-      navigate("/profile");
-    }
-  }, [loading, data, error, navigate]);
-
-  const handleChangePassword = async (
-    e: React.MouseEvent<HTMLButtonElement>,
-  ) => {
+  const handleChangePassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (password === confirmPassword) {
-      await resetUserPassword({
+    if (password !== confirmPassword) {
+      toast.error("Passwords don't match. Check both fields and try again.");
+      return;
+    }
+
+    try {
+      const { data } = await resetUserPassword({
         variables: {
+          userId,
           password,
         },
       });
-    } else {
-      toast.error("Password aren't matching. Try again!");
+      toast.success(data.resetPassword.response);
+      navigate("/profile");
+    } catch (err) {
+      toast.error((err as Error).message || "Couldn't reset your password.");
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-white backdrop-blur-md top-0 left-0 z-10 w-full h-full flex justify-center items-center">
-      <div className="w-1/2 h-3/5 relative shadow-xs bg-[#f0ffff] shadow-black rounded p-5! ">
-        <div
-          className="absolute top-15 right-0 p-2! cursor-pointer"
-          onClick={() => setIsResetPassword(false)}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
+      onClick={close}
+      role="presentation"
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="reset-title"
+        onClick={(e) => e.stopPropagation()}
+        className="anim-pop relative w-full max-w-md rounded-2xl border border-teal-100 bg-white p-6 shadow-2xl sm:p-8"
+      >
+        <button
+          type="button"
+          onClick={close}
+          aria-label="Close"
+          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:rotate-90 hover:bg-slate-100 hover:text-slate-800"
         >
-          <IoExitOutline />
-        </div>
-        <div className="w-full rounded border p-2! bg-white flex justify-center items-center">
-          <h1 className="text-sm">Reset Password!</h1>
-        </div>
-        <div className="w-full h-full flex flex-col gap-5 justify-center items-center">
-          <div className="border rounded p-3! bg-[#f0ffff] shadow-xs shadow-blue-950 w-100">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              placeholder="********"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="border flex-1 rounded outline-none p-3! w-full bg-white"
-            />
-          </div>
-          <div className="border rounded p-3! bg-[#f0ffff] shadow-xs shadow-blue-950 w-100">
-            <label htmlFor="confirm_password">Confirm password</label>
-            <input
-              type="password"
-              id="confirm_password"
-              placeholder="********"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="border flex-1 rounded outline-none p-3! w-full bg-white"
-            />
-          </div>
-          <div className="w-100 flex justify-center items-center">
-            <button
-              onClick={(e) => handleChangePassword(e)}
-              disabled={loading}
-              className="flex-1 bg-blue-300! focus:bg-blue-500! cursor-pointer"
-            >
-              Submit
-            </button>
-          </div>
-        </div>
+          <IoClose size={20} />
+        </button>
+
+        <h2 id="reset-title" className="text-xl font-semibold text-slate-900">
+          Reset password
+        </h2>
+        <p className="mb-5 mt-1 text-sm text-slate-500">
+          Choose a new password for your account.
+        </p>
+
+        <form onSubmit={handleChangePassword} className="flex flex-col gap-4">
+          <Field
+            id="password"
+            label="New password"
+            type="password"
+            value={password}
+            onChange={setPassword}
+            placeholder="New password"
+            autoComplete="new-password"
+          />
+          <Field
+            id="confirm_password"
+            label="Confirm new password"
+            type="password"
+            value={confirmPassword}
+            onChange={setConfirmPassword}
+            placeholder="Repeat new password"
+            autoComplete="new-password"
+          />
+          <SubmitButton type="submit" loading={loading}>
+            {loading ? "Saving…" : "Save new password"}
+          </SubmitButton>
+        </form>
       </div>
     </div>
   );

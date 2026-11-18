@@ -1,8 +1,7 @@
 import { useMutation } from "@apollo/client";
 import { useNavigate } from "react-router-dom";
 import { LOGIN_NOW } from "../../services/AuthService";
-import { useEffect, useState } from "react";
-import "./Login.css";
+import { useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import {
@@ -12,107 +11,82 @@ import {
 } from "../../redux/user/userSlice";
 import GoogleAuthComponent from "./GoogleAuthComponent";
 import GithubAuthComponent from "./GithubAuthComponent";
+import { AuthShell, Field, SocialRow, SubmitButton } from "./AuthUI";
 
 function LoginComponent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [login, { data, loading, error }] = useMutation(LOGIN_NOW);
+  const [login, { loading }] = useMutation(LOGIN_NOW);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    if (loading) {
-      dispatch(loginStart());
-      toast.loading("Validating credentials");
-    }
-    if (error) {
-      dispatch(loginFailure(error.message));
-      toast.dismiss();
-      toast.error(error.message);
-    }
-    if (data) {
-      dispatch(loginSuccess(data.login));
-      toast.dismiss();
-      toast.success(data.login.message);
-      window.localStorage.setItem("token", data.login.token);
-    }
-  }, [loading, error, data, dispatch]);
-
+  // Everything happens in the handler: no effect re-runs, and we only
+  // navigate when the login actually succeeded.
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Implement login logic here, e.g., call the LOGIN_NOW mutation with email and password
+    dispatch(loginStart());
 
-    await login({
-      variables: {
-        email,
-        password,
-      },
-    });
+    try {
+      const { data } = await login({ variables: { email, password } });
+      dispatch(loginSuccess(data.loginUpUser));
 
-    navigate("/?login=success");
+      window.localStorage.setItem("token", data.loginUpUser.token);
+      toast.success(data.login.message, { id: "login" });
+      navigate("/?login=success");
+    } catch (err) {
+      const message = (err as Error).message || "Login failed. Try again.";
+      dispatch(loginFailure(message));
+      toast.error(message, { id: "login" });
+    }
   };
 
   return (
-    <>
-      <div className="w-full h-screen flex justify-center items-center">
-        <Toaster />
-        <div className="w-120 bg-amber-50 rounded-xl shadow-sm shadow-gray-900">
-          <div className="w-full p-5! flex flex-col">
-            <h2 className="w-full flex text-base font-semibold justify-center items-center border-b">
-              Login here!
-            </h2>
-            <br />
-            <form onSubmit={handleLogin}>
-              <div className="w-full flex flex-col">
-                <label htmlFor="email">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  // value={this.state.email}
-                  // onChange={this.handleChange}
-                  className="outline-none"
-                  placeholder="example@hotmail.com"
-                />
-              </div>
-              <div>
-                <label htmlFor="password">Password</label>
-                <input
-                  type="password"
-                  name="password"
-                  id="password"
-                  className="outline-none"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="*********"
-                />
-              </div>
-              <button
-                type="submit"
-                className="bg-indigo-500! hover:bg-indigo-800!"
-              >
-                Login
-              </button>
-            </form>
-            <div className="w-full flex justify-center cursor-pointer">
-              <span
-                className="text-blue-500 text-sm hover:text-blue-600 py-5!"
-                onClick={() => navigate("/auth/signup")}
-              >
-                Don't have an account?
-              </span>
-            </div>
-            <div className="w-full h-10 flex gap-5 justify-center">
-              <GoogleAuthComponent />
-              <span className="border flex justify-center items-center border-gray-500 rounded-full"></span>
-              <GithubAuthComponent />
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
+    <AuthShell
+      title="Welcome back"
+      subtitle="Log in to continue to your network."
+      footer={
+        <>
+          Don't have an account?{" "}
+          <button
+            type="button"
+            onClick={() => navigate("/auth/signup")}
+            className="font-medium text-teal-700 hover:underline"
+          >
+            Sign up
+          </button>
+        </>
+      }
+    >
+      <Toaster />
+      <form onSubmit={handleLogin} className="flex flex-col gap-4">
+        <Field
+          id="email"
+          label="Email"
+          type="email"
+          value={email}
+          onChange={setEmail}
+          placeholder="you@example.com"
+          autoComplete="email"
+        />
+        <Field
+          id="password"
+          label="Password"
+          type="password"
+          value={password}
+          onChange={setPassword}
+          placeholder="Your password"
+          autoComplete="current-password"
+        />
+        <SubmitButton type="submit" loading={loading}>
+          {loading ? "Logging in…" : "Log in"}
+        </SubmitButton>
+      </form>
+
+      <SocialRow>
+        <GoogleAuthComponent />
+        <GithubAuthComponent />
+      </SocialRow>
+    </AuthShell>
   );
 }
 
