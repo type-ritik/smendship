@@ -28,3 +28,5 @@ export type MessageResponseDTO = Omit<
   IMessage,
   "deletedAt" | "chatRoom" | "sender"
 >;
+
+export type MessageUserResponseDTO = Omit<IMessage, "deletedAT" | "chatRoom">;

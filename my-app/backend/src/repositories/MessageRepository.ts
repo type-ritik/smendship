@@ -4,12 +4,13 @@ import {
   CreateMessageDTO,
   EditedMessageDTO,
   MessageResponseDTO,
+  MessageUserResponseDTO,
 } from "../models/Message";
 
 export class MessageRepository implements IMessageRepository {
   constructor(private prisma: PrismaClient) {}
 
-  async create(data: CreateMessageDTO): Promise<MessageResponseDTO> {
+  async create(data: CreateMessageDTO): Promise<MessageUserResponseDTO> {
     try {
       const payload = await this.prisma.$transaction([
         this.prisma.message.create({
@@ -18,13 +19,8 @@ export class MessageRepository implements IMessageRepository {
             senderId: data.senderId,
             chatRoomId: data.chatRoomId,
           },
-          select: {
-            id: true,
-            content: true,
-            senderId: true,
-            chatRoomId: true,
-            createdAt: true,
-            editedAt: true,
+          include: {
+            sender: true,
           },
         }),
         this.prisma.chatRoom.update({
@@ -40,7 +36,7 @@ export class MessageRepository implements IMessageRepository {
     }
   }
 
-  async update(data: EditedMessageDTO): Promise<MessageResponseDTO> {
+  async update(data: EditedMessageDTO): Promise<MessageUserResponseDTO> {
     try {
       return await this.prisma.$transaction([
         this.prisma.message.update({
@@ -48,6 +44,9 @@ export class MessageRepository implements IMessageRepository {
           data: {
             content: data.content,
             editedAt: new Date(),
+          },
+          include: {
+            sender: true,
           },
         }),
         this.prisma.chatRoom.update({
@@ -74,11 +73,13 @@ export class MessageRepository implements IMessageRepository {
 
   findAllMessageByChatRoomId(
     chatRoomId: string,
-    userId: string,
-  ): Promise<MessageResponseDTO[]> {
+  ): Promise<MessageUserResponseDTO[]> {
     try {
       return this.prisma.message.findMany({
-        where: { chatRoomId, senderId: userId },
+        where: { chatRoomId },
+        include: {
+          sender: true,
+        },
       });
     } catch (error) {
       console.log("Message database error");

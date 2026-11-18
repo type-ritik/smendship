@@ -1,4 +1,4 @@
-import { MessageResponseDTO } from "../models/Message";
+import { MessageResponseDTO, MessageUserResponseDTO } from "../models/Message";
 import { IMessageRepository } from "../repositories/IMessageRepository";
 import { IParticipantRepository } from "../repositories/IParticipantRepository";
 import { SubscriptionService } from "./SubscriptionService";
@@ -14,7 +14,7 @@ export class MessageService {
     content: string,
     userId: string,
     chatRoomId: string,
-  ): Promise<MessageResponseDTO> {
+  ): Promise<MessageUserResponseDTO> {
     const msgCreated = await this.messageRepository.create({
       content,
       senderId: userId,
@@ -38,7 +38,7 @@ export class MessageService {
     content: string,
     userId: string,
     chatRoomId: string,
-  ): Promise<MessageResponseDTO> {
+  ): Promise<MessageUserResponseDTO> {
     const msgEdited = await this.messageRepository.update({
       id,
       content,
@@ -60,11 +60,7 @@ export class MessageService {
 
   public async fetchAllMessagesOfChatRoom(
     chatRoomId: string,
-    userId: string,
-  ): Promise<MessageResponseDTO[]> {
-    return await this.messageRepository.findAllMessageByChatRoomId(
-      chatRoomId,
-      userId,
-    );
+  ): Promise<MessageUserResponseDTO[]> {
+    return await this.messageRepository.findAllMessageByChatRoomId(chatRoomId);
   }
 }
