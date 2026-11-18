@@ -1,70 +1,51 @@
 import { gql, useQuery } from "@apollo/client";
 
+// Backend: Subscription.onEvent -> LiveEvent { action, createdAt, data: EventPayload }
+// EventPayload = MessagePayload | FriendRequestPayload   (Notification is NOT in the union)
 export const ON_USER_EVENT = gql`
-  subscription {
-    onUserEvent {
+  subscription OnEvent {
+    onEvent {
       action
       createdAt
       data {
-        # If the backend returns a message type
-        ... on Message {
+        ... on MessagePayload {
           id
           content
-          sender {
-            id
-            name
-          }
-          chatRoom {
-            id
-          }
+          chatRoomId
+          createdAt
         }
-        # If the backend returns a FriendRequest type
-        ... on FriendRequest {
+        ... on FriendRequestPayload {
           id
-          sender {
-            id
-            name
-          }
-          receiver {
-            id
-            name
-          }
+          senderId
+          receiverId
           isAccepted
-        }
-        # If the backend returns a Notification type
-        ... on Notification {
-          id
-          type
-          isRead
-          notifiedAt
-          fromUser {
-            id
-          }
         }
       }
     }
   }
 `;
 
-export const useRetriveNotification = () => {
-  return useQuery(RETRIVE_NOTIFICATION);
-};
-
+// Backend: Query.retriveUserNotifications -> [NotificationPayload]
 export const RETRIVE_NOTIFICATION = gql`
-  query {
-    getNotification {
+  query RetriveUserNotifications {
+    retriveUserNotifications {
       id
       type
-      fromUser {
+      fromUserId
+      toUserId
+      isRead
+      notifiedAt
+      user1 {
         id
         name
       }
       post {
         id
+        title
         content
       }
-      isRead
-      notifiedAt
     }
   }
 `;
+
+export const useRetriveNotification = () => useQuery(RETRIVE_NOTIFICATION);

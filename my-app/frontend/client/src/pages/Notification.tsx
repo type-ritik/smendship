@@ -1,71 +1,92 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useRetriveNotification } from "../services/NotificationService";
 import type { NotifyInterface } from "../utils/NotificationInterface";
-import { useQuery } from "@apollo/client";
-import { RETRIVE_NOTIFICATION } from "../services/NotificationService";
+
+const AVATAR = "https://cdn-icons-png.flaticon.com/512/1827/1827301.png";
+
+const MESSAGES: Record<string, string> = {
+  CHAT_ROOM_ACTIVATED: "activated a chat room with you.",
+};
+
+function NotificationSkeleton() {
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-white p-3">
+      <div className="skeleton h-11 w-11 rounded-full" />
+      <div className="skeleton h-4 w-1/2 rounded" />
+    </div>
+  );
+}
 
 function Notification() {
-  const [notification, setNotification] = useState<NotifyInterface[]>([]);
-
-  const { data, loading, error } = useQuery(RETRIVE_NOTIFICATION);
+  const { data, loading, error } = useRetriveNotification();
 
   useEffect(() => {
-    if (error) {
-      console.error("Error fetching notifications:", error);
-    }
-    if (loading) {
-      console.log("Loading notifications...");
-    }
+    if (error) console.error("Error fetching notifications:", error);
+  }, [error]);
 
-    if (data) {
-      setNotification(data.getNotification);
-    }
-  }, [data, loading, error]);
+  const notifications: NotifyInterface[] = data?.getNotification ?? [];
+
   return (
-    <div className="mt-30! w-full flex border h-screen p-5! rounded bg-white">
-      <div className="w-full h-full flex flex-col gap-5">
-        <div className="w-full flex justify-center items-center h-15 border rounded bg-[#F0FFFF]">
-          <h1 className="flex font-normal">Notification</h1>
-        </div>
-        <div className="w-full border rounded h-full bg-[#F0FFFF] flex flex-col gap-3 p-5! overflow-y-scroll">
-          {notification.length > 0 ? (
-            notification.map((item) => (
-              <div
-                key={item.id}
-                id="card"
-                className="flex w-full gap-5 border items-center rounded p-2! justify-center bg-yellow-200 hover:cursor-pointer"
-              >
-                <div
-                  className="flex gap-5 w-[20%] items-center justify-cen
-                ter"
-                >
-                  <div className="w-11 h-11 rounded-full border-2 flex items-center justify-center">
-                    <img
-                      src="https://cdn-icons-png.flaticon.com/512/1827/1827301.png"
-                      alt={item.fromUserId.id}
-                      className="w-full h-full object-cover object-center rounded-full"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <h3 className="text-gray-800">
-                      <span className="font-bold text-black">
-                        {item.fromUserId.name}
-                      </span>{" "}
-                      {item.type === "CHAT_ROOM_ACTIVATED"
-                        ? "chat room activated."
-                        : "Notification"}
-                    </h3>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="w-full h-full flex justify-center items-center">
-              <h1 className="text-gray-500 text-lg">No notifications yet.</h1>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+    <main className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-4 pb-10 pt-28 sm:px-6">
+      <header className="anim-rise" style={{ "--i": 0 } as React.CSSProperties}>
+        <h1 className="text-2xl font-semibold text-slate-900 sm:text-3xl">
+          Notifications
+        </h1>
+        <p className="mt-1 text-sm text-slate-500">
+          {loading
+            ? "Checking for updates…"
+            : notifications.length > 0
+              ? `${notifications.length} update${notifications.length > 1 ? "s" : ""}`
+              : "You're all caught up."}
+        </p>
+      </header>
+
+      <section
+        className="anim-rise flex min-h-[50vh] flex-col gap-3 rounded-2xl border border-teal-100 bg-white p-3 shadow-sm sm:p-5"
+        style={{ "--i": 1 } as React.CSSProperties}
+      >
+        {loading ? (
+          <>
+            <NotificationSkeleton />
+            <NotificationSkeleton />
+            <NotificationSkeleton />
+          </>
+        ) : error ? (
+          <p className="m-auto text-center text-sm text-red-600">
+            Couldn't load notifications. Refresh the page to try again.
+          </p>
+        ) : notifications.length > 0 ? (
+          notifications.map((item, i) => (
+            <article
+              key={item.id}
+              className="anim-rise flex cursor-pointer items-center gap-3 rounded-xl border border-teal-100 bg-teal-50/60 p-3 transition hover:-translate-y-0.5 hover:bg-teal-50 hover:shadow-md"
+              style={{ "--i": i } as React.CSSProperties}
+            >
+              <img
+                src={AVATAR}
+                alt=""
+                className="h-11 w-11 shrink-0 rounded-full border-2 border-white object-cover shadow-sm"
+              />
+              <p className="min-w-0 text-sm text-slate-700">
+                <span className="font-semibold text-slate-900">
+                  {item.fromUser.name}
+                </span>{" "}
+                {MESSAGES[item.type] ?? "sent you a notification."}
+              </p>
+            </article>
+          ))
+        ) : (
+          <div className="m-auto flex flex-col items-center gap-1 text-center">
+            <p className="text-base font-medium text-slate-700">
+              No notifications yet
+            </p>
+            <p className="text-sm text-slate-500">
+              New requests and chat updates will show up here.
+            </p>
+          </div>
+        )}
+      </section>
+    </main>
   );
 }
 

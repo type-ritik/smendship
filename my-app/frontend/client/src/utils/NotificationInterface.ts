@@ -1,14 +1,12 @@
+// Backend NotificationPayload (Query.retriveUserNotifications)
 export interface NotifyInterface {
   id: string;
   type: string;
-  fromUserId: {
-    id: string;
-    name: string;
-  };
-  post: {
-    id: string;
-    content: string;
-  };
-  isRead: boolean;
-  notifiedAt: Date;
+  fromUserId: string;
+  toUserId: string;
+  postId?: string | null;
+  isRead: boolean | null;
+  notifiedAt: string;
+  user1?: { id: string; name: string } | null;
+  post?: { id: string; title?: string | null; content?: string | null } | null;
 }
