@@ -62,6 +62,14 @@ export const resolvers = {
       return services.post.searchPost(text);
     },
 
+    fetchMePosts: async (
+      parent: null,
+      { lastPostId },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+      return services.post.retriveEntirePosts(lastPostId);
+    },
     // FRIEND_REQUEST Query
     getFriendRequestsListOfUser: async (
       parent: null,
