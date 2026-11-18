@@ -15,6 +15,7 @@ import bodyParser from "body-parser";
 import { getContext } from "./config/context";
 import { appServices } from "./config/container";
 import { Mailer } from "./config/mailConfig";
+import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
 
 async function main() {
   // Start Express + Apollo
@@ -22,7 +23,16 @@ async function main() {
 
   const schema = makeExecutableSchema({ typeDefs, resolvers });
 
-  const server = new ApolloServer({ schema });
+  const server = new ApolloServer({
+    schema,
+    plugins: [
+      ApolloServerPluginLandingPageLocalDefault({
+        embed: {
+          endpointIsEditable: true,
+        },
+      }),
+    ],
+  });
 
   // Verify the nodemailer connection
   new Mailer().serverStart();
