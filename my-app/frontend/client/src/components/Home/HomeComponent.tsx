@@ -2,13 +2,13 @@ import { useNavigate } from "react-router-dom";
 import EditorComponent from "../Editor/EditorComponent";
 import { useSelector } from "react-redux";
 import type { UserObjState } from "../../utils/userInterfaces";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useMutation } from "@apollo/client";
 import { FOLLOW_FRIEND } from "../../services/HomeService";
 import toast from "react-hot-toast";
 import type { postObj } from "../../utils/postInterfaces";
 import ShowComments from "../Comment/ShowComments";
-import { useGetPost } from "../../services/PostService";
+import { useEntirePost } from "../../services/PostService";
 import { FiHeart, FiMessageCircle } from "react-icons/fi";
 
 const AVATAR =
@@ -40,13 +40,70 @@ function HomeComponent() {
     useMutation(FOLLOW_FRIEND);
   const user = currentUser?.user;
 
-  const { loading, error, data } = useGetPost(user?.id ?? "");
-  const postData: postObj[] = data?.getPostsByUserId ?? [];
+  const { loadEntirePost } = useEntirePost();
+  const [posts, setPosts] = useState<postObj[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const isLoadingRef = useRef(false);
+
+  const fetchPosts = useCallback(async (cursor?: string | null) => {
+    if (isLoadingRef.current) return;
+    isLoadingRef.current = true;
+    setIsLoading(true);
+
+    try {
+      const { data } = await loadEntirePost({
+        variables: { lastPostId: cursor },
+      });
+      const postData = data.fetchMePosts.posts;
+      setPosts((prev) => [...prev, ...postData]);
+      setNextCursor(data?.fetchMePosts?.nextCursor);
+      setHasInitialized(true);
+    } finally {
+      isLoadingRef.current = false;
+      setIsLoading(false);
+    }
+  }, [loadEntirePost]);
 
   useEffect(() => {
-    if (error) toast.error("You don't have any messages.", { id: "posts-error" });
-  }, [error]);
+    fetchPosts();
+  }, [fetchPosts]);
+
+  useEffect(() => {
+    if (!hasInitialized || nextCursor === null) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isLoading) {
+          fetchPosts(nextCursor);
+        }
+      },
+      {
+        rootMargin: "200px",
+      },
+    );
+
+    const currentTarget = bottomRef.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [hasInitialized, nextCursor, isLoading, fetchPosts]);
+
+  // const postData: postObj[] = data?.getPostsByUserId ?? [];
+
+  // useEffect(() => {
+  //   if (error)
+  //     toast.error("You don't have any messages.", { id: "posts-error" });
+  // }, [error]);
 
   const handleFollowRequest = async (authorId: string) => {
     try {
@@ -157,13 +214,13 @@ function HomeComponent() {
           <EditorComponent />
         </div>
 
-        {loading && postData.length === 0 ? (
+        {isLoading && posts.length === 0 ? (
           <>
             <PostSkeleton />
             <PostSkeleton />
           </>
-        ) : postData.length > 0 ? (
-          postData.map((post: postObj, i) => {
+        ) : posts.length > 0 ? (
+          posts.map((post: postObj, i) => {
             const isMine = post?.author?.id === user?.id;
             const authorId = post?.author?.id;
             const followed = authorId ? followedIds.has(authorId) : false;
