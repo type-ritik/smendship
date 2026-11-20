@@ -4,12 +4,11 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // url      = env("DATABASE_URL")
 }
 
 model Notification {
   id         String   @id @default(uuid()) @db.Uuid
-  notifiedAt DateTime @default(now()) @db.Timestamp(3)
+  notifiedAt DateTime @default(now())
   fromUserId String   @db.Uuid
   isRead     Boolean  @default(false)
   postId     String?  @db.Uuid
@@ -25,7 +24,7 @@ model FriendRequest {
   senderId    String    @db.Uuid
   receiverId  String    @db.Uuid
   isAccepted  Boolean?
-  requestedAt DateTime  @default(now()) @db.Timestamp(3)
+  requestedAt DateTime  @default(now())
   acceptedAt  DateTime? @updatedAt
   type        Request
   receiver    User      @relation("ReceiverRequests", fields: [receiverId], references: [id])
@@ -38,7 +37,7 @@ model Friendship {
   id         String   @id @default(uuid()) @db.Uuid
   follower   String   @db.Uuid
   following  String   @db.Uuid
-  createdAt  DateTime @default(now()) @db.Timestamp(3)
+  createdAt  DateTime @default(now())
   followers  User     @relation("Friendship_followerToUser", fields: [follower], references: [id], map: "Friendship_user1Id_fkey")
   followings User     @relation("Friendship_followingToUser", fields: [following], references: [id], map: "Friendship_user2Id_fkey")
 
@@ -50,7 +49,7 @@ model CommentLike {
   userId    String   @db.Uuid
   postId    String   @db.Uuid
   commentId String   @db.Uuid
-  createdAt DateTime @default(now()) @db.Timestamp(3)
+  createdAt DateTime @default(now())
   comment   Comment  @relation(fields: [commentId], references: [id])
   post      Post     @relation(fields: [postId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
@@ -62,7 +61,7 @@ model PostLike {
   id        String   @id @default(uuid()) @db.Uuid
   userId    String   @db.Uuid
   postId    String   @db.Uuid
-  createdAt DateTime @default(now()) @db.Timestamp(3)
+  createdAt DateTime @default(now())
   is_liked  Boolean? @default(true)
   post      Post     @relation(fields: [postId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
@@ -75,7 +74,7 @@ model Comment {
   comment     String
   authorId    String?       @db.Uuid
   postId      String?       @db.Uuid
-  createdAt   DateTime      @default(now()) @db.Timestamp(3)
+  createdAt   DateTime      @default(now())
   likeCount   Int           @default(0)
   author      User?         @relation(fields: [authorId], references: [id])
   Post        Post?         @relation(fields: [postId], references: [id])
@@ -87,7 +86,7 @@ model Post {
   title        String         @unique
   content      String
   authorId     String         @db.Uuid
-  createdAt    DateTime       @default(now()) @db.Timestamp(3)
+  createdAt    DateTime       @default(now())
   likeCount    Int            @default(0)
   category     Category       @default(UNDEFINED)
   is_revoked   Boolean?       @default(false)
@@ -96,23 +95,54 @@ model Post {
   Notification Notification[]
   author       User           @relation(fields: [authorId], references: [id])
   postLikes    PostLike[]
+  postImages   PostImages[]
+}
+
+model PostImages {
+  id       String   @id @default(uuid()) @db.Uuid
+  postId   String   @db.Uuid
+  imageId  String   @db.Uuid
+  postedAt DateTime @default(now()) @db.Timestamp(3)
+  post     Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  image    Images   @relation(fields: [imageId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, imageId])
+}
+
+model Images {
+  id         String   @id @default(uuid()) @db.Uuid
+  url        String
+  userId     String   @db.Uuid
+  uploadedAt DateTime @default(now()) @db.Timestamp(3)
+
+  // Existing 1-to-many relation (all images uploaded by this user)
+  user User @relation("UserUploadedImages", fields: [userId], references: [id], onDelete: Cascade)
+
+  // New 1-to-1 back-relation (if this image is used as a profile picture)
+  profileFor User? @relation("UserProfileImage")
+
+  postImages PostImages[]
 }
 
 model User {
-  id                                    String          @id @default(uuid()) @db.Uuid
-  name                                  String          @db.VarChar(100)
-  email                                 String          @unique @db.VarChar(100)
-  password                              String?         @db.VarChar(255)
-  createdAt                             DateTime        @default(now()) @db.Timestamp(3)
-  role                                  Role            @default(USER)
-  status                                user_status?    @default(offline)
-  is_activated                          Boolean?        @default(true)
-  codeExpiry                            DateTime?       @db.Timestamptz(3)
-  verificationCode                      String?         @db.Char(6)
-  auth_method                           String?         @default("email") @db.VarChar(50)
-  auth_method_id                        String?         @unique @db.VarChar(255)
-  profile_image                         String?
-  bio                                   String?
+  id               String       @id @default(uuid()) @db.Uuid
+  name             String       @db.VarChar(100)
+  email            String       @unique @db.VarChar(100)
+  password         String?      @db.VarChar(255)
+  createdAt        DateTime     @default(now())
+  role             Role         @default(USER)
+  status           user_status? @default(offline)
+  is_activated     Boolean?     @default(true)
+  auth_method      String?      @default("email") @db.VarChar(50)
+  auth_method_id   String?      @unique @db.VarChar(255)
+  bio              String?
+  codeExpiry       DateTime?    @db.Timestamptz(3)
+  verificationCode String?      @db.Char(6)
+  profileImageId   String?      @unique @db.Uuid
+  profileImage     Images?      @relation("UserProfileImage", fields: [profileImageId], references: [id], onDelete: SetNull)
+
+  // Existing 1-to-many relation (must match the relation name in Images)
+  images                                Images[]        @relation("UserUploadedImages")
   Comment                               Comment[]
   CommentLike                           CommentLike[]
   FriendRequestReceived                 FriendRequest[] @relation("ReceiverRequests")
@@ -131,10 +161,9 @@ model ChatRoom {
   id            String        @id @default(uuid()) @db.Uuid
   name          String?
   isGroup       Boolean       @default(false)
-  // For DMs only: sorted "userA:userB". Unique => one DM per pair. NULL for groups.
-  directKey     String?       @unique
-  lastMessageAt DateTime?     @db.Timestamptz(3) // for sorting the chat list
   createdAt     DateTime      @default(now()) @db.Timestamptz(3)
+  directKey     String?       @unique
+  lastMessageAt DateTime?     @db.Timestamptz(3)
   messages      Message[]
   participants  Participant[]
 
@@ -147,9 +176,9 @@ model Participant {
   chatRoomId    String            @db.Uuid
   role          participant_role? @default(member)
   joinedAt      DateTime          @default(now()) @db.Timestamptz(3)
-  leftAt        DateTime?         @db.Timestamptz(3)
-  lastReadAt    DateTime?         @db.Timestamptz(3) // unread count = messages after this
+  lastReadAt    DateTime?         @db.Timestamptz(3)
   lastReadMsgId String?           @db.Uuid
+  leftAt        DateTime?         @db.Timestamptz(3)
   chatRoom      ChatRoom          @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
   user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -162,13 +191,12 @@ model Message {
   content    String
   senderId   String    @db.Uuid
   chatRoomId String    @db.Uuid
-  createdAt  DateTime  @default(now()) @db.Timestamptz(3) // ms precision matches JS Date
-  editedAt   DateTime? @db.Timestamptz(3)
+  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
   deletedAt  DateTime? @db.Timestamptz(3)
+  editedAt   DateTime? @db.Timestamptz(3)
   chatRoom   ChatRoom  @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
   sender     User      @relation("UserMessages", fields: [senderId], references: [id])
 
-  // Matches: WHERE chatRoomId = ? ORDER BY createdAt DESC, id DESC
   @@index([chatRoomId, createdAt(sort: Desc), id(sort: Desc)])
 }
 

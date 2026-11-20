@@ -1,5 +1,6 @@
 import { Category } from "@prisma/client";
 import { IUser } from "./User";
+import { IPostImages } from "./PostImages";
 
 export interface IPost {
   id: string;
@@ -11,18 +12,34 @@ export interface IPost {
   category: Category;
   is_revoked: boolean;
   author: IUser;
+  imageId: string;
+  postImages: IPostImages[];
 }
 
 // RequestDTO
 export type CreatePostRequestDTO = Omit<
   IPost,
-  "likeCount" | "author" | "createdAt" | "is_revoked" | "id"
+  "likeCount" | "author" | "createdAt" | "is_revoked" | "id" | "postImages"
 >;
 
 export type EditPostRequestDTO = Omit<
   IPost,
-  "likeCount" | "author" | "createdAt" | "is_revoked" | "author"
+  | "likeCount"
+  | "author"
+  | "createdAt"
+  | "is_revoked"
+  | "author"
+  | "imageId"
+  | "postImages"
 >;
 
 // ResponseDTO
-export type PostResponseDTO = Omit<IPost, "is_revoked" | "authorId">;
+export type PostResponseDTO = Omit<
+  IPost,
+  "is_revoked" | "authorId" | "imageId" | "postImages"
+>;
+
+export type PostProfileResponseDTO = Omit<
+  IPost,
+  "is_revoked" | "authorId" | "imageId"
+>;

@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import {
   CreatePostRequestDTO,
   EditPostRequestDTO,
+  PostProfileResponseDTO,
   PostResponseDTO,
 } from "../models/Post";
 
@@ -21,6 +22,11 @@ export class PostRepository {
           content: data.content,
           authorId: data.authorId,
           category: data.category,
+          postImages: {
+            create: {
+              imageId: data.imageId,
+            },
+          },
         },
         include: {
           author: true,
@@ -124,7 +130,7 @@ export class PostRepository {
 
   public async fetchAllCursorBasePosts(
     lastPostId: string,
-  ): Promise<{ posts: PostResponseDTO[]; nextCursor: string }> {
+  ): Promise<{ posts: PostProfileResponseDTO[]; nextCursor: string }> {
     try {
       const posts = await this.prisma.post.findMany({
         take: this.pageSize,
@@ -139,13 +145,21 @@ export class PostRepository {
         },
         include: {
           author: true,
+          postImages: {
+            include: {
+              image: true,
+            },
+          },
         },
       });
 
       const nextCursor =
         posts.length === this.pageSize ? posts[posts.length - 1].id : null;
 
-      return { posts, nextCursor };
+      return {
+        posts: posts as unknown as PostProfileResponseDTO[],
+        nextCursor,
+      };
     } catch (error) {
       console.log("Post error", error.message);
       throw new Error("❌ Database query crashed");

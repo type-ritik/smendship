@@ -1,6 +1,7 @@
 import {
   CreatePostRequestDTO,
   EditPostRequestDTO,
+  PostProfileResponseDTO,
   PostResponseDTO,
 } from "../models/Post";
 
@@ -12,5 +13,5 @@ export interface IPostRepository {
   fetchPostByPostId(postId: string): Promise<PostResponseDTO>;
   fetchAllCursorBasePosts(
     lastPostId: string,
-  ): Promise<{ posts: PostResponseDTO[]; nextCursor: string }>;
+  ): Promise<{ posts: PostProfileResponseDTO[]; nextCursor: string }>;
 }
