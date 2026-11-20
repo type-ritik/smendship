@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import type { ChangeEvent, Dispatch, FormEvent, SetStateAction } from "react";
 
 import { useCreatePost, useUploadImage } from "../../services/PostService";
@@ -23,7 +24,7 @@ function CreatePost({ isEditorOpen, setIsEditorOpen }: CreatePostInterface) {
   // Image state
   const [imageString, setImageString] = useState("");
   const [url, setUrl] = useState("");
-  const [imageId, setImageId] = useState("")
+  const [imageId, setImageId] = useState("");
   const [imgUploadLoading, setImgUploadLoading] = useState(false);
 
   // API hooks
@@ -119,7 +120,7 @@ function CreatePost({ isEditorOpen, setIsEditorOpen }: CreatePostInterface) {
       }
 
       setUrl(uploadedUrl);
-      setImageId(uploadedImageId)
+      setImageId(uploadedImageId);
 
       toast.success("Image uploaded successfully.");
     } catch (error) {
@@ -168,11 +169,19 @@ function CreatePost({ isEditorOpen, setIsEditorOpen }: CreatePostInterface) {
     }
   };
 
-  if (!isEditorOpen) return null;
+  useEffect(() => {
+    if (!isEditorOpen) return;
 
-  return (
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [isEditorOpen]);
+
+  return createPortal(
     <div
-      className="absolute inset-0 top-50 z-50 flex items-end justify-center p-0 backdrop-blur-sm sm:items-center sm:p-4"
+      className="absolute inset-0 bg-black/30 z-50 flex items-end justify-center p-0 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={close}
       role="presentation"
     >
@@ -292,7 +301,8 @@ function CreatePost({ isEditorOpen, setIsEditorOpen }: CreatePostInterface) {
           </div>
         </div>
       </form>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
