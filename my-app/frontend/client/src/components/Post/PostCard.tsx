@@ -82,7 +82,7 @@ export default function PostCard({
 
   return (
     <article
-      className="anim-rise -z-1 rounded-2xl border border-teal-100 bg-white shadow-sm"
+      className="anim-rise rounded-2xl border border-teal-100 bg-white shadow-sm"
       style={{ "--i": Math.min(index, 6) + 2 } as CSSProperties}
     >
       <header className="flex items-center gap-3 p-4 sm:px-5">
