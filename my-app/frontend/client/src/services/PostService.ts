@@ -67,8 +67,23 @@ export const FETCH_ME_POST = gql`
           id
           name
         }
+        postImages {
+          image {
+            id
+            url
+          }
+        }
       }
       nextCursor
+    }
+  }
+`;
+
+export const UPLOAD_IMAGE = gql`
+  mutation UploadImage($image: String!) {
+    uploadImage(image: $image) {
+      id
+      url
     }
   }
 `;
@@ -101,4 +116,10 @@ export const useEntirePost = () => {
   const [loadEntirePost, { loading, data, error }] =
     useLazyQuery(FETCH_ME_POST);
   return { loadEntirePost, loading, data, error };
+};
+
+export const useUploadImage = () => {
+  const [uploadImage, { loading, data, error }] = useMutation(UPLOAD_IMAGE);
+
+  return { uploadImage, loading, data, error };
 };
