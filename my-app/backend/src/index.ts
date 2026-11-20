@@ -41,8 +41,9 @@ async function main() {
   app.use(
     "/graphql",
     cors(),
-    express.json(),
+    express.json({limit: '10mb'}),
     bodyParser.json(),
+    express.urlencoded({limit: '10mb', extended: true}),
     expressMiddleware(server, {
       context: async ({ req, res }) => {
         // 1. Run your existing base HTTP JWT verification logic
