@@ -261,6 +261,27 @@ export const resolvers = {
 
       return services.likePost.fetchPostLikesCount(postId);
     },
+
+    // Image Query
+    retriveImageById: async (
+      parent: null,
+      { id },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.image.fetchImageById(id);
+    },
+
+    retriveImageListOfUser: async (
+      parent: null,
+      input: null,
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.image.fetchImagesOfUser(user.id);
+    },
   },
 
   Mutation: {
@@ -480,6 +501,17 @@ export const resolvers = {
       if (!user.id) throw new Error("Unauthorized Entity");
 
       return services.likePost.removeLike(id);
+    },
+
+    // Image Mutation
+    uploadImage: async (
+      parent: null,
+      { image },
+      { user, services }: GraphQLContext,
+    ) => {
+      if (!user.id) throw new Error("Unauthorized Entity");
+
+      return services.image.uploadImage(user.id, image);
     },
   },
   Subscription: {

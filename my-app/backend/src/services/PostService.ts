@@ -1,6 +1,7 @@
 import {
   CreatePostRequestDTO,
   EditPostRequestDTO,
+  PostProfileResponseDTO,
   PostResponseDTO,
 } from "../models/Post";
 import { IPostRepository } from "../repositories/IPostRepository";
@@ -77,7 +78,7 @@ export class PostService {
 
   public async retriveEntirePosts(
     lastPostId: string,
-  ): Promise<{ posts: PostResponseDTO[]; nextCursor: string }> {
+  ): Promise<{ posts: PostProfileResponseDTO[]; nextCursor: string }> {
     const payload =
       await this.postRepository.fetchAllCursorBasePosts(lastPostId);
 

@@ -59,6 +59,7 @@ export const typeDefs = gql`
     title: String
     content: String
     category: String
+    imageId: String
   }
 
   input EditPostInput {
@@ -76,6 +77,7 @@ export const typeDefs = gql`
     authorId: String
     createdAt: DateTime
     author: User
+    postImages: [PostImage]
   }
 
   type InfinitePostPayload {
@@ -197,6 +199,27 @@ export const typeDefs = gql`
     createdAt: String!
   }
 
+  # Image Input
+
+  # Image Types
+  type ImagePayload {
+    id: String!
+    url: String!
+    userId: String
+    user: User
+  }
+
+  # PostImage Input
+
+  # PostImage Type
+  type PostImage {
+    id: String!
+    postId: String
+    postedAt: DateTime
+    imageId: String
+    image: ImagePayload
+  }
+
   # Global Input
 
   # Global Types
@@ -270,6 +293,11 @@ export const typeDefs = gql`
     retriveLikesOfPost(postId: String!): [LikePostPayload]
 
     retriveLikesCountOnPost(postId: String!): GlobalCount
+
+    # Image Query
+    retriveImageById(imageId: String!): ImagePayload
+
+    retriveImageListOfUser: [ImagePayload]
   }
 
   type Mutation {
@@ -328,6 +356,9 @@ export const typeDefs = gql`
     unLikePost(id: String!, isLiked: Boolean!): LikePostPayload
 
     removeLikePost(id: String!): GlobalPayload
+
+    # Image Mutation
+    uploadImage(image: String!): ImagePayload
   }
 
   type Subscription {

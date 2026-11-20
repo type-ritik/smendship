@@ -22,6 +22,8 @@ import { CommentRepository } from "../repositories/CommentRepository";
 import { CommentService } from "../services/CommentServices";
 import { LikePostRepository } from "../repositories/LikePostRepository";
 import { LikePostService } from "../services/LikePostServices";
+import { ImageRepository } from "../repositories/ImageRepository";
+import { ImageServices } from "../services/ImageServices";
 
 // Repository & Configs
 // User Repo
@@ -56,6 +58,9 @@ const commentRepository = new CommentRepository(prisma);
 
 // LikePost Repo
 const likePostRepository = new LikePostRepository(prisma);
+
+// Image Repo
+const imageRepository = new ImageRepository(prisma);
 
 // Services
 
@@ -102,6 +107,9 @@ const commentService = new CommentService(commentRepository);
 // LikePost Service
 const likePostService = new LikePostService(likePostRepository);
 
+// Image Service
+const imageService = new ImageServices(imageRepository);
+
 export const appServices = {
   user: userService,
   post: postService,
@@ -114,4 +122,5 @@ export const appServices = {
   notification: notificationService,
   comment: commentService,
   likePost: likePostService,
+  image: imageService,
 };
