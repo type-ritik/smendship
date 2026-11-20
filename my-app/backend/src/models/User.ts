@@ -16,14 +16,14 @@ export interface IUser {
   status: string | null;
   verificationCode: string | null;
   codeExpiry: Date | null;
-  profile_image: string | null;
+  profileImageId: string | null;
   createdAt: Date;
 }
 
 // Request payload shape for creating a user (Omits system-generated fields)
 export type CreateUserDTO = Omit<
   IUser,
-  "id" | "createdAt" | "role" | "status" | "profile_image"
+  "id" | "createdAt" | "role" | "status" | "profileImageId"
 >;
 
 export type UpdateUserDTO = Omit<
@@ -34,7 +34,7 @@ export type UpdateUserDTO = Omit<
   | "status"
   | "verificationCode"
   | "codeExpiry"
-  | "profile_image"
+  | "profileImageId"
 >;
 
 // Response payload shape sent to the client (Hides sensitive credentials)
@@ -45,7 +45,7 @@ export type UserResponseDTO = Omit<
   | "status"
   | "verificationCode"
   | "codeExpiry"
-  | "profile_image"
+  | "profileImageId"
 >;
 
 export type UpdateUserResponseDTO = Omit<
@@ -55,7 +55,7 @@ export type UpdateUserResponseDTO = Omit<
   | "role"
   | "verificationCode"
   | "codeExpiry"
-  | "profile_image"
+  | "profileImageId"
   | "status"
 >;
 
@@ -72,10 +72,12 @@ export type ThirdPartyDTO = {
 
 export type UserOTPResponseDTO = Omit<
   IUser,
-  "createdAt" | "role" | "profile_image" | "status"
+  "createdAt" | "role" | "profileImageId" | "status"
 >;
 
 export type UserProfileResponseDTO = Omit<
   IUser,
   "password" | "verficationCode" | "codeExpiry"
 >;
+
+
