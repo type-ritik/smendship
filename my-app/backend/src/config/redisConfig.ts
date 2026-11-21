@@ -1,6 +1,11 @@
 import Redis, { RedisOptions } from "ioredis";
+import "dotenv/config"
 
-const redisUrl: string = process.env.REDIS_URL || "redis://localhost:6379";
+const redisUrl: string = process.env.REDIS_URL
+
+if(!redisUrl) {
+  throw new Error("FATAL: REDIS_URL environment variable is not defined.");
+}
 
 export const baseOptions: RedisOptions = {
   maxRetriesPerRequest: 3,
