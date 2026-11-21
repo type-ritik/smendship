@@ -1,7 +1,7 @@
 import Redis, { RedisOptions } from "ioredis";
 import "dotenv/config"
 
-const redisUrl: string = process.env.REDIS_URL
+export const redisUrl: string = process.env.REDIS_URL
 
 if(!redisUrl) {
   throw new Error("FATAL: REDIS_URL environment variable is not defined.");
