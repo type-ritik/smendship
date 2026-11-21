@@ -49,7 +49,10 @@ async function main() {
   await server.start();
   app.use(
     "/graphql",
-    cors(),
+    cors({
+      origin: process.env.CLIENT_URL,
+      credentials: true,
+    }),
     express.json({ limit: "10mb" }),
     bodyParser.json(),
     express.urlencoded({ limit: "10mb", extended: true }),

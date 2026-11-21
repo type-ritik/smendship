@@ -79,7 +79,6 @@ interface ImageCarouselProps {
 }
 
 export function ImageCarousel({ images }: ImageCarouselProps) {
-  console.log(images)
   const list = (Array.isArray(images) ? images : [])
     .map((item, idx) => {
       if (typeof item === "string") {
