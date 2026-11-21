@@ -16,6 +16,7 @@ import { getContext } from "./config/context";
 import { appServices } from "./config/container";
 import { Mailer } from "./config/mailConfig";
 import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
+import { redisClient } from "./config/redisConfig";
 
 async function main() {
   // Start Express + Apollo
@@ -37,13 +38,21 @@ async function main() {
   // Verify the nodemailer connection
   new Mailer().serverStart();
 
+  redisClient.on("error", (err) => {
+    console.log("Redis connection error:", err);
+  });
+
+  redisClient.on("connect", () => {
+    console.log("Redis is connected successfully");
+  });
+
   await server.start();
   app.use(
     "/graphql",
     cors(),
-    express.json({limit: '10mb'}),
+    express.json({ limit: "10mb" }),
     bodyParser.json(),
-    express.urlencoded({limit: '10mb', extended: true}),
+    express.urlencoded({ limit: "10mb", extended: true }),
     expressMiddleware(server, {
       context: async ({ req, res }) => {
         // 1. Run your existing base HTTP JWT verification logic
