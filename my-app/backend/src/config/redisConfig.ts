@@ -1,9 +1,10 @@
 import Redis, { RedisOptions } from "ioredis";
 
+const redisUrl: string = process.env.REDIS_URL || "redis://localhost:6379";
+
 export const baseOptions: RedisOptions = {
-  host: process.env.REDIS_HOST || '127.0.0.1',
-  port: Number(process.env.REDIS_PORT) || 6379,
-  retryStrategy: (times) => Math.min(times * 50, 2000), // Auto-reconnect logic
+  maxRetriesPerRequest: 3,
+  retryStrategy: (times: number) => Math.min(times * 50, 2000), // Auto-reconnect logic
 };
 
-export const redisClient = new Redis(baseOptions)
+export const redisClient = new Redis(redisUrl, baseOptions);
