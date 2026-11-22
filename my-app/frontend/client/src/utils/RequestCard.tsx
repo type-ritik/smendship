@@ -1,17 +1,14 @@
-import type { InvitationRequestInterface } from "../../../utils/userInterfaces";
+import type { InvitationRequestInterface } from "../utils/userInterfaces";
 import {
   LIST_OF_FOLLOWERS,
   LIST_OF_FOLLOWINGS,
   LIST_OF_FRIEND_REQUESTS,
   useUpdateFriendRequestResponse,
-} from "../../../services/InvitationService";
-import {
-  FOLLOWERS_COUNT,
-  FOLLOWINGS_COUNT,
-} from "../../../services/FriendService";
+} from "../services/InvitationService";
+import { FOLLOWERS_COUNT, FOLLOWINGS_COUNT } from "../services/FriendService";
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
-import { useChatroomCreation } from "../../../services/ChatRoomService";
+import { useChatRoomCreation } from "../services/ChatRoomService";
 import { useNavigate } from "react-router-dom";
 
 type RequestCardProps = {
@@ -60,7 +57,7 @@ function RequestCard({ responseCall, invitationRequest }: RequestCardProps) {
 
   const { friendRequestResponse, data, loading, error } =
     useUpdateFriendRequestResponse();
-  const { createChatSpace, loading: chatLoading } = useChatroomCreation();
+  const { createChatSpace, loading: chatLoading } = useChatRoomCreation();
 
   // One toast id, so loading -> success/error replaces itself.
   useEffect(() => {
@@ -100,7 +97,7 @@ function RequestCard({ responseCall, invitationRequest }: RequestCardProps) {
           // Navigate right after the mutation resolves instead of from an
           // effect, which re-fired navigate whenever the location changed.
           const res = await createChatSpace({
-            variables: { receiverId: item.user.id },
+            variables: { receiverId: item.sender?.id },
           });
           const roomId = res.data?.createChatSpace?.id;
           if (!roomId) throw new Error("No chat room returned");
@@ -134,7 +131,7 @@ function RequestCard({ responseCall, invitationRequest }: RequestCardProps) {
   return (
     <ul className="flex w-full flex-col gap-3">
       {visible.map((item, i) => {
-        const online = item.user.status === "online";
+        const online = item.sender?.status === "online";
         return (
           <li
             key={item.id}
@@ -144,9 +141,9 @@ function RequestCard({ responseCall, invitationRequest }: RequestCardProps) {
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <div className="relative shrink-0">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-teal-600 font-semibold uppercase text-white">
-                  {item.user.name?.[0] ?? "?"}
+                  {item.sender?.name?.[0] ?? "?"}
                 </div>
-                {item.user.status && (
+                {item.sender?.status && (
                   <span
                     className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white ${
                       online ? "bg-emerald-500" : "bg-slate-300"
@@ -156,13 +153,13 @@ function RequestCard({ responseCall, invitationRequest }: RequestCardProps) {
               </div>
               <div className="min-w-0">
                 <h3 className="truncate text-base font-semibold text-slate-900">
-                  {item.user.name}
+                  {item.sender?.name}
                 </h3>
-                {item.user.status && (
+                {item.sender?.status && (
                   <p
                     className={`text-xs ${online ? "text-emerald-600" : "text-slate-400"}`}
                   >
-                    {item.user.status}
+                    {item.sender?.status}
                   </p>
                 )}
               </div>

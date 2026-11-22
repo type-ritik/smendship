@@ -1,4 +1,5 @@
-import { Message, Participant } from "@prisma/client";
+import { Message } from "@prisma/client";
+import { IParticipant } from "./Participants";
 
 export interface IChatRoom {
   id: string;
@@ -7,7 +8,7 @@ export interface IChatRoom {
   directKey: string;
   lastMessageAt: Date;
   messages: Message[] | null;
-  participants: Participant[] | null;
+  participants: IParticipant[] | null;
 }
 
 // ChatRoom Request DTO

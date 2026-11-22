@@ -16,7 +16,7 @@ export const typeDefs = gql`
     admin
   }
 
-  union EventPayload = MessagePayload | FriendRequestPayload
+  union EventPayload = MessagePayload | FriendRequestPayload | User
 
   # User Inputs
   input SignupInput {
@@ -114,7 +114,7 @@ export const typeDefs = gql`
 
   # Message Types
   type MessagePayload {
-    id: String!
+    id: String
     content: String
     chatRoomId: String
     editedAt: DateTime
@@ -152,9 +152,9 @@ export const typeDefs = gql`
 
   # Subscription Types
   type LiveEvent {
-    action: String!
-    createdAt: String!
-    data: EventPayload!
+    action: String
+    createdAt: String
+    data: EventPayload
   }
 
   # Notification Input

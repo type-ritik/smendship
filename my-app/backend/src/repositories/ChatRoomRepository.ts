@@ -89,13 +89,26 @@ export class ChatRoomRepository implements IChatRoomRepository {
               },
             },
             include: {
-              user: true,
+              chatRoom: true,
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  status: true,
+                  profileImage: {
+                    select: {
+                      id: true,
+                      url: true,
+                    },
+                  },
+                },
+              },
             },
           },
         },
       });
 
-      return rooms;
+      return rooms as unknown as ChatRoomParticipantResponseDTO[];
     } catch (error) {
       console.log("ChatRoom database error", error);
       throw new Error("❌ Database error");

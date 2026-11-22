@@ -4,6 +4,7 @@ import {
 } from "../models/ChatRoom";
 import { IChatRoomRepository } from "../repositories/IChatRoomRepository";
 import { IUserRepository } from "../repositories/IUserRepository";
+import { presenceService } from "./presenceService";
 
 export class ChatRoomService {
   constructor(
@@ -21,11 +22,16 @@ export class ChatRoomService {
 
     const directKey = this.generateDirectKey(userId, receiverId);
 
-    return this.chatRoomRepository.create({
+    const payload = await this.chatRoomRepository.create({
       receiverId,
       senderId: userId,
       data: { directKey, isGroup: false, name: "" },
     });
+
+    await presenceService.setWatcher(userId, receiverId);
+    await presenceService.setWatcher(receiverId, userId);
+
+    return payload;
   }
 
   public async fetchUserChatRoomParticipants(
@@ -36,7 +42,21 @@ export class ChatRoomService {
         userId,
       );
 
-    return participants;
+    const userIds = participants.flatMap((room) =>
+      room.participants.map((participant) => participant.userId),
+    );
+    const onlineStatuses = await presenceService.getOnlineStatuses(userIds);
+
+    return participants.map((room) => ({
+      ...room,
+      participants: room.participants.map((participant) => ({
+        ...participant,
+        user: {
+          ...participant.user,
+          status: onlineStatuses[participant.userId] ? "online" : "offline",
+        },
+      })),
+    }));
   }
 
   private generateDirectKey(userId: string, receiverId: string): string {

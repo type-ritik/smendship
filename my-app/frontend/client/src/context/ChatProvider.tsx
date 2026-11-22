@@ -21,20 +21,20 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const { data } = useSubscription(ON_USER_EVENT, { skip: !currentUser });
 
   useEffect(() => {
-    if (data?.onUserEvent?.action === "NEW_MESSAGE") {
+    const msgData = data?.onEvent;
+    if (msgData?.action === "MESSAGE_RECEIVED") {
       const newMessage: Message = {
-        id: data.onUserEvent.data.id,
-        content: data.onUserEvent.data.content,
+        id: msgData.data.msgId,
+        content: msgData.data.content,
         sender: {
-          id: data.onUserEvent.data.sender.id,
-          name: data.onUserEvent.data.sender.name,
+          id: msgData.data.sender.id,
+          name: msgData.data.sender.name,
         },
-        chatRoom: {
-          id: data.onUserEvent.data.chatRoom.id,
-        },
+        senderId: msgData.data.sender.id,
+        chatRoomId: msgData.data.chatRoomId,
       };
 
-      if (roomId && newMessage.chatRoom.id === roomId) {
+      if (roomId && newMessage.chatRoomId === roomId) {
         setMessages((prev) => {
           if (prev.some((msg) => msg.id === newMessage.id)) return prev;
           return [...prev, newMessage];

@@ -1,4 +1,5 @@
-import { ChatRoom, participant_role, User } from "@prisma/client";
+import { ChatRoom, participant_role } from "@prisma/client";
+import { IUser } from "./User";
 
 export interface IParticipant {
   id: string;
@@ -10,7 +11,7 @@ export interface IParticipant {
   lastReadAt: Date;
   lastReadMsgId: string;
   chatRoom: ChatRoom;
-  user: User;
+  user: IUser;
 }
 
 // Participant Request DTO

@@ -95,14 +95,20 @@ async function main() {
 
         const socketId = crypto.randomUUID();
 
-        await presenceService.setUserOnline(user.id, socketId);
-
         Object.assign(ctx.extra, {
           user,
           socketId,
         });
 
+        await presenceService.setUserOnline(user.id, socketId);
+
         return true;
+      },
+      onPong: async (ctx) => {
+        const extra = ctx.extra as { user?: { id: string }; socketId?: string };
+        if (extra.user?.id && extra.socketId) {
+          await presenceService.refreshHeartbeat(extra.user.id, extra.socketId);
+        }
       },
       onSubscribe: (ctx) => {
         if (!ctx.extra?.user) throw new Error("Unauthorized");
@@ -126,6 +132,7 @@ async function main() {
       },
     },
     wsServer,
+    10_000,
   );
 
   // Start the server

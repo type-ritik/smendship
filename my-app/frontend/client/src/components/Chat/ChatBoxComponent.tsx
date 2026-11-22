@@ -2,11 +2,24 @@ import { useParams } from "react-router-dom";
 import { FiMessageCircle } from "react-icons/fi";
 import ChatComponent from "./ChatComponent";
 import ChatFriends from "./ChatFriends";
+import { wsClient } from "../../apolloConfig";
 
 export default function ChatBoxComponent() {
   const { id } = useParams();
   // "/chatroom/user/list" has no room selected
   const roomOpen = !!id && id !== "list";
+
+  if (document.visibilityState === "hidden") {
+    document.addEventListener("visibilitychange", () => {
+      wsClient.terminate();
+    });
+  }
+
+  if (typeof window !== "undefined") {
+    window.addEventListener("beforeunload", () => {
+      wsClient.terminate();
+    });
+  }
 
   return (
     <main className="mx-auto w-full max-w-6xl px-0 pt-16 sm:px-6 md:pb-6 md:pt-24">

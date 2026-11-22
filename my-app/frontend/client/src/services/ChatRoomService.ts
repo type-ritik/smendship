@@ -66,6 +66,7 @@ export const LIST_OF_CHAT_FRIENDS = gql`
         user {
           id
           name
+          status
         }
       }
     }
