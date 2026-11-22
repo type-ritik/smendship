@@ -3,6 +3,7 @@ import {
   ParticipantUserResponseDTO,
 } from "../models/Participants";
 import { IParticipantRepository } from "../repositories/IParticipantRepository";
+import { presenceService } from "./presenceService";
 
 export class ParticipantService {
   constructor(private participantRepository: IParticipantRepository) {}
@@ -34,6 +35,9 @@ export class ParticipantService {
         chatRoomId,
         userId,
       );
+
+    await presenceService.setWatcher(participant.userId, userId);
+    await presenceService.setWatcher(userId, participant.userId);
 
     return participant;
   }

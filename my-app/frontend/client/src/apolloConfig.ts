@@ -57,11 +57,14 @@ const retryLink = new RetryLink({
 
 export const wsClient = createClient({
   url: import.meta.env.VITE_API_URL_WS,
+  lazy: true,
+  keepAlive: 10_000,
   connectionParams: () => {
     const token = getToken();
     return token ? { authorization: token } : {};
   },
   retryAttempts: Infinity,
+  shouldRetry: () => Boolean(getToken()),
 });
 
 const wsLink = new GraphQLWsLink(wsClient);

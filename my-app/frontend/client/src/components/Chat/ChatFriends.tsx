@@ -58,8 +58,7 @@ function ChatFriends() {
             const user = item.participants?.[0]?.user;
 
             const active = item.id === activeRoomId;
-            // const online = user?.status === "online";
-            const online = true;
+            const online = user?.status === "online";
             return (
               <li
                 key={item.id}

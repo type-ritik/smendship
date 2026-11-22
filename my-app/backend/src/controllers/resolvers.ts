@@ -1,7 +1,13 @@
 // File: backend/src/resolvers/index.js
+import { presenceService } from "../services/presenceService";
 import { GraphQLContext } from "../types/context";
 
 export const resolvers = {
+  User: {
+    status: async ({ id }) => {
+      return (await presenceService.isUserOnline(id)) ? "online" : "offline";
+    },
+  },
   Query: {
     // User Query
     requestForPasswordReset: async (
@@ -541,6 +547,9 @@ export const resolvers = {
   },
   EventPayload: {
     __resolveType(obj) {
+
+      // console.log("Obj data", obj);
+
       if (obj.__typename) {
         return obj.__typename;
       }
@@ -551,6 +560,11 @@ export const resolvers = {
 
       if (obj.isAccepted !== undefined) {
         return "FriendRequest";
+      }
+
+
+      if (obj.status) {
+        return "User";
       }
 
       if (obj.isRead !== undefined) {

@@ -24,6 +24,7 @@ import { LikePostRepository } from "../repositories/LikePostRepository";
 import { LikePostService } from "../services/LikePostServices";
 import { ImageRepository } from "../repositories/ImageRepository";
 import { ImageServices } from "../services/ImageServices";
+import { PresenceService } from "../services/presenceService";
 
 // Repository & Configs
 // User Repo
@@ -65,7 +66,7 @@ const imageRepository = new ImageRepository(prisma);
 // Services
 
 // Subscription Service
-const subscriptionService = new SubscriptionService(pubsub);
+const subscriptionService = new SubscriptionService();
 
 // User Service
 const userService = new UserService(userRepository, passwordEncoder);
@@ -81,6 +82,9 @@ const friendRequestService = new FriendRequestServices(
 
 // Friendship Service
 const friendshipService = new FriendshipServices(friendshipRepository);
+
+// Presence Service
+const presenceService = new PresenceService(subscriptionService);
 
 // Message Service
 const messageService = new MessageService(

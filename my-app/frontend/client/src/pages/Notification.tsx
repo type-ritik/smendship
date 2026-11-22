@@ -69,7 +69,7 @@ function Notification() {
               />
               <p className="min-w-0 text-sm text-slate-700">
                 <span className="font-semibold text-slate-900">
-                  {item.fromUser.name}
+                  {item?.user1?.name}
                 </span>{" "}
                 {MESSAGES[item.type] ?? "sent you a notification."}
               </p>
