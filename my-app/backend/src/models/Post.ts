@@ -1,5 +1,5 @@
 import { Category } from "@prisma/client";
-import { IUser } from "./User";
+import { IUser, UserResponseDTO } from "./User";
 import { IPostImages } from "./PostImages";
 
 export interface IPost {
@@ -11,7 +11,7 @@ export interface IPost {
   likeCount: number;
   category: Category;
   is_revoked: boolean;
-  author: IUser;
+  author: UserResponseDTO;
   imageId: string;
   postImages: IPostImages[];
 }

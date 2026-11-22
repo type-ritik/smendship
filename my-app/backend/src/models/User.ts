@@ -90,10 +90,10 @@ export type ThirdPartyDTO = {
 
 export type UserOTPResponseDTO = Omit<
   IUser,
-  "createdAt" | "role" | "profileImageId" | "status"
+  "createdAt" | "role" | "profileImageId" | "status" | "profileImage"
 >;
 
 export type UserProfileResponseDTO = Omit<
   IUser,
-  "password" | "verficationCode" | "codeExpiry"
+  "password" | "verficationCode" | "codeExpiry" | "profileImage"
 >;

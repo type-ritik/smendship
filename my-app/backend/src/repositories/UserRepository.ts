@@ -31,7 +31,10 @@ export class UserRepository implements IUserRepository {
     }
   }
 
-  async resetPassword(userId: string, password: string): Promise<UserResponseDTO> {
+  async resetPassword(
+    userId: string,
+    password: string,
+  ): Promise<UserResponseDTO> {
     try {
       const payload = await this.prisma.user.update({
         where: { id: userId },
@@ -82,6 +85,7 @@ export class UserRepository implements IUserRepository {
           name: true,
           email: true,
           createdAt: true,
+          status: true,
         },
       });
 
@@ -163,7 +167,7 @@ export class UserRepository implements IUserRepository {
     });
   }
 
-  async findByEmail(email: string): Promise<IUser | null> {
+  async findByEmail(email: string): Promise<UserResponseDTO | null> {
     return this.prisma.user.findUnique({
       where: { email },
     });

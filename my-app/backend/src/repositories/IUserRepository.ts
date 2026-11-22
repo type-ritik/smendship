@@ -11,7 +11,7 @@ import {
 
 export interface IUserRepository {
   findById(id: string): Promise<UserResponseDTO | null>;
-  findByEmail(email: string): Promise<IUser | null>;
+  findByEmail(email: string): Promise<UserResponseDTO | null>;
   isEmailExists(email: string): Promise<boolean>;
   create(data: CreateUserDTO): Promise<UserOTPResponseDTO>;
   delete(id: string): Promise<boolean>;
