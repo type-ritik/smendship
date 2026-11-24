@@ -60,7 +60,12 @@ async function main() {
     cors({
       origin: [process.env.CLIENT_URL],
       credentials: true,
-      allowedHeaders: ["Content-Type", "Authorization"],
+      allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "apollographql-client-name",
+        "apollographql-client-version",
+      ],
       methods: ["POST", "OPTIONS", "GET"],
     }),
     express.json({ limit: "10mb" }),

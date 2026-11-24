@@ -1,52 +1,77 @@
-import nodemailer from "nodemailer";
-
 export class Mailer {
-  private transporter: any;
-  constructor() {
-    this.transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.NO_REPLY_USER_EMAIL,
-        pass: process.env.NO_REPLY_USER_SECRET_KEY,
-      },
-    });
-  }
+  private readonly apiUrl = "https://brevo.com";
+  private readonly apiKey = process.env.BREVO_API_KEY;
+  private readonly senderEmail = process.env.NO_REPLY_USER_EMAIL;
 
   async serverStart() {
-    try {
-      await this.transporter.verify();
-      console.log("Mail Server start successfully.");
-    } catch (error) {
-      console.error("Error verifying Nodemailer server:", error);
-      throw error;
+    if (!this.apiKey || !this.senderEmail) {
+      console.warn(
+        "Mail Server warning: BREVO_API_KEY or NO_REPLY_USER_EMAIL is missing."
+      );
+      return;
     }
+    console.log("Mail Server start successfully.");
+  }
+
+  private async sendRequest(payload: {
+    toEmail: string;
+    subject: string;
+    html?: string;
+    text?: string;
+  }) {
+    if (!this.apiKey) {
+      throw new Error("BREVO_API_KEY is not configured.");
+    }
+
+    const body: Record<string, any> = {
+      sender: {
+        name: "Face-net",
+        email: this.senderEmail,
+      },
+      to: [{ email: payload.toEmail }],
+      subject: payload.subject,
+    };
+
+    if (payload.html) body.htmlContent = payload.html;
+    if (payload.text) body.textContent = payload.text;
+
+    const response = await fetch(this.apiUrl, {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "api-key": this.apiKey,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Brevo API Error (${response.status}): ${errorText}`);
+    }
+
+    return await response.json();
   }
 
   async sendCode(toEmail: string, OTP: string) {
-    const mailOptions = {
-      from: `"Face-net" <noreply@example.com>`,
-      to: toEmail,
+    return await this.sendRequest({
+      toEmail,
       subject: "Verify your Email Address",
       html: `Your verification code is <b>${OTP}</b>. It will expire in 15 minutes.`,
-    };
-
-    return await this.transporter.sendMail(mailOptions);
+    });
   }
 
   async sendSuccessMessage(toEmail: string) {
-    const mailOption = {
-      from: `"Face-net" <noreply@example.com>`,
-      to: toEmail,
-      subject: "Verfication is successful",
+    return await this.sendRequest({
+      toEmail,
+      subject: "Verification is successful",
       text: `Your account is verified successful. Enjoy the service.`,
-    };
-
-    return await this.transporter.sendMail(mailOption);
+    });
   }
+
   async sendResetPasswordLink(name: string, toEmail: string, link: string) {
-    const mailOption = {
-      from: `"Face-net" <noreply@example.com>`,
-      to: toEmail,
+    return await this.sendRequest({
+      toEmail,
       subject: "Password reset: Email",
       html: `<p>Hello ${name},</p>
 
@@ -55,15 +80,12 @@ export class Mailer {
               <p>Link: <a href="${link}">Reset Password Here</a></p>
 
               <p>Thank you,</p>`,
-    };
-
-    return await this.transporter.sendMail(mailOption);
+    });
   }
 
   async sendResetPasswordSuccessMessage(name: string, toEmail: string) {
-    const mailOption = {
-      from: `"Face-net" <noreply@example.com>`,
-      to: toEmail,
+    return await this.sendRequest({
+      toEmail,
       subject: `${name}, your password was successfully RESET`,
       html: `
     <p>Hello ${name},</p>
@@ -72,8 +94,6 @@ export class Mailer {
 
     <p>Thank you,</p>
   `,
-    };
-
-    return await this.transporter.sendMail(mailOption);
+    });
   }
 }
