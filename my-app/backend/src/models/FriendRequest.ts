@@ -1,4 +1,5 @@
-import { Request, User } from "@prisma/client";
+import { Request } from "@prisma/client";
+import { UserResponseDTO } from "./User";
 
 export interface IFriendRequest {
   id: string;
@@ -6,8 +7,8 @@ export interface IFriendRequest {
   receiverId: string;
   isAccepted: boolean;
   type: Request;
-  receiver: User;
-  sender: User;
+  receiver: UserResponseDTO;
+  sender: UserResponseDTO;
   requestedAt: Date;
   acceptedAt: Date;
 }

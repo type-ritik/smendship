@@ -1,4 +1,5 @@
-import { Post, User } from "@prisma/client";
+import { Post } from "@prisma/client";
+import { UserResponseDTO } from "./User";
 
 export interface INotification {
   id: string;
@@ -7,8 +8,8 @@ export interface INotification {
   postId: string;
   toUserId: string;
   type: string;
-  user1: User;
-  user2: User;
+  user1: UserResponseDTO;
+  user2: UserResponseDTO;
   notifiedAt: Date;
   post: Post;
 }

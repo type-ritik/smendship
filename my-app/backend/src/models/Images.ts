@@ -1,12 +1,12 @@
 import { IPostImages } from "./PostImages";
-import { IUser } from "./User";
+import { UserResponseDTO } from "./User";
 
 export interface IImages {
   id: string;
   url: string;
   uploadedAt: Date;
   userId: string;
-  user: IUser;
+  user: UserResponseDTO;
   postImages: IPostImages;
 }
 

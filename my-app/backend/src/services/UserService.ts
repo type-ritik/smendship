@@ -8,7 +8,6 @@ import {
 import { PasswordEncoder } from "../config/PasswordEncoder";
 import {
   AuthUserResponseDTO,
-  UpdateUserDTO,
   UpdateUserResponseDTO,
   UserProfileResponseDTO,
   UserResponseDTO,
@@ -184,15 +183,13 @@ export class UserService {
     const token = this.jwtToken.generate({ id: existingUser.id, admin: false });
 
     return {
-      user: {
-        ...existingUser,
-      },
+      user: existingUser,
       token,
     };
   }
 
   public async updateProfile(
-    data: UpdateUserDTO,
+    data: UpdateUserResponseDTO,
   ): Promise<UpdateUserResponseDTO> {
     if (!data.id) {
       throw new Error("Unauthorized user.");

@@ -1,4 +1,5 @@
-import { ChatRoom, User } from "@prisma/client";
+import { ChatRoom } from "@prisma/client";
+import { UserResponseDTO } from "./User";
 
 export interface IMessage {
   id: string;
@@ -9,7 +10,7 @@ export interface IMessage {
   editedAt: Date;
   deletedAt: Date;
   chatRoom: ChatRoom;
-  sender: User;
+  sender: UserResponseDTO;
 }
 
 // Message Request DTO

@@ -1,8 +1,6 @@
 import {
   CreateUserDTO,
   UserResponseDTO,
-  IUser,
-  UpdateUserDTO,
   UpdateUserResponseDTO,
   ThirdPartyDTO,
   UserOTPResponseDTO,
@@ -11,11 +9,11 @@ import {
 
 export interface IUserRepository {
   findById(id: string): Promise<UserResponseDTO | null>;
-  findByEmail(email: string): Promise<UserResponseDTO | null>;
+  findByEmail(email: string): Promise<UserOTPResponseDTO | null>;
   isEmailExists(email: string): Promise<boolean>;
   create(data: CreateUserDTO): Promise<UserOTPResponseDTO>;
   delete(id: string): Promise<boolean>;
-  update(data: UpdateUserDTO): Promise<UpdateUserResponseDTO>;
+  update(data: UpdateUserResponseDTO): Promise<UpdateUserResponseDTO>;
   createViaThirdParty(data: ThirdPartyDTO): Promise<UserResponseDTO>;
   confirmOTP(email: string): Promise<UserResponseDTO>;
   resetPassword(userId: string, password: string): Promise<UserResponseDTO>;

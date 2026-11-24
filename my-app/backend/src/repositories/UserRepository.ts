@@ -1,9 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import {
   CreateUserDTO,
-  IUser,
   ThirdPartyDTO,
-  UpdateUserDTO,
   UpdateUserResponseDTO,
   UserOTPResponseDTO,
   UserProfileResponseDTO,
@@ -86,6 +84,7 @@ export class UserRepository implements IUserRepository {
           email: true,
           createdAt: true,
           status: true,
+          role: true,
         },
       });
 
@@ -96,7 +95,7 @@ export class UserRepository implements IUserRepository {
     }
   }
 
-  async update(data: UpdateUserDTO): Promise<UpdateUserResponseDTO> {
+  async update(data: UpdateUserResponseDTO): Promise<UpdateUserResponseDTO> {
     try {
       const payload = await this.prisma.$transaction(async (tx) => {
         if (data.name && data.email) {
@@ -167,7 +166,7 @@ export class UserRepository implements IUserRepository {
     });
   }
 
-  async findByEmail(email: string): Promise<UserResponseDTO | null> {
+  async findByEmail(email: string): Promise<UserOTPResponseDTO | null> {
     return this.prisma.user.findUnique({
       where: { email },
     });
