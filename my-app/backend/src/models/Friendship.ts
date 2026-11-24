@@ -1,11 +1,11 @@
-import { User } from "@prisma/client";
+import { UserResponseDTO } from "./User";
 
 export interface IFriendship {
   id: string;
   follower: string;
-  followers: User;
+  followers: UserResponseDTO;
   following: string;
-  followings: User;
+  followings: UserResponseDTO;
   createdAt: Date;
 }
 

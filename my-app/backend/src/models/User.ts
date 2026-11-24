@@ -29,53 +29,38 @@ export type CreateUserDTO = Omit<
   "id" | "createdAt" | "role" | "status" | "profileImageId" | "profileImage"
 >;
 
-export type UpdateUserDTO = Omit<
+// Response payload shape sent to the client (Hides sensitive credentials)
+
+export type UpdateUserResponseDTO = {
+  id: string;
+  name: string;
+  email: string;
+};
+
+export type UserStatusResponseDTO = {
+  id: string;
+  status: string;
+};
+
+export type UserProfileResponseDTO = Omit<
   IUser,
-  | "createdAt"
   | "password"
-  | "role"
-  | "status"
   | "verificationCode"
   | "codeExpiry"
-  | "profileImageId"
   | "profileImage"
+  | "profileImageId"
 >;
 
-// Response payload shape sent to the client (Hides sensitive credentials)
 export type UserResponseDTO = Omit<
   IUser,
-  | "password"
-  | "role"
-  | "verificationCode"
-  | "codeExpiry"
   | "profileImageId"
   | "profileImage"
+  | "password"
+  | "verificationCode"
+  | "codeExpiry"
 >;
 
-export type UserStatusResponseDTO = Omit<
-  IUser,
-  | "password"
-  | "role"
-  | "verificationCode"
-  | "codeExpiry"
-  | "profileImageId"
-  | "profileImage"
-  | "email"
-  | "name"
-  | "createdAt"
->;
-
-export type UpdateUserResponseDTO = Omit<
-  IUser,
-  | "createdAt"
-  | "password"
-  | "role"
-  | "verificationCode"
-  | "codeExpiry"
-  | "profileImageId"
-  | "status"
-  | "profileImage"
->;
+export type UserOTPResponseDTO = Omit<IUser, "profileImageId" | "profileImage">;
 
 export type AuthUserResponseDTO = {
   user: UserResponseDTO;
@@ -87,13 +72,3 @@ export type ThirdPartyDTO = {
   email: string;
   method: string;
 };
-
-export type UserOTPResponseDTO = Omit<
-  IUser,
-  "createdAt" | "role" | "profileImageId" | "status" | "profileImage"
->;
-
-export type UserProfileResponseDTO = Omit<
-  IUser,
-  "password" | "verficationCode" | "codeExpiry" | "profileImage"
->;

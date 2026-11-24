@@ -1,4 +1,5 @@
-import { Post, User } from "@prisma/client";
+import { Post } from "@prisma/client";
+import { UserResponseDTO } from "./User";
 
 export interface IComment {
   id: string;
@@ -6,7 +7,7 @@ export interface IComment {
   authorId: string;
   postId: string;
   createdAt: Date;
-  author: User;
+  author: UserResponseDTO;
   post: Post;
 }
 

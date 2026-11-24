@@ -1,10 +1,10 @@
-export function isValidUUID(uuid) {
+export function isValidUUID(uuid: string) {
   const uuidRegex =
     /^[0-9A-F]{8}-[0-9A-F]{4}-[1-5][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i;
   return uuidRegex.test(uuid);
 }
 
-export function isValidEmail(email) {
+export function isValidEmail(email: string) {
   const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
 
   if (!email || email.length < 6) {
@@ -18,7 +18,7 @@ export function isValidEmail(email) {
   return true;
 }
 
-export function isValidPassword(password) {
+export function isValidPassword(password: string) {
   const passwordRegex = /^[\w]{8,}/;
 
   if (!password || password.length < 8) {
@@ -32,7 +32,7 @@ export function isValidPassword(password) {
   return true;
 }
 
-export function isValidName(name) {
+export function isValidName(name: string) {
   const nameRegex = /^[a-zA-Z\s]+$/;
 
   if (!name || name.trim().length === 0) {

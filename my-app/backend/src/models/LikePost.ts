@@ -1,4 +1,5 @@
-import { Post, User } from "@prisma/client";
+import { Post } from "@prisma/client";
+import { UserResponseDTO } from "./User";
 
 export interface ILikePost {
   id: string;
@@ -6,7 +7,7 @@ export interface ILikePost {
   postId: string;
   isLiked: boolean;
   createdAt: Date;
-  user: User;
+  user: UserResponseDTO;
   post: Post;
 }
 
