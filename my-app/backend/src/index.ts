@@ -36,7 +36,11 @@ async function main() {
   });
 
   // Verify the nodemailer connection
-  new Mailer().serverStart();
+  try {
+    await new Mailer().serverStart();
+  } catch (err) {
+    console.log("Mailer startup warning:", err);
+  }
 
   redisClient.on("error", (err) => {
     console.log("Redis connection error:", err);
@@ -46,12 +50,18 @@ async function main() {
     console.log("Redis is connected successfully");
   });
 
+  app.get("/health", (req, res) => {
+    res.status(200).json({ status: "ok" });
+  });
+
   await server.start();
   app.use(
     "/graphql",
     cors({
-      origin: process.env.CLIENT_URL,
+      origin: [process.env.CLIENT_URL],
       credentials: true,
+      allowedHeaders: ["Content-Type", "Authorization"],
+      methods: ["POST", "OPTIONS", "GET"],
     }),
     express.json({ limit: "10mb" }),
     bodyParser.json(),
